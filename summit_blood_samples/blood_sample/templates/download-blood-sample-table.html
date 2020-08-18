@@ -22,7 +22,7 @@
             {% for data in objects %}
             <tr scope="row">
                 {% for val in data %}
-                {% if val == 'some text some text some text some text some text' %}
+                {% if val|length > 24 %}
                 <td><a rel="tooltip" data-html="true" title="<h6>{{ val }}</h6>" >{{ val|truncatechars:10 }}</a></td>
                 {% else %}
                 <td>{{ val }}</td>

@@ -1,3 +1,4 @@
+{% load static %}
 {% now "d b" as todays_date %}
 
 <div class="site-content__main custom-modal-content review-manifest">
@@ -14,24 +15,104 @@
         }
 
         </style>
-    <div class="custom-form">
+    <div class="custom-form" style="min-height: 470px;">
+        <span class="float-right">
+            <!-- Example single danger button -->
+            <div>
+                <img data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" class="btn-svg manifest-filters" src="{% static 'indigo/images/filter.svg' %}"  />
+                <div class="dropdown-menu dropdown-menu-left dropdown-menu-lg-left" style="    font-size: 13px;width: 300px;left: -30px !important;">
+                    <form method="GET" class="form-group post-form px-4 py-3 manifest-filter-form">
+                            {% csrf_token %}
+                            <div class="form-group">
+                                <label for="FilterVisit">Visit:</label>
+                                <select name="Visit" id="FilterVisit" class="form__control ">
+                                    <option value="">Please select</option>
+                                    <option value="0">Y0</option>
+                                    <option value="1">Y0+3M</option>
+                                    <option value="2">Y1</option>
+                                    <option value="3">Y2</option>
+                                </select>
+                                <label for="FilterSite">Site:</label>
+                                <select name="Site" id="FilterSite" class="form__control ">
+                                    <option value="">Please select</option>
+                                    <option value="0">FMH</option>
+                                    <option value="1">KGH</option>
+                                    <option value="2">Mile End Hospital</option>
+                                    <option value="3">UCLH</option>
+                                </select>
+                                <label for="FilterRoom">Room:</label>
+                                <select name="Room" id="FilterRoom" class="form__control ">
+                                    <option value="">Please select</option>
+                                </select>
+                            </div>
+                    </form>
+                    <em class="error"></em>
+                    <div class="text-center px-4 py-3">
+                        <button type="button" class="btn btn-submit" data-dismiss="modal" id="filter-manifest-submit">Submit</button>
+                    </div>
+                </div>
+            </div>
+        </span>
+        <h2 class="text-center">Matched Records</h2>
         <div id="manifest_table"></div>
-        <div id="pagination_manifest" class="pagination-md pull-right"></div></br>
+        <div id="pagination_manifest" class="pagination-md pull-right"></div><br/><br/>
+        <div><h2 class="text-center">Unmatched Records</h2></div>
+        <div class="container">
+            <div class="row">
+                <div class="col" style="padding-left: 0px;">
+                    <div id="umatched_bs_table"></div>
+                    <div id="pagination_umatched_bs" class="pagination-md pull-right table-responsive"></div></br>
+                </div>
+                <div class="col">
+                    <div id="umatched_mf_table"></div>
+                    <div id="pagination_umatched_mf" class="pagination-md pull-right table-responsive"></div></br>
+                </div>
+            </div>
+        </div>
     </div>
     <em class="error"></em>
-    {% if navigation != True %}
-        <div class="text-right bottom-buttons">
-            <button type="button" class="btn btn-cancel" data-dismiss="modal">Cancel</button>
-        </div>
-    {% endif %}
+    {% comment %} <div class="text-right bottom-buttons">
+        <button type="button" class="btn btn-cancel" data-dismiss="modal">Cancel</button>
+    </div> {% endcomment %}
 </div>
-<div class="site-content__main custom-modal-content edit-manifest-div">
-</div>
+<div class="site-content__main custom-modal-content edit-manifest-div"></div>
 <script type="text/javascript">
     $(document).ready(function(){
-        window.navigation="{{navigation}}";
+        $('.edit-manifest-div').html("");
+        $('#blood-sample-modal .close').click(function(e) {
+            e.preventDefault();
+            e.stopImmediatePropagation();
+            if ($('.edit-manifest-div').text()==""){
+                $('#blood-sample-modal').off('hide.bs.modal');
+                $("#blood-sample-modal").modal('hide');
+            } else{
+                $('#blood-sample-modal').on('hide.bs.modal', function () {
+                    return false;
+                });
+                $('.review-manifest').show();
+                $(".customModal").addClass("modal-xl");
+                $('.edit-manifest-div').html("");
+            }
+            $('#blood-sample-modal').off('hide.bs.modal');
+        });
+        $.ajax({
+            url: '/get_manifest_filters',//?day='+$('.reviewManifestDay.activeDay').data('activeday'),
+            type: 'get',
+            success: function(data){
+                $.each(data.rooms, function(key, value) {
+                    $('#FilterRoom')
+                        .append($("<option></option>")
+                                    .attr("value", value)
+                                    .text(value));
+                });
+            }
+        });
         twbsPaginator("#pagination_manifest", "#manifest_table", "{{current_page}}", "{{total_pages}}",
         '/review?table=True&type=manifest&day='+$('.reviewManifestDay.activeDay').data('activeday')+'&page=');
+        twbsPaginator("#pagination_umatched_bs", "#umatched_bs_table", "{{current_page}}", "{{bs_total_pages}}",
+        '/unmatched_manifest?&type=umatched_bs&day='+$('.reviewManifestDay.activeDay').data('activeday')+'&page=');
+        twbsPaginator("#pagination_umatched_mf", "#umatched_mf_table", "{{current_page}}", "{{mf_total_pages}}",
+        '/unmatched_manifest?&type=umatched_mf&day='+$('.reviewManifestDay.activeDay').data('activeday')+'&page=');
         function getNav(day){
             $('.modal-loader').show();
             $.ajax({
@@ -47,6 +128,31 @@
             $(".md-step").addClass("active");
             $(this).removeClass("active");
             getNav($(this).data('currentday'));
-    });
+        });
+        $('.dropdown-menu').on('click', function(event) {
+            event.stopPropagation();
+        });
+        $('#filter-manifest-submit').click(function() {
+            $.ajax({
+                url: '/review?get_pages=True&type=manifest&day='+$('.reviewManifestDay.activeDay').data('activeday')+'&'+$('.manifest-filter-form').serialize(),
+                type: 'get',
+                success: function(data){
+                    twbsPaginator("#pagination_manifest", "#manifest_table", data.current_page, data.total_pages,
+                    '/review?table=True&type=manifest&day='+$('.reviewManifestDay.activeDay').data('activeday')+'&'+$('.manifest-filter-form').serialize()+'&page=');
+                }
+            });
+            $.ajax({
+                url: '/unmatched_manifest?get_pages=True&type=umatched_mf&day='+$('.reviewManifestDay.activeDay').data('activeday')+'&'+$('.manifest-filter-form').serialize(),
+                type: 'get',
+                success: function(data){
+                    twbsPaginator("#pagination_umatched_mf", "#umatched_mf_table", data.current_page, data.total_pages,
+                    '/unmatched_manifest?&type=umatched_mf&day='+$('.reviewManifestDay.activeDay').data('activeday')+'&'+$('.manifest-filter-form').serialize()+'&page=');
+                }
+            });
+
+
+
+            $('.manifest-filters').dropdown('hide');
+        });
     });
 </script>

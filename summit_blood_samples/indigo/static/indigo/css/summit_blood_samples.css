@@ -716,3 +716,87 @@ li em {
 }
 
 .md-stepper-horizontal .md-step:first-child {}
+
+.md-stepper-horizontal .md-step.activeDay.uploadDay.active .md-step-circle {
+    /* background-color: #999999 !important; */
+    background-color: #999999 !important;
+}
+
+.blood-sample-col {
+    background-color: rgb(184 247 217);
+    white-space: nowrap;
+}
+
+.manifest-col {
+    background-color: rgb(253, 253, 207);
+    white-space: nowrap;
+}
+
+.blood-sample-header {
+    background-color: rgb(192 230 209);
+    white-space: nowrap;
+}
+
+.manifest-header {
+    background-color: #eaeacb;
+    white-space: nowrap;
+}
+
+.receipt-header {
+    background-color: #cedada;
+    white-space: nowrap;
+}
+
+.receipt-col {
+    background-color: #cee3e8;
+    white-space: nowrap;
+}
+
+.processed-header {
+    background-color: #e5c8bf;
+    white-space: nowrap;
+}
+
+.processed-col {
+    background-color: #f5c5ba;
+    white-space: nowrap;
+}
+
+.highcharts-title {
+    text-decoration: underline !important;
+}
+
+.modal-loader-svg {
+    max-width: 15rem;
+    width: 100%;
+    height: auto;
+    stroke-linecap: round;
+}
+
+.modal-loader-svg {
+    position: fixed;
+    z-index: 1450;
+    height: 9em;
+    width: 8em;
+    overflow: show;
+    margin: auto;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+}
+
+
+/* Transparent Overlay */
+
+.modal-loader-svg:before {
+    content: '';
+    display: block;
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 9em;
+    width: 8em;
+    background: radial-gradient(rgba(20, 20, 20, .8), rgba(0, 0, 0, .8));
+    background: -webkit-radial-gradient(rgba(20, 20, 20, .8), rgba(0, 0, 0, .8));
+}

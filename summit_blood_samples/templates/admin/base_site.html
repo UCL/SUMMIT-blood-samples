@@ -4,7 +4,6 @@
 
 {% block title %}{{ title }} - Summit Blood Sample Adminstration{% endblock %}
 {% block extrahead %}
-
 <link rel="shortcut icon" href="{% indigo_static 'images/favicon.ico' %}" />
 <link rel="apple-touch-icon-precomposed" href="{% indigo_static 'favicon-152.png' %}">
 <meta name="msapplication-TileColor" content="#000000">
@@ -34,7 +33,7 @@ a {
     width: 80%;
 }
 #content h1, .breadcrumbs{
-    display:none;
+    //display:none;
 }
 
 #admin-title{
@@ -46,6 +45,28 @@ a {
 #content-main{
     margin-top:45px;
 }
+#toolbar{
+    background:none !important;
+    border: none !important;
+}
+/*
+thead{
+    border: 1px solid #dddddd;
+}
+table {
+  font-family: arial, sans-serif;
+  border: 1px solid #dddddd;
+  border-collapse: collapse;
+  width: 100%;
+}
+
+td, th {
+  border: 1px solid #dddddd;
+  text-align: left;
+  padding: 8px;
+}*/
+
+
 </style>
 {% endblock %}
 

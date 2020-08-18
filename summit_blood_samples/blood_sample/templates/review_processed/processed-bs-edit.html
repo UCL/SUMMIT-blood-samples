@@ -1,0 +1,98 @@
+<h3>Edit - Processed Report</h3>
+<div class="custom-form">
+<form method="POST" class="post-form custom-form" id="edit-processed-bs-form" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="form-group">
+            <input type="text" class="form__control" name="id" value={{object.id}} hidden>
+            <div class="row">
+                <div class="col">
+                    <label for="ParentId">Parent Id:</label>
+                    <input type="text" class="form__control" name="ParentId" id="ParentId" value="{{processed_object.ParentId}}" maxlength="7" disabled>
+                </div>
+                <div class="col">
+                    <label for="Barcode">Barcode:</label>
+                    <input type="text" name="Barcode" class="form__control" id="Barcode" value="{{processed_object.Barcode}}" maxlength="10" disabled>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col">
+                    <label for="ReceivedDateTime">Received Date Time:</label>
+                    <input type="datetime-local" name="ReceivedDateTime" class="form__control" id="ReceivedDateTime" value="{{processed_object.ReceivedDateTime|date:"Y-m-d" }}T{{processed_object.ReceivedDateTime|date:"H:i" }}"  disabled>
+                </div>
+                <div class="col">
+                    <label for="State">State:</label>
+                    <select name="State" id="State" class="form__control " >
+                        <option value="">Please select</option>
+                        {% for key, values in STATECHOICE.items %}
+                            <option value="{{key}}" {% if object.State == key|stringformat:"i"  %} selected="selected" {% endif %}>{{values}}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            <label for="ProcessedDateTime">Processed Date Time:</label>
+            <input type="datetime-local" name="ProcessedDateTime" class="form__control" id="ProcessedDateTime" value="{{processed_object.ProcessedDateTime|date:"Y-m-d" }}T{{processed_object.ProcessedDateTime|date:"H:i" }}"  disabled>
+            <label for="Comments">Comments:</label>
+            <textarea class="form__control" name="Comments" id="Comments" maxlength="5000">{{object.Comments}}</textarea>
+        </div>
+
+</form>
+</div>
+<em class="error"></em>
+<div class="text-right bottom-buttons">
+    <button type="button" class="btn btn-cancel cancel-submit-edit">Cancel</button>
+    <button type="button" class="btn btn-submit" id="submit_edit_processed_sample">Submit</button>
+</div>
+<script>
+$(document).ready(function(){
+    $('.cancel-submit-edit').click(function() {
+        $('.review-processed').show();
+        $(".customModal").addClass("modal-xl");
+        $('.edit-processed-div').html("");
+    });
+
+    $('#submit_edit_processed_sample').click(function() {
+        $('.modal-loader').show();
+        $.ajax({
+            url: 'edit_processed_bs?'+$('#edit-processed-bs-form').serialize(),
+            type: 'POST',
+            processData: false,
+            contentType: false,
+            beforeSend: function(xhr){
+                xhr.setRequestHeader('X-CSRFToken', '{{ csrf_token }}');
+            },
+            success: function(data){
+                if (data.status==200){
+                    $('.modal-loader').hide();
+                    $('.edit-processed-div').html("");
+                    $('.review-processed').show();
+                    $(".customModal").addClass("modal-xl");
+                    var bloodSamples = [];
+                    $.each($("input[name='BloodSample']:checked"), function () {
+                        bloodSamples.push($(this).val());
+                        
+                    });
+                    var manifest = [];
+                    $.each($("input[name='Manifest']:checked"), function () {
+                        manifest.push($(this).val());
+                    });
+                    var receipt = [];
+                    $.each($("input[name='Receipt']:checked"), function () {
+                        receipt.push($(this).val());
+                    });
+                    var processed = [];
+                    $.each($("input[name='Processed']:checked"), function () {
+                        processed.push($(this).val());
+                    });
+                    
+                    twbsPaginator("#pagination_processed", "#processed_table", window['page#pagination_processed'], window['total_pages#pagination_processed'],
+                    '/review?table=True&type=processed&day='+$('.reviewProcessedDay.activeDay').data('activeday')+'&'+$('.processed-filter-form').serialize()+'&BloodSample=' + bloodSamples+'&Manifest=' + manifest+'&Receipt=' + receipt+'&Processed=' + processed+'&page=');
+                }else{
+                    $('.error').html('Internal server error occured');
+                }
+                $('.modal-loader').hide();
+            }
+
+        });
+    });
+});
+</script>

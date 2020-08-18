@@ -1,0 +1,68 @@
+{% if objects %}
+    {% load static %}
+    {% load blood_sample %}
+    <div class="table-responsive">
+        <table style="width:100%" class="table table-bordered download-table">
+            {% if bs_len != 0 %}
+            <colgroup>
+                <col span="{{bs_len}}" style="background-color:rgb(184 247 217)">
+                </colgroup>
+            {% endif %}
+            {% if mr_len != 0 %}
+                <col span="{{mr_len}}" style="background-color:rgb(253, 253, 207)">
+                </colgroup>
+            {% endif %}
+            {% if rr_len != 0 %}
+                <col span="{{rr_len}}" style="background-color:rgb(132 186 198 / .4)">
+                </colgroup>
+            {% endif %}
+            {% if pr_len != 0 %}
+                <col span="{{pr_len}}" style="background-color:rgb(231 109 82 / .4)">
+                </colgroup>
+            {% endif %}
+            {% for data in objects %}
+            <tr scope="row">
+                {% for val in data|slice:":-2" %}
+                    {% if val|length > 24 %}
+                    <td><a rel="tooltip" data-html="true" title="<h6>{{ val }}</h6>" >{{ val|truncatechars:10 }}</a></td>
+                    {% else %}
+                    <td>{{ val }}</td>
+                    {% endif %}
+                {% endfor %}
+                {% if forloop.first %}
+                    <td>Edit</td>
+                {% else %}
+                    {% last_but_one data as receipt_id %}
+                    <td><a data-editprocessed="{{data|last}}" data-editbs="{{receipt_id}}" class="edit-processed-bs" style="cursor:pointer;"><img class="warning-svg" src="{% static 'indigo/images/edit.svg' %}" style="margin-bottom: 0px;width:20px;height: 20px;" /></a></td>
+                {% endif %}
+            </tr >
+            {% endfor %}
+        </table>
+    </div>
+{% else %}
+No processed records found
+{% endif %}
+
+<script>
+$(document).ready(function(){
+    $("[rel='tooltip']").tooltip();
+    $('.edit-processed-bs').click(function() {
+        $('#blood-sample-modal').on('hide.bs.modal', function () {
+            return false;
+        })
+        $('.modal-loader').show();
+        $.ajax({
+            url: 'edit_processed_bs?id='+$(this).data('editbs')+'&processed_id='+$(this).data('editprocessed'),
+            type: 'GET',
+            success: function(data){
+                $('.modal-loader').hide();
+                $('.edit-processed-div').html(data);
+                $('.review-processed').hide();
+                $(".customModal").removeClass("modal-xl");
+            },
+            error: function (error) {
+            }
+        });
+    })
+});
+</script>

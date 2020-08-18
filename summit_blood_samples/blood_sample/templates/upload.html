@@ -5,7 +5,7 @@
 
 	<div>
 	<!-- completed -->
-	<div class="step {% if blood_samples_imported != 0 %}completed {% else %} active {% endif %}">
+	<div class="step {% if blood_samples_imported != 0 or blood_samples_cnt != 0 %}completed {% else %} active {% endif %}">
 		<div class="v-stepper">
 			<div class="circle"></div>
 			<div class="line"></div>
@@ -19,7 +19,7 @@
 	</div>
 
 
-	<div class="step {% if blood_samples_imported != 0 and manifest_imported != 0 %} completed {% elif blood_samples_imported == 0 and manifest_imported == 0 %} {% else %} active {% endif %}">
+	<div class="step {% if manifest_loaded_count != 0 %} completed {% elif blood_samples_imported != 0 and manifest_imported != 0 %} completed {% elif blood_samples_imported == 0 and manifest_imported == 0 %} {% else %} active {% endif %}">
 		<div class="v-stepper">
 		<div class="circle"></div>
 		<div class="line"></div>
@@ -33,7 +33,7 @@
 	</div>
 
 
-	<div class="step {% if manifest_imported != 0 and receipt_imported != 0 %} completed {% elif manifest_imported == 0 and receipt_imported == 0 %} {% else %} active {% endif %}">
+	<div class="step {%if receipt_loaded_cnt != 0 %} completed {% elif manifest_imported != 0 and receipt_imported != 0 %} completed {% elif manifest_imported == 0 and receipt_imported == 0 %} {% else %} active {% endif %}">
 		<div class="v-stepper">
 			<div class="circle"></div>
 			<div class="line"></div>
@@ -45,7 +45,7 @@
 			<button type="button" style="margin: 0px 43px;" class="btn custom-btn reviewBtn" data-review="receipt" {% if receipt_loaded_cnt != 0 and active|date:"d b" != todays_date %}enabled{% elif receipt_imported == 0 or not reviewed %}disabled{% endif %}>Review</button>
 		</div>
 	</div>
-	<div class="step {% if processed_imported != 0 and not receipt_imported %} completed {% elif processed_imported == 0 and receipt_imported == 0 %} {% else %} active {% endif %}">
+	<div class="step {% if processed_imported != 0 %} completed {% elif processed_imported != 0 and not receipt_imported %} completed {% elif processed_imported == 0 and receipt_imported == 0 %} {% else %} active {% endif %}">
 		<div class="v-stepper">
 			<div class="circle"></div>
 			<div class="line"></div>

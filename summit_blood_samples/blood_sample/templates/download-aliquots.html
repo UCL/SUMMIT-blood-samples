@@ -1,56 +1,23 @@
 {% load static %}
-<div id="download_blood_sample">
+<div id="download_aliquots">
     <br>
-    <h3>Download Aliquots <span class="float-right"><img class="btn-svg filteraliquots" id="filteraliquots" src="{% static 'indigo/images/filter.svg' %}"  />
-    <img class="btn-svg SettingsOptions" id="filteroptions" src="{% static 'indigo/images/gear.svg' %}" /></span></h3>
-    <br>
-    <table style="width:100%" class="table table-bordered download-table">
-        {% for data in db_data %}
-        <tr scope="row">
-            {% for val in data %}
-            <td >
-                {{ val }}
-            </td>
-            {% endfor %}
-        </tr >
-        {% endfor %}
-    </table>
-    <div class="text-right">
-    <button type="button" class="btn custom-btn dwncsvblood" id="downloadcsvbloodSample">Download Aliquots</button>
+    {% if "No Records to Display" == db_data %}
+      <h1>{{db_data}}</h1>
+    {% else %}
+    <div id="aliquots_table_download"></div>
+    <div id="pagination_aliquots_download" class="pagination-md pull-right"></div>
+    <div class="text-left">
+    <!-- <button  class="btn custom-btn dwncsvaliquots" id="downloadcsvaliquots"></button> -->
+    <a class="pull-left btn custom-btn dwncsvaliquots" type = "button" style="color:white ;" id="downloadcsvaliquots">Download Aliquots</a>
+    {% endif %}
     </div>
 </div>
-<script  type="text/javascript">
+<script>
     $(document).ready(function(){
-    $('.dwncsvblood').click(function() {
-        $.ajax({
-        url: '/download_blood_sample_csv',
-        type: 'GET',
+    twbsPaginator("#pagination_aliquots_download", "#aliquots_table_download", "{{current_page}}", "{{total_pages}}",
+          '/download_aliquots?table=True&page=');
+    $('.dwncsvaliquots').click(function() {
+      this.setAttribute("href", '/download_aliquots?csv=true');
     });
-    });
-    $('.filteraliquots').click(function() {
-    $('.modal-loader').show();
-    $("#blood-sample-modal").modal();
-    $.ajax({
-    url: '/filter_aliquots',
-    type: 'GET',
-    success: function(data){
-            $('.modal-body').html(data);
-            $('.modal-loader').hide();
-        }
-});
-});
-$('.SettingsOptions').click(function() {
-    $('.modal-loader').show();
-    $("#blood-sample-modal").modal();
-    $.ajax({
-    url: '/settings_aliquots',
-    type: 'GET',
-    success: function(data){
-            $('.modal-body').html(data);
-            $('.modal-loader').hide();
-        }
-});
-});
-    });
-    </script>
-
+        });
+</script>

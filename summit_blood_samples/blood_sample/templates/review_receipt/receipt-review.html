@@ -1,0 +1,155 @@
+{% load static %}
+{% now "d b" as todays_date %}
+
+<div class="site-content__main custom-modal-content review-receipt">
+    <h3>Review - Receipt Report</h3>
+        {% include "day-nav.html" %}
+        <style>
+        .reviewReceiptDay-container{
+            padding: 0px 110px;
+            margin-bottom: -40px;
+            margin-top: -30px;
+        }
+        .reviewReceiptDay:hover{
+            background: none !important;
+        }
+
+        </style>
+    <div class="custom-form" style="min-height: 470px;">
+        <span class="float-right">
+
+            <!-- Example single danger button -->
+            <div>
+                <img data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" class="btn-svg receipt-filters" src="{% static 'indigo/images/filter.svg' %}"  />
+                <div class="dropdown-menu dropdown-menu-left dropdown-menu-lg-left" style="    font-size: 13px;width: 300px;left: -30px !important;">
+                    <form method="GET" class="form-group post-form px-4 py-3 receipt-filter-form">
+                            {% csrf_token %}
+                            <div class="form-group">
+                                <label for="FilterReceiptVisit">Visit:</label>
+                                <select name="Visit" id="FilterReceiptVisit" class="form__control ">
+                                    <option value="">Please select</option>
+                                    <option value="0">Y0</option>
+                                    <option value="1">Y0+3M</option>
+                                    <option value="2">Y1</option>
+                                    <option value="3">Y2</option>
+                                </select>
+                                <label for="FilterReceiptSite">Site:</label>
+                                <select name="Site" id="FilterReceiptSite" class="form__control ">
+                                    <option value="">Please select</option>
+                                    <option value="0">FMH</option>
+                                    <option value="1">KGH</option>
+                                    <option value="2">Mile End Hospital</option>
+                                    <option value="3">UCLH</option>
+                                </select>
+                                <label for="FilterReceiptRoom">Room:</label>
+                                <select name="Room" id="FilterReceiptRoom" class="form__control ">
+                                    <option value="">Please select</option>
+                                </select>
+                            </div>
+                    </form>
+                    <em class="error"></em>
+                    <div class="text-center px-4 py-3">
+                        <button type="button" class="btn btn-submit" data-dismiss="modal" id="filter-receipt-submit">Submit</button>
+                    </div>
+                </div>
+            </div>
+        </span>
+        <h2 class="text-center" >Matched Records</h2>
+        <div id="receipt_table"></div>
+        <div id="pagination_receipt" class="pagination-md pull-right"></div></br></br>
+        <div><h2 class="text-center">Unmatched Records</h2></div>
+        <div class="row">
+            <div class="col" >
+                <div id="umatched_bsr_table"></div>
+                <div id="pagination_umatched_bsr" class="pagination-md pull-right table-responsive"></div></br>
+            </div>
+            <div class="col">
+                <div id="umatched_rr_table"></div>
+                <div id="pagination_umatched_rr" class="pagination-md pull-right table-responsive"></div></br>
+            </div>
+        </div>
+    </div>
+    <em class="error"></em>
+    {% comment %} <div class="text-right bottom-buttons">
+        <button type="button" class="btn btn-cancel" data-dismiss="modal">Cancel</button>
+    </div> {% endcomment %}
+</div>
+<div class="site-content__main custom-modal-content edit-receipt-div">
+</div>
+<script type="text/javascript">
+    $(document).ready(function(){
+        $('.edit-receipt-div').html("");
+        $('#blood-sample-modal .close').click(function(e) {
+            e.preventDefault();
+            e.stopImmediatePropagation();
+            if ($('.edit-receipt-div').text()==""){
+                $('#blood-sample-modal').off('hide.bs.modal');
+                $("#blood-sample-modal").modal('hide');
+            } else{
+                $('#blood-sample-modal').on('hide.bs.modal', function () {
+                    return false;
+                });
+                $('.review-receipt').show();
+                $(".customModal").addClass("modal-xl");
+                $('.edit-receipt-div').html("");
+            }
+            $('#blood-sample-modal').off('hide.bs.modal');
+        });
+        $.ajax({
+            url: '/get_manifest_filters',
+            type: 'get',
+            success: function(data){
+                $.each(data.rooms, function(key, value) {
+                    $('#FilterReceiptRoom')
+                        .append($("<option></option>")
+                                    .attr("value", value)
+                                    .text(value));
+                });
+            }
+        });
+        twbsPaginator("#pagination_receipt", "#receipt_table", "{{current_page}}", "{{total_pages}}",
+        '/review?table=True&type=receipt&day='+$('.reviewReceiptDay.activeDay').data('activeday')+'&page=');
+        twbsPaginator("#pagination_umatched_bsr", "#umatched_bsr_table", "{{current_page}}", "{{bsr_total_pages}}",
+        '/unmatched_receipt?&type=umatched_bsr&day='+$('.reviewReceiptDay.activeDay').data('activeday')+'&page=');
+        twbsPaginator("#pagination_umatched_rr", "#umatched_rr_table", "{{current_page}}", "{{rr_total_pages}}",
+        '/unmatched_receipt?&type=umatched_rr&day='+$('.reviewReceiptDay.activeDay').data('activeday')+'&page=');
+        function getNav(day){
+            $('.modal-loader').show();
+            $.ajax({
+                url: '/review?type=receipt&day='+day,
+                type: 'get',
+                success: function(data){
+                    $('.modal-body').html(data);
+                    $('.modal-loader').hide();
+                }
+            });
+        }
+        $('.reviewReceiptDay').click(function() {
+            $(".md-step").addClass("active");
+            $(this).removeClass("active");
+            getNav($(this).data('currentday'));
+        });
+        $('.dropdown-menu').on('click', function(event) {
+            event.stopPropagation();
+        });
+        $('#filter-receipt-submit').click(function() {
+            $.ajax({
+                url: '/review?get_pages=True&type=receipt&day='+$('.reviewReceiptDay.activeDay').data('activeday')+'&'+$('.receipt-filter-form').serialize(),
+                type: 'get',
+                success: function(data){
+                    twbsPaginator("#pagination_receipt", "#receipt_table", data.current_page, data.total_pages,
+                    '/review?table=True&type=receipt&day='+$('.reviewReceiptDay.activeDay').data('activeday')+'&'+$('.receipt-filter-form').serialize()+'&page=');
+                }
+            });
+            $.ajax({
+                url: '/unmatched_receipt?get_pages=True&type=umatched_bsr&day='+$('.reviewReceiptDay.activeDay').data('activeday')+'&'+$('.receipt-filter-form').serialize(),
+                type: 'get',
+                success: function(data){
+                    twbsPaginator("#pagination_umatched_bsr", "#umatched_bsr_table", data.current_page, data.total_pages,
+                    '/unmatched_receipt?&type=umatched_bsr&day='+$('.reviewReceiptDay.activeDay').data('activeday')+'&'+$('.receipt-filter-form').serialize()+'&page=');
+                }
+            });
+            $('.receipt-filters').dropdown('hide');
+        });
+    });
+</script>

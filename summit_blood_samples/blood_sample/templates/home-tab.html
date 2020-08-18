@@ -1,0 +1,70 @@
+<h4 class="ml-5">Unresolved Days</h4>
+    <ul class="list-group">
+        {% for records in unmatched_manifest %}
+        <li class="list-group-item d-flex justify-content-between align-items-center">Day - {{records}} Unmatched records with blood samples and manifest<a data-activeday="{{records}}" style="cursor:pointer;" class="btn btn-sm btn-go edit-sample">GO</a>
+        {% endfor %}
+        {% for records in un_manifest_dates %}
+        <li class="list-group-item d-flex justify-content-between align-items-center">Day - {{records}} Unmatched records with blood samples and manifest<a data-activeday="{{records}}" style="cursor:pointer;" class="btn btn-sm btn-go edit-sample">GO</a>
+        {% endfor %}
+        {% for records in unmatch_receipt %}
+        <li class="list-group-item d-flex justify-content-between align-items-center">Day - {{records}} Unmatched records with manifest and receipt<a data-activeday="{{records}}" style="cursor:pointer;" class="btn btn-sm btn-go edit-manifest">GO</a>
+        {% endfor %}
+        {% for records in un_receipt_dates %}
+        <li class="list-group-item d-flex justify-content-between align-items-center">Day - {{records}} Unmatched records with manifest and receipt<a data-activeday="{{records}}" style="cursor:pointer;" class="btn btn-sm btn-go edit-manifest">GO</a>
+        {% endfor %}
+        {% for records in un_processed_dates %}
+        <li class="list-group-item d-flex justify-content-between align-items-center">Day - {{records}} Unmatched records with receipt and processed<a data-activeday="{{records}}" style="cursor:pointer;" class="btn btn-sm btn-go edit-receipt">GO</a>
+        {% endfor %}
+        </li>
+    </ul>
+
+<script>
+  $(document).ready(function(){
+    $("[rel='tooltip']").tooltip();
+    $('.edit-sample').click(function() {
+        $('.modal-loader').show();
+        $.ajax({
+            url: 'review?type=manifest&day='+$(this).data('activeday'),
+            type: 'GET',
+            success: function(data){
+                $("#blood-sample-modal").modal();
+                $(".customModal").addClass("modal-xl");
+                $('.modal-loader').hide();
+                $('.modal-body').html(data);
+            },
+            error: function (error) {
+            }
+        });
+    });
+    $('.edit-manifest').click(function() {
+        $('.modal-loader').show();
+        $.ajax({
+            url: 'review?type=receipt&day='+$(this).data('activeday'),
+            type: 'GET',
+            success: function(data){
+                $("#blood-sample-modal").modal();
+                $(".customModal").addClass("modal-xl");
+                $('.modal-loader').hide();
+                $('.modal-body').html(data);
+            },
+            error: function (error) {
+            }
+        });
+    })
+    $('.edit-receipt').click(function() {
+        $('.modal-loader').show();
+        $.ajax({
+            url: 'review?type=processed&day='+$(this).data('activeday'),
+            type: 'GET',
+            success: function(data){
+                $("#blood-sample-modal").modal();
+                $(".customModal").addClass("modal-xl");
+                $('.modal-loader').hide();
+                $('.modal-body').html(data);
+            },
+            error: function (error) {
+            }
+        });
+    })
+});
+</script>

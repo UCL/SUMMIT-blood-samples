@@ -24,19 +24,26 @@ from .models import *
 from manage_users.models import *
 from django.core.files.storage import FileSystemStorage
 import time
-
-import psycopg2
 from django.core.mail import send_mail
 from django.template.loader import render_to_string
 from django.core.paginator import Paginator
 from django.db import connection
-cursor = connection.cursor()
+
 # Create your views here.
 
+state_status = {'0': 'ACTIVE', '1': 'UNABLE_TO_DRAW', '2': 'UNABLE_TO_PROCESS',
+                        '3': 'PROCESSED_ON_TIME', '4': 'PROCESSED_NOT_ON_TIME'}
+processing_status = {'0': 'Complete', '1': 'Partial', '2': 'Empty', '3': 'Destroyed', '4': 'Not applicable'}
+
+site_choices = {'0': 'FMH', '1': 'KGH', '2': 'Mile End Hospital', '3': 'UCLH'}
+
+visit_choices = {'0': 'Y0', '1': 'Y0+3M', '2': 'Y1', '3': 'Y2'}
+
+sample_type = {'0': 'RBC', '1': 'Plasma', '2': 'BuffyCoat', '3': 'Plasma'}
 
 class HomeView(LoginRequiredMixin, View):
     """
-    Class for login functionality
+    Class for Home page functionality
     """
 
     template_name = 'home.html'
@@ -48,6 +55,105 @@ class HomeView(LoginRequiredMixin, View):
         :return: HttpResponse object
         """
         return render(request, self.template_name)
+
+class HomeTabView(LoginRequiredMixin, View):
+    """
+    Class for Home page functionality
+    """
+
+    template_name = 'home-tab.html'
+
+    def get(self, request, *args, **kwargs):
+        """
+        Method to get the login form or redirect to Dashboard if session exists
+        :param request: request object
+        :return: HttpResponse object
+        """
+        manifest_cohort = ManifestRecords.objects.all().values_list('CohortId', flat=True)[::1]
+        unmatched_bloodsample = BloodSample.objects.exclude(CohortId__iregex=r'(' + '|'.join(manifest_cohort) + ')').values('CreatedAt').order_by('CreatedAt')
+        bloodsample_dates = []
+        for date in list(unmatched_bloodsample):
+            c_date = date['CreatedAt'].strftime('%B %d, %Y')
+            if c_date not in bloodsample_dates:
+                bloodsample_dates.append(c_date)
+        receipt_barcode = ReceiptRecords.objects.all().values_list('Barcode', flat=True)[::1]
+        unmatch_manifest = ManifestRecords.objects.exclude(Barcode__iregex=r'(' + '|'.join(receipt_barcode) + ')').values('CollectionDateTime').order_by('CollectionDateTime')
+        manifest_dates = []
+        for date in list(unmatch_manifest):
+            r_date = date['CollectionDateTime'].strftime('%B %d, %Y')
+            if r_date not in manifest_dates:
+                manifest_dates.append(r_date)
+
+        query='''
+            SELECT mr."CollectionDateTime"
+            FROM "blood_sample_manifestrecords" as mr
+            WHERE LOWER(mr."CohortId") NOT IN (SELECT LOWER(bs."CohortId") from blood_sample_bloodsample as bs)
+            ORDER BY mr."CollectionDateTime" ASC
+        '''
+        un_manifest_dates = []
+        with connection.cursor() as cursor:
+            cursor.execute(query)
+            unmatched_manifest=list(cursor.fetchall())
+            
+        for date in unmatched_manifest:
+            c_date = date[0].strftime('%B %d, %Y')
+            if c_date not in un_manifest_dates:
+                un_manifest_dates.append(c_date)
+        manifest_barcode = ManifestRecords.objects.all().values_list('Barcode', flat=True)[::1]
+        unmatch_receipt = ReceiptRecords.objects.exclude(Barcode__iregex=r'(' + '|'.join(manifest_barcode) + ')').values('DateTimeTaken').order_by('DateTimeTaken')
+        un_receipt_dates = []
+        for date in list(unmatch_receipt):
+            r_date = date['DateTimeTaken'].strftime('%B %d, %Y')
+            if r_date not in un_receipt_dates:
+                un_receipt_dates.append(r_date)
+
+        query = '''
+            SELECT
+                rr."DateTimeTaken"
+            FROM blood_sample_receiptrecords as rr
+            inner join blood_sample_manifestrecords as mr on (LOWER(rr."Barcode") = LOWER(mr."Barcode"))
+            inner join blood_sample_bloodsample as bs on (LOWER(bs."CohortId") = LOWER(mr."CohortId"))
+            WHERE LOWER(rr."SampleId") not in (SELECT
+                                            LOWER("pr"."ParentId")
+                                        FROM blood_sample_processedreport as pr
+                                        join blood_sample_receiptrecords as rr on LOWER(pr."ParentId") = LOWER(rr."SampleId")
+                                        join blood_sample_manifestrecords as mr on LOWER(rr."Barcode") = LOWER(mr."Barcode")
+                                        join blood_sample_bloodsample as bs on LOWER(bs."CohortId") = LOWER(mr."CohortId")
+                                    );
+            '''
+
+        with connection.cursor() as cursor:
+            cursor.execute(query)
+            columns = [col[0] for col in cursor.description]
+            data_pr_rr_unmatched = [row[0].strftime('%B %d, %Y')
+                for row in cursor.fetchall()
+            ]
+        query = '''
+            SELECT pr."ProcessedDateTime"
+            FROM blood_sample_processedreport as pr
+            WHERE LOWER(pr."ParentId") not in (
+                    SELECT
+                        LOWER(rr."SampleId")
+                    FROM blood_sample_receiptrecords as rr
+                    inner join blood_sample_manifestrecords as mr on (LOWER(rr."Barcode") = LOWER(mr."Barcode"))
+                    inner join blood_sample_bloodsample as bs on (LOWER(bs."CohortId") = LOWER(mr."CohortId"))
+                ) ;'''
+        with connection.cursor() as cursor:
+            cursor.execute(query)
+            columns = [col[0] for col in cursor.description]
+            data_pr_unmatched = [
+                row[0].strftime('%B %d, %Y')
+                for row in cursor.fetchall()
+            ]
+        data_pr_rr_unmatched+=data_pr_unmatched
+        unmatched_pr_data = []
+        [unmatched_pr_data.append(x) for x in data_pr_rr_unmatched if x not in unmatched_pr_data]
+
+        return render(request, self.template_name, {
+            'un_manifest_dates':un_manifest_dates,
+            'un_receipt_dates':un_receipt_dates,
+            'un_processed_dates':unmatched_pr_data,
+            'unmatched_manifest': bloodsample_dates, 'unmatch_receipt': manifest_dates,})
 
 
 class UploadView(LoginRequiredMixin, View):
@@ -254,8 +360,6 @@ class DownloadBloodSampleView(LoginRequiredMixin, View):
                     right join blood_sample_manifestrecords as mr on rr."Barcode" = mr."Barcode"
                     right join blood_sample_bloodsample as bs on bs."CohortId" = mr."CohortId"
                 """
-        state_status = {'0': 'ACTIVE', '1': 'UNABLE_TO_DRAW', '2': 'UNABLE_TO_PROCESS',
-                        '3': 'PROCESSED_ON_TIME', '4': 'PROCESSED_NOT_ON_TIME'}
         extra = ' WHERE '
         date_start = filter_options['DF'][0]
         date_end = filter_options['DT'][0]
@@ -274,11 +378,15 @@ class DownloadBloodSampleView(LoginRequiredMixin, View):
                    date[1].strftime("%Y-%m-%d") <= date_end]
         for filt, value in filter_options.items():
             if filt == 'Site' and value[0] != '':
-                extra += "mr.\"Site\"='" + value[0]+"' AND "
+                val = list(site_choices.keys())[
+                    list(site_choices.values()).index(value[0])]
+                extra += "mr.\"Site\"='" + val+"' AND "
             if filt == 'Room' and value[0] != '':
                 extra += "mr.\"Room\"='" + value[0]+"' AND "
             if filt == 'Visit' and value[0] != '':
-                extra += "mr.\"Visit\"='" + value[0]+"' AND "
+                val = list(visit_choices.keys())[
+                    list(visit_choices.values()).index(value[0])]
+                extra += "mr.\"Visit\"='" + val+"' AND "
             if filt == 'State' and value[0] != '':
                 val = list(state_status.keys())[
                     list(state_status.values()).index(value[0])]
@@ -292,18 +400,32 @@ class DownloadBloodSampleView(LoginRequiredMixin, View):
             query += extra
         query += ' order by bs.id, mr.\"Barcode\"'
 
-        cursor.execute(query)
-        # Fetch rows using fetchall() method.
-        data = cursor.fetchall()
+        with connection.cursor() as cursor:
+            cursor.execute(query)
+            # Fetch rows using fetchall() method.
+            data = cursor.fetchall()
 
-        state_status = {'0': 'ACTIVE', '1': 'UNABLE_TO_DRAW', '2': 'UNABLE_TO_PROCESS',
-                        '3': 'PROCESSED_ON_TIME', '4': 'PROCESSED_NOT_ON_TIME'}
+
         if 'State' in settings['BS']:
             ind = headers.index('State')
             for row in range(len(data)):
                 data[row] = list(data[row])
                 data[row][ind] = state_status[data[row][ind]]
                 data[row] = tuple(data[row])
+        if 'Site' in settings['MR']:
+            ind = headers.index('Site')
+            for row in range(len(data)):
+                if data[row][ind] is not None:
+                    data[row] = list(data[row])
+                    data[row][ind] = site_choices[data[row][ind]]
+                    data[row] = tuple(data[row])
+        if 'Visit' in settings['MR']:
+            ind = headers.index('Visit')
+            for row in range(len(data)):
+                if data[row][ind] is not None:
+                    data[row] = list(data[row])
+                    data[row][ind] = visit_choices[data[row][ind]]
+                    data[row] = tuple(data[row])
         row_headers = {'CohortId': 'Cohort id', 'AppointmentId': 'Appointment id', 'SiteNurseEmail': 'Site Nurse Email',
                        'CreatedAt': 'Appointment date', 'CollectionDateTime': 'Collection Date Time', 'DateTimeTaken': 'Date Time Taken',
                        'SampleId': 'Sample id', 'TissueSubType': 'Tissue Sub Type', 'ReceivedDateTime': 'Received Date Time',
@@ -312,22 +434,12 @@ class DownloadBloodSampleView(LoginRequiredMixin, View):
             if headers[i] in row_headers:
                 headers[i] = row_headers[headers[i]]
 
-        #data.insert(0, headers)
         if csv and len(data) != 0:
             response = HttpResponse(content_type='text/csv')
             data.insert(0, tuple(headers))
             from django.template.loader import get_template
             template = get_template('csv_download.txt')
             csv_data = data
-            # for i in range(len(csv_data)):
-            #     for j in range(len(csv_data[i])):
-            #         if type(csv_data[i][j]) is datetime.datetime:
-            #             print(str(csv_data[i][j]), '------------------------ BEFORE')
-            #             csv_data[i] = list(csv_data[i])
-            #             csv_data[i][j] = csv_data[i][j].strftime("%c")
-            #             csv_data[i] = tuple(csv_data[i])
-            #             print(csv_data[i][j], '------------------------ AFTER')
-            # csv_data[i] = str(csv_data[i])[1:-1]
             c = {
                 'data': csv_data,
             }
@@ -368,90 +480,54 @@ class DownloadBloodSampleView(LoginRequiredMixin, View):
 
 class DownloadAliquotsView(LoginRequiredMixin, View):
     template_name = 'download-aliquots.html'
+    aliquots_table= 'download-aliquots-table.html'
 
     def get(self, request, *args, **kwargs):
-        get_data = dict(request.GET)
-        if len(get_data) == 0:
-            get_data = {'Sample': [''], 'Volume': [''], 'Status': ['']}
-        if 'Sample' in get_data:
-            if get_data['Sample'] != [''] and get_data['Volume'] != [''] and get_data['Status'] != ['']:
-                ids = ProcessedAliquots.objects.filter(
-                    SampleType__in=get_data['Sample']).values_list('id', flat=True)[::1]
-                ids += ProcessedAliquots.objects.filter(
-                    Volume__in=get_data['Volume']).values_list('id', flat=True)[::1]
-                ids += ProcessedAliquots.objects.filter(
-                    PostProcessingStatus__in=get_data['Status']).values_list('id', flat=True)[::1]
-                aliquots_data = ProcessedAliquots.objects.filter(pk__in=ids).values_list(
-                    'SampleType', 'Volume', 'VolumeUnit', 'PostProcessingStatus')
-            elif get_data['Sample'] == [''] and get_data['Volume'] != [''] and get_data['Status'] != ['']:
-                ids = ProcessedAliquots.objects.filter(
-                    Volume__in=get_data['Volume']).values_list('id', flat=True)[::1]
-                ids += ProcessedAliquots.objects.filter(
-                    PostProcessingStatus__in=get_data['Status']).values_list('id', flat=True)[::1]
-                aliquots_data = ProcessedAliquots.objects.filter(pk__in=ids).values_list(
-                    'SampleType', 'Volume', 'VolumeUnit', 'PostProcessingStatus')
-            elif get_data['Sample'] != [''] and get_data['Volume'] == [''] and get_data['Status'] != ['']:
-                ids = ProcessedAliquots.objects.filter(
-                    SampleType__in=get_data['Sample']).values_list('id', flat=True)[::1]
-                ids += ProcessedAliquots.objects.filter(
-                    PostProcessingStatus__in=get_data['Status']).values_list('id', flat=True)[::1]
-                aliquots_data = ProcessedAliquots.objects.filter(pk__in=ids).values_list(
-                    'SampleType', 'Volume', 'VolumeUnit', 'PostProcessingStatus')
-            elif get_data['Sample'] != [''] and get_data['Volume'] != [''] and get_data['Status'] == ['']:
-                ids = ProcessedAliquots.objects.filter(
-                    SampleType__in=get_data['Sample']).values_list('id', flat=True)[::1]
-                ids += ProcessedAliquots.objects.filter(
-                    Volume__in=get_data['Volume']).values_list('id', flat=True)[::1]
-                aliquots_data = ProcessedAliquots.objects.filter(pk__in=ids).values_list(
-                    'SampleType', 'Volume', 'VolumeUnit', 'PostProcessingStatus')
-            elif get_data['Sample'] != [''] and get_data['Volume'] == [''] and get_data['Status'] == ['']:
-                ids = ProcessedAliquots.objects.filter(
-                    SampleType__in=get_data['Sample']).values_list('id', flat=True)[::1]
-                aliquots_data = ProcessedAliquots.objects.filter(pk__in=ids).values_list(
-                    'SampleType', 'Volume', 'VolumeUnit', 'PostProcessingStatus')
-            elif get_data['Sample'] == [''] and get_data['Volume'] != [''] and get_data['Status'] == ['']:
-                ids = ProcessedAliquots.objects.filter(
-                    Volume__in=get_data['Volume']).values_list('id', flat=True)[::1]
-                aliquots_data = ProcessedAliquots.objects.filter(pk__in=ids).values_list(
-                    'SampleType', 'Volume', 'VolumeUnit', 'PostProcessingStatus')
-            elif get_data['Sample'] == [''] and get_data['Volume'] == [''] and get_data['Status'] != ['']:
-                ids = ProcessedAliquots.objects.filter(
-                    PostProcessingStatus__in=get_data['Status']).values_list('id', flat=True)[::1]
-                aliquots_data = ProcessedAliquots.objects.filter(pk__in=ids).values_list(
-                    'SampleType', 'Volume', 'VolumeUnit', 'PostProcessingStatus')
-            elif get_data['Sample'] == [''] and get_data['Volume'] == [''] and get_data['Status'] == ['']:
-                aliquots_data = ProcessedAliquots.objects.all().values_list(
-                    'SampleType', 'Volume', 'VolumeUnit', 'PostProcessingStatus')
-            aliquots_data = list(aliquots_data)
-            aliquots_data.insert(
-                0, ('Sample Type', 'Volume', 'Volume Unit', 'Post Processing Status'))
-            context = {'db_data': aliquots_data}
-        else:
-            req = get_data
-            for key, val in req.items():
-                req[key] = val[0].split(',')
-
-            # Executing an SQL function using the execute() method
-            query = """SELECT """
-            headers = []
-            for column in req['Aliquots']:
-                headers.append(column)
-                query += "\""+column + "\", "
-            if len(headers) == 0:
-                query += """ "SampleType", "Volume", "VolumeUnit", "PostProcessingStatus"
-                """
-                headers = ('Sample Type', 'Volume', 'Volume Unit',
-                           'Post Processing Status')
-            else:
-                query = query[:-2]
-            query += """ from blood_sample_processedaliquots """
-            cursor.execute(query)
-            # Fetch rows using fetchall() method.
-            data = cursor.fetchall()
-
-            data.insert(0, headers)
-            context = {'db_data': data}
-
+        request_data = dict(request.GET)
+        csv = False
+        if 'csv' in request_data:
+            csv = True
+        aliquots_data = ProcessedAliquots.objects.all().values_list(
+                'SampleId', 'SampleType', 'Volume', 'VolumeUnit', 'PostProcessingStatus').order_by('SampleId', 'SampleType')
+        aliquots_data = list(aliquots_data)
+        for row in range(len(aliquots_data)):
+            aliquots_data[row] = list(aliquots_data[row])
+            aliquots_data[row][-1] = processing_status[aliquots_data[row][-1]]
+            aliquots_data[row][1] = sample_type[aliquots_data[row][1]]
+            aliquots_data[row] = tuple(aliquots_data[row])
+        if len(aliquots_data) == 0:
+            aliquots_data = 'No Records to Display'
+        headers = ('Parent id', 'Sample type', 'Volume', 'Volume unit', 'Post processing status')
+        if csv and len(aliquots_data) != 0:
+            response = HttpResponse(content_type='text/csv')
+            aliquots_data.insert(0, headers)
+            from django.template.loader import get_template
+            template = get_template('csv_download.txt')
+            csv_data = aliquots_data
+            c = {
+                'data': csv_data,
+            }
+            filename = 'Aliquots_' + datetime.datetime.now().strftime("%Y%m%d%H%M%S")+'.csv'
+            content = "attachment; filename=%s" % (filename)
+            response['Content-Disposition'] = content
+            response.write(template.render(c))
+            return response
+        page = int(request.GET.get('page', 1))
+        table = request.GET.get('table', 'False')
+        from django.conf import settings as django_settings
+        total_pages = math.ceil(len(aliquots_data)/django_settings.ITEMS_PER_PAGE)
+        items_per_page = django_settings.ITEMS_PER_PAGE
+        record_start = (page-1) * items_per_page
+        record_end = page * items_per_page
+        if table == "True":
+            return render(request, self.aliquots_table, {
+                "objects": [headers]+aliquots_data[record_start:record_end],
+                "current_page": page,
+                "total_pages": total_pages,
+                'db_data': aliquots_data
+            })
+        context = {'db_data': aliquots_data, "current_page": page,
+                "total_pages": total_pages,}
         return render(request, self.template_name, context)
 
 
@@ -466,17 +542,6 @@ class SettingsOptionsView(LoginRequiredMixin, View):
         settings = eval(request.GET.get('settings'))
         filters = eval(request.GET.get('filters'))
         context = {'settings': settings, 'filters': filters}
-        return render(request, self.template_name, context)
-
-
-class SettingsAliquotsView(LoginRequiredMixin, View):
-    template_name = 'settings_aliquots.html'
-
-    def get(self, request, *args, **kwargs):
-        """
-        Method to return settings columns columns
-        """
-        context = {'db_data': 'Hello World'}
         return render(request, self.template_name, context)
 
 
@@ -497,11 +562,15 @@ class FilterOptionsView(LoginRequiredMixin, View):
         dist_visits = []
         for visit in visits:
             dist_visits += list(visit.values())
+        for visit_name in range(len(dist_visits)):
+            dist_visits[visit_name] = visit_choices[dist_visits[visit_name]]
         sites = ManifestRecords.objects.filter(
             Barcode__in=receipt_barcode).values('Site').distinct()
         dist_sites = []
         for site in sites:
             dist_sites += list(site.values())
+        for site_name in range(len(dist_sites)):
+            dist_sites[site_name] = site_choices[dist_sites[site_name]]
         rooms = ManifestRecords.objects.filter(
             Barcode__in=receipt_barcode).values('Room').distinct()
         dist_rooms = []
@@ -511,36 +580,6 @@ class FilterOptionsView(LoginRequiredMixin, View):
                       'PROCESSED_ON_TIME', 'PROCESSED_NOT_ON_TIME']
         context = {'sites': dist_sites,
                    'visits': dist_visits, 'rooms': dist_rooms, 'filters': filters, 'settings': settings, 'states': dist_state, 'from': date_from, 'to': date_to}
-        return render(request, self.template_name, context)
-
-
-class FilterAliquotsView(LoginRequiredMixin, View):
-    template_name = 'filter_Aliquots.html'
-
-    def get(self, request, *args, **kwargs):
-        """
-        Method to Return Filter Options
-        """
-        # ProcessedAliquots.objects.all().values('SampleType', 'Volume', 'VolumeUnit', 'PostProcessingStatus')
-        samples = ProcessedAliquots.objects.all().values('SampleType').distinct()
-        dist_sample = []
-        for sample in samples:
-            dist_sample += list(sample.values())
-        volumes = ProcessedAliquots.objects.all().values('Volume').distinct()
-        dist_volume = []
-        for volume in volumes:
-            dist_volume += list(volume.values())
-        Units = ProcessedAliquots.objects.all().values('VolumeUnit').distinct()
-        dist_unit = []
-        for unit in Units:
-            dist_unit += list(unit.values())
-        status = ProcessedAliquots.objects.all().values(
-            'PostProcessingStatus').distinct()
-        dist_status = []
-        for stat in status:
-            dist_status += list(stat.values())
-        context = {'samples': dist_sample, 'volumes': dist_volume,
-                   'units': dist_unit, 'status': dist_status}
         return render(request, self.template_name, context)
 
 
@@ -653,6 +692,9 @@ class UploadManifestView(LoginRequiredMixin, View):
         room = int(df.iloc[2, 4]) if isinstance(
             df.iloc[2, 4], float) else df.iloc[2, 4]
         site = df.iloc[2, 2]
+        if site not in ['FMH', 'KGH', 'Mile End Hospital', 'UCLH']:
+            return JsonResponse({'status': 412, 'message': 'Invalid Site'})
+
         df = df.iloc[5:-1, 1:-1].dropna()
 
         df = df.drop_duplicates()
@@ -712,7 +754,7 @@ class UploadManifestView(LoginRequiredMixin, View):
                 ManifestRecords(
                     Visit=visit,
                     ImportId=ImportId,
-                    Site=site,
+                    Site=dict((v,k) for k,v in site_choices.items()).get(site),
                     Room=room,
                     CohortId=record[2].strip(),
                     Barcode=record[0],
@@ -955,7 +997,7 @@ class UploadProcessedView(LoginRequiredMixin, View):
         manifest_db_df['greaterthan_48hrs'] = ''
         for index, row in manifest_db_df.iterrows():
             manifest_db_df.at[index, 'greaterthan_48hrs'] = True if (
-                manifest_db_df['Processed Date Time'].iloc[index]-manifest_db_df['CollectionDateTime'].iloc[index]).total_seconds() // 3600 > 48 else False
+                manifest_db_df['Processed Date Time'].iloc[index]-manifest_db_df['CollectionDateTime'].iloc[index]).total_seconds() // (settings.PROCESSING_HOURS*100) > settings.PROCESSING_HOURS else False
 
         if request.GET.get('confirm', '') == 'True':
             fs = FileSystemStorage(
@@ -1007,7 +1049,7 @@ class UploadProcessedView(LoginRequiredMixin, View):
 
             model_instances = [
                 ProcessedAliquots(
-                    SampleType=record["Sample Type"],
+                    SampleType=dict((v,k) for k,v in sample_type.items()).get(record["Sample Type"]),
                     Volume=record['Volume'],
                     VolumeUnit=record['Volume Unit'],
                     PostProcessingStatus=0,
@@ -1046,11 +1088,11 @@ class UploadProcessedView(LoginRequiredMixin, View):
                     'mail-aliquots-less.html', {'processed_not_on_time': processed_not_on_time,
                                                 'referer': request.headers['Referer'][:-1]})
                 send_mail(
-                    'Blood Samples - Uploaded Processed records which are not processed under 48 hours',
+                    'Blood Samples - Uploaded Processed records which are not processed under 36 hours',
                     msg_html,
                     settings.EMAIL_HOST_USER,
                     [i.user_id.email for i in UserRoles.objects.filter(role_id__in=[
-                        1, 2])],  # This should be list of from users
+                        2])],  # This should be list of from users
                     html_message=msg_html,
                 )
             return render(request, self.receipt_success_template, {
@@ -1078,6 +1120,10 @@ class ReviewView(LoginRequiredMixin, View):
     blood_sample_review_table_template = 'review_blood_sample/blood-sample-table.html'
     manifest_review_template = 'review_manifest/manifest-review.html'
     manifest_review_table_template = 'review_manifest/manifest-table.html'
+    receipt_review_template = 'review_receipt/receipt-review.html'
+    receipt_review_table_template = 'review_receipt/receipt-table.html'
+    processed_review_template = 'review_processed/processed-review.html'
+    processed_review_table_template = 'review_processed/processed-table.html'
 
     def get(self, request, *args, **kwargs):
         """
@@ -1087,12 +1133,6 @@ class ReviewView(LoginRequiredMixin, View):
         """
         review_type = request.GET.get("type", "blood_sample")
         page = int(request.GET.get('page', 1))
-        # try:
-        #     day = request.GET.get(
-        #         'day', datetime.datetime.today().strftime('%B %d, %Y'))
-        # except:
-        #     day = request.GET.get(
-        #         'day', datetime.datetime.today().strftime('%b. %d, %Y'))
         table = request.GET.get('table', 'False')
         day, days = UploadView.get_dayformated_and_days(self, request)
 
@@ -1110,17 +1150,16 @@ class ReviewView(LoginRequiredMixin, View):
                     sample_import_latest.save()
 
             if request.GET.get('firstOpen', 'False') == "True":
-                if not day < datetime.datetime.today().replace(hour=0, minute=0, second=0, microsecond=0):
+                if not day < datetime.datetime.today().replace(hour=0, minute=0, second=0, microsecond=0) and BloodSample.objects.all():
                     day = BloodSample.objects.all().order_by('-CreatedAt').first().CreatedAt
                     days = [(day - datetime.timedelta(days=x))
                             for x in range(4)]
                     days.reverse()
-            # import ipdb
-            # ipdb.set_trace()
+
             query_results = BloodSample.objects.filter(
                 CreatedAt__range=(day.replace(hour=0, minute=0, second=0, microsecond=0), day.replace(
                     hour=23, minute=59, second=59, microsecond=0))).order_by('CreatedAt', 'CohortId', 'Barcode')
-            if query_results.count() == 0 and request.GET.get('firstOpen', 'False') == "True":
+            if query_results.count() == 0 and request.GET.get('firstOpen', 'False') == "True" and BloodSample.objects.all():
                 day = BloodSample.objects.all().order_by('-CreatedAt').first().CreatedAt
                 days = [(day - datetime.timedelta(days=x))
                         for x in range(4)]
@@ -1128,8 +1167,6 @@ class ReviewView(LoginRequiredMixin, View):
                 query_results = BloodSample.objects.filter(
                     CreatedAt__range=(day.replace(hour=0, minute=0, second=0, microsecond=0), day.replace(
                         hour=23, minute=59, second=59, microsecond=0))).order_by('CreatedAt', 'CohortId', 'Barcode')
-            # query_results = BloodSample.objects.filter(
-            #     ImportId__in=blood_samples_imported.values_list('id', flat=True)[::1]).order_by('id')
 
             paginator = Paginator(query_results, settings.ITEMS_PER_PAGE)
 
@@ -1159,61 +1196,777 @@ class ReviewView(LoginRequiredMixin, View):
             })
 
         if review_type == "manifest":
-            manifest_imported = ManifestImports.objects.filter(
-                CreatedAt__range=(day.replace(hour=0, minute=0, second=0, microsecond=0), day.replace(
-                    hour=23, minute=59, second=59, microsecond=0)))
+            if request.GET.get('firstOpen', 'False') == "True":
+                if not day < datetime.datetime.today().replace(hour=0, minute=0, second=0, microsecond=0) and ManifestRecords.objects.all():
+                    day = ManifestRecords.objects.all().order_by('-CollectionDateTime').first().CollectionDateTime
+                    days = [(day - datetime.timedelta(days=x))
+                            for x in range(4)]
+                    days.reverse()
+            qry = ""
 
-            query_results = ManifestRecords.objects.filter(
-                ImportId__in=manifest_imported.values_list('id', flat=True)[::1]).order_by('id')
+            if request.GET.get('Site', ''):
+                qry += f" AND mr.\"Site\" = '{request.GET.get('Site')}'"
+            if request.GET.get('Visit', ''):
+                qry += f" AND mr.\"Visit\" = '{request.GET.get('Visit')}'"
+            if request.GET.get('Room', ''):
+                qry += f" AND mr.\"Room\" = '{request.GET.get('Room')}'"
 
-            paginator = Paginator(query_results, settings.ITEMS_PER_PAGE)
-
-            if table == "True":
-                try:
-                    results = paginator.page(page)
-                except PageNotAnInteger:
-                    results = paginator.page(1)
-                except EmptyPage:
-                    results = paginator.page(paginator.num_pages)
-
-                cursor.execute('''
-                    SELECT * FROM "blood_sample_bloodsample"
-                    INNER JOIN "blood_sample_manifestrecords" ON ( "blood_sample_bloodsample"."CohortId" = "blood_sample_manifestrecords"."CohortId" )
-                    ''')
-
-                # row = cursor.fetchall()
+            query = '''
+                SELECT
+                    "mr"."id",
+                    "bs"."CohortId",
+                    "bs"."Barcode" as "BloodSampleBarcode",
+                    "bs"."AppointmentId",
+                    "bs"."SiteNurseEmail",
+                    "bs"."Comments",
+                    "bs"."CreatedAt",
+                    "bs"."State",
+                    "mr"."CohortId" as "ManifestCohortId",
+                    "mr"."Barcode" as "ManifestBarcode",
+                    "mr"."Visit",
+                    "mr"."Site",
+                    "mr"."Room",
+                    "mr"."Comments" as "ManifestComments",
+                    "mr"."CollectionDateTime"
+                FROM blood_sample_manifestrecords as mr
+                INNER JOIN blood_sample_bloodsample as bs ON ( LOWER(mr."CohortId") = LOWER(bs."CohortId") )
+                WHERE mr."CollectionDateTime" >= '{}'
+                        AND  mr."CollectionDateTime" < '{}'{}
+                order by bs."CohortId";
+                '''.format(day.replace(hour=0, minute=0, second=0, microsecond=0).strftime("%Y-%m-%d %H:%M:%S"),
+                        day.replace(hour=23, minute=59, second=59, microsecond=0).strftime("%Y-%m-%d %H:%M:%S"), qry)
+            with connection.cursor() as cursor:
+                cursor.execute(query)
                 columns = [col[0] for col in cursor.description]
                 data = [
                     dict(zip(columns, row))
                     for row in cursor.fetchall()
                 ]
-                # import ipdb
-                # ipdb.set_trace()
-                # print(row)
+            items_per_page = settings.ITEMS_PER_PAGE
+            total_pages = math.ceil(len(data)/settings.ITEMS_PER_PAGE)
 
-                # BloodSample.objects.filter(
-                #     CohortId__in=results.object_list.values_list('CohortId', flat=True)[::1])
+            if total_pages< page:
+                page = total_pages
+
+            if request.GET.get('get_pages', 'False')=='True':
+                return JsonResponse({'status': 200, 'total_pages': 1 if total_pages==0 else  total_pages, "current_page": 1 if page==0 else  page,})
+            if table == "True":
+                record_start = (page-1) * items_per_page
+                record_end = page * items_per_page
+                data = data[record_start:record_end]
+
+                for row in range(len(data)):
+                    data[row]['State'] = state_status[data[row]['State']]
+                    data[row]['Visit'] = visit_choices[data[row]['Visit']]
+                    data[row]['Site'] = site_choices[data[row]['Site']]
 
                 return render(request, self.manifest_review_table_template, {
-                    "objects": results.object_list,
+                    "objects": data,
                     # "blood_sample_objects": BloodSample.objects.filter(
                     #     CohortId__in=results.object_list.values_list('CohortId', flat=True)[::1]),
-                    "current_page": page,
-                    "total_pages": paginator.num_pages
+                    "current_page": 1 if page==0 else  page,
+                    "total_pages": 1 if total_pages==0 else  total_pages,
+                    "class": 'reviewManifestDay',
                 })
 
             shownextday = datetime.datetime.today().strftime(
                 '%d%b%y') in [i.strftime('%d%b%y') for i in days]
+
+            # Getting Pagination count for Unmatched tables
+            #TODO: Move this to a common function
+            bs_cohort_ids=BloodSample.objects.filter(
+                CreatedAt__range=(day.replace(hour=0, minute=0, second=0, microsecond=0), day.replace(
+                    hour=23, minute=59, second=59, microsecond=0))).values_list('CohortId', flat=True)[::1]
+            mf_cohort_ids=ManifestRecords.objects.filter(
+                CollectionDateTime__range=(day.replace(hour=0, minute=0, second=0, microsecond=0), day.replace(
+                    hour=23, minute=59, second=59, microsecond=0))).values_list('CohortId', flat=True)[::1]
+            if mf_cohort_ids:
+                query_results = BloodSample.objects.filter(
+                    CreatedAt__range=(day.replace(hour=0, minute=0, second=0, microsecond=0), day.replace(
+                        hour=23, minute=59, second=59, microsecond=0))
+                    ).exclude(CohortId__iregex=r'(' + '|'.join(mf_cohort_ids) + ')')
+            else:
+                query_results = BloodSample.objects.filter(
+                    CreatedAt__range=(day.replace(hour=0, minute=0, second=0, microsecond=0), day.replace(
+                        hour=23, minute=59, second=59, microsecond=0))
+                    )
+            bs_unmatched_paginator = Paginator(query_results, settings.ITEMS_PER_PAGE)
+            if bs_cohort_ids:
+                query_results = ManifestRecords.objects.filter(
+                    CollectionDateTime__range=(day.replace(hour=0, minute=0, second=0, microsecond=0), day.replace(
+                        hour=23, minute=59, second=59, microsecond=0))
+                    ).exclude(CohortId__iregex=r'(' + '|'.join(bs_cohort_ids) + ')')
+            else:
+                query_results = ManifestRecords.objects.filter(
+                    CollectionDateTime__range=(day.replace(hour=0, minute=0, second=0, microsecond=0), day.replace(
+                        hour=23, minute=59, second=59, microsecond=0))
+                    )
+            mf_unmatched_paginator = Paginator(query_results, settings.ITEMS_PER_PAGE)
+
             return render(request, self.manifest_review_template, {
-                "current_page": page,
-                "total_pages": paginator.num_pages,
+                "current_page": 1 if page==0 else  page,
+                "total_pages": 1 if total_pages==0 else total_pages,
+                "bs_total_pages": 1 if bs_unmatched_paginator.num_pages==0 else bs_unmatched_paginator.num_pages,
+                "mf_total_pages": 1 if mf_unmatched_paginator.num_pages==0 else mf_unmatched_paginator.num_pages,
                 "days": days,
                 "active": day,
                 "shownextday": shownextday,
                 "class": 'reviewManifestDay',
             })
 
+        if review_type == "receipt":
+            if request.GET.get('firstOpen', 'False') == "True":
+                if not day < datetime.datetime.today().replace(hour=0, minute=0, second=0, microsecond=0) and ReceiptRecords.objects.all():
+                    day = ReceiptRecords.objects.all().order_by('-DateTimeTaken').first().DateTimeTaken
+                    days = [(day - datetime.timedelta(days=x))
+                            for x in range(4)]
+                    days.reverse()
+            qry = ""
 
+            if request.GET.get('Site', ''):
+                qry += f" AND mr.\"Site\" = '{request.GET.get('Site')}'"
+            if request.GET.get('Visit', ''):
+                qry += f" AND mr.\"Visit\" = '{request.GET.get('Visit')}'"
+            if request.GET.get('Room', ''):
+                qry += f" AND mr.\"Room\" = '{request.GET.get('Room')}'"
+
+
+            query = '''
+                SELECT
+                    bs."CohortId",
+                    bs."AppointmentId",
+                    bs."Barcode" as "BloodSampleBarcode",
+                    bs."Comments",
+                    bs."SiteNurseEmail",
+                    bs."CreatedAt",
+                    bs."State",
+                    mr."id" as "ManifestId",
+                    mr."Barcode" as "ManifestBarcode",
+                    mr."CohortId" as "ManifestCohortId",
+                    mr."Site",
+                    mr."Visit",
+                    mr."Room",
+                    mr."CollectionDateTime",
+                    mr."Comments" as "ManifestComments",
+                    rr."id" as "ReceiptId",
+                    rr."Barcode" as "ReceiptBarcode",
+                    rr."Clinic",
+                    rr."DateTimeTaken",
+                    rr."TissueSubType",
+                    rr."ReceivedDateTime",
+                    rr."Volume",
+                    rr."VolumeUnit",
+                    rr."Comments" as "ReceiptComments"
+                from blood_sample_receiptrecords as rr
+                inner join blood_sample_manifestrecords as mr on (LOWER(rr."Barcode") = LOWER(mr."Barcode"))
+                inner join blood_sample_bloodsample as bs on (LOWER(bs."CohortId") = LOWER(mr."CohortId"))
+                WHERE rr."DateTimeTaken" >= '{}'
+                                        AND  rr."DateTimeTaken" < '{}' {}
+                order by bs."CohortId";
+                '''.format(day.replace(hour=0, minute=0, second=0, microsecond=0).strftime("%Y-%m-%d %H:%M:%S"),
+                        day.replace(hour=23, minute=59, second=59, microsecond=0).strftime("%Y-%m-%d %H:%M:%S"), qry)
+            with connection.cursor() as cursor:
+                cursor.execute(query)
+
+                columns = [col[0] for col in cursor.description]
+                data = [
+                    dict(zip(columns, row))
+                    for row in cursor.fetchall()
+                ]
+            items_per_page = settings.ITEMS_PER_PAGE
+
+            total_pages = math.ceil(len(data)/settings.ITEMS_PER_PAGE)
+
+            if total_pages< page:
+                page = total_pages
+
+            if request.GET.get('get_pages', 'False')=='True':
+                return JsonResponse({'status': 200, 'total_pages': 1 if total_pages==0 else  total_pages, "current_page": 1 if page==0 else  page,})
+
+            if table == "True":
+                record_start = (page-1) * items_per_page
+                record_end = page * items_per_page
+                data = data[record_start:record_end]
+                for row in range(len(data)):
+                    data[row]['State'] = state_status[data[row]['State']]
+                    data[row]['Visit'] = visit_choices[data[row]['Visit']]
+                    data[row]['Site'] = site_choices[data[row]['Site']]
+
+                return render(request, self.receipt_review_table_template, {
+                    "objects": data,
+                    "current_page": 1 if page==0 else  page,
+                    "total_pages": 1 if total_pages==0 else  total_pages,
+                    "class": 'reviewReceiptDay',
+                })
+
+            shownextday = datetime.datetime.today().strftime(
+                '%d%b%y') in [i.strftime('%d%b%y') for i in days]
+
+            # Getting Pagination count for Unmatched tables
+            data_bs = UnmachedReceiptView.get_umatched_bs_data(self, day, qry)
+            bs_total_pages = math.ceil(len(data_bs)/settings.ITEMS_PER_PAGE)
+            data_rr = UnmachedReceiptView.get_umatched_rr_data(self, day, "")
+            rr_total_pages = math.ceil(len(data_rr)/settings.ITEMS_PER_PAGE)
+
+
+            return render(request, self.receipt_review_template, {
+                "current_page": 1 if page==0 else  page,
+                "total_pages": 1 if total_pages==0 else total_pages,
+                "bsr_total_pages": 1 if bs_total_pages==0 else bs_total_pages,
+                "rr_total_pages": 1 if rr_total_pages==0 else rr_total_pages,
+                "days": days,
+                "active": day,
+                "shownextday": shownextday,
+                "class": 'reviewReceiptDay',
+            })
+
+        if review_type == "processed":
+            if request.GET.get('firstOpen', 'False') == "True":
+                if not day < datetime.datetime.today().replace(hour=0, minute=0, second=0, microsecond=0) and ProcessedReport.objects.all():
+                    day = ProcessedReport.objects.all().order_by('-ProcessedDateTime').first().ProcessedDateTime
+                    days = [(day - datetime.timedelta(days=x))
+                            for x in range(4)]
+                    days.reverse()
+
+            settings_options = dict(BS=[request.GET.get('BloodSample', "CohortId,Barcode,CreatedAt,Comments,State")], MR=[request.GET.get('Manifest', "Visit,Site,Room,Barcode")],
+                                    RR=[request.GET.get('Receipt',"SampleId,Clinic")], PR=[request.GET.get('Processed',"ParentId,TissueSubType,ProcessedDateTime,ReceivedDateTime,Volume,NumberOfChildren,Comments")])
+            for table, columns in settings_options.items():
+                for column in columns:
+                    settings_options[table] = column.split(',')
+            filter_options = dict(DF=[""], DT=[""], Site=[request.GET.get('Site', '')],
+                                Room=[request.GET.get('Room', '')], Visit=[request.GET.get('Visit', '')], State=[request.GET.get('State', '')])
+
+            # Creating a cursor object using the cursor() method
+            settings_options = settings_options
+            bs_len = len(settings_options['BS'])
+            if bs_len == 1 and settings_options['BS'][0] == '':
+                bs_len = 0
+            mr_len = len(settings_options['MR'])
+            if mr_len == 1 and settings_options['MR'][0] == '':
+                mr_len = 0
+            rr_len = len(settings_options['RR'])
+            if rr_len == 1 and settings_options['RR'][0] == '':
+                rr_len = 0
+            pr_len = len(settings_options['PR'])
+            if pr_len == 1 and settings_options['PR'][0] == '':
+                pr_len = 0
+            # Executing an SQL function using the execute() method
+            query = """ SELECT """
+
+            headers = []
+            for table, columns in settings_options.items():
+                for column in columns:
+                    if column != '':
+                        headers.append(column)
+                    if table == 'BS' and column != '':
+                        query += "bs.\""+column+"\", "
+                    if table == 'MR' and column != '':
+                        query += "mr.\""+column+"\", "
+                    if table == 'RR' and column != '':
+                        query += "rr.\""+column+"\", "
+                    if table == 'PR' and column != '':
+                        query += "pr.\""+column+"\", "
+            query += "bs.\"id\" as \"BloodSampleId\", pr.\"id\" as \"ProcessedId\", "
+
+            query = query[:-2]
+            query += """from blood_sample_processedreport as pr
+                        join blood_sample_receiptrecords as rr on LOWER(pr."ParentId") = LOWER(rr."SampleId")
+                        join blood_sample_manifestrecords as mr on LOWER(rr."Barcode") = LOWER(mr."Barcode")
+                        join blood_sample_bloodsample as bs on LOWER(bs."CohortId") = LOWER(mr."CohortId")
+                    """
+            extra = ' WHERE '
+
+            for filt, value in filter_options.items():
+                if filt == 'Site' and value[0] != '':
+                    extra += "mr.\"Site\"='" + value[0]+"' AND "
+                if filt == 'Room' and value[0] != '':
+                    extra += "mr.\"Room\"='" + value[0]+"' AND "
+                if filt == 'Visit' and value[0] != '':
+                    extra += "mr.\"Visit\"='" + value[0]+"' AND "
+                if filt == 'State' and value[0] != '':
+                    val = list(state_status.keys())[
+                        list(state_status.values()).index(value[0])]
+                    extra += "bs.\"State\"='" + val+"' AND "
+
+
+            extra += """ pr.\"ProcessedDateTime\" >= '{}' AND pr.\"ProcessedDateTime\" < '{}' AND """.format(day.replace(hour=0, minute=0, second=0, microsecond=0),
+                        day.replace(hour=23, minute=59, second=59, microsecond=0))
+
+            extra = extra[0:-4]
+            if extra != ' WH':
+                query += extra
+            query += ' order by bs.\"CohortId\", mr.\"Barcode\"'
+
+            with connection.cursor() as cursor:
+                cursor.execute(query)
+                # Fetch rows using fetchall() method.
+                data = cursor.fetchall()
+
+            if 'State' in settings_options['BS']:
+                ind = headers.index('State')
+                for row in range(len(data)):
+                    data[row] = list(data[row])
+                    data[row][ind] = state_status[data[row][ind]]
+                    data[row] = tuple(data[row])
+            if 'Site' in settings_options['MR']:
+                ind = headers.index('Site')
+                for row in range(len(data)):
+                    if data[row][ind] is not None:
+                        data[row] = list(data[row])
+                        data[row][ind] = site_choices[data[row][ind]]
+                        data[row] = tuple(data[row])
+            if 'Visit' in settings_options['MR']:
+                ind = headers.index('Visit')
+                for row in range(len(data)):
+                    if data[row][ind] is not None:
+                        data[row] = list(data[row])
+                        data[row][ind] = visit_choices[data[row][ind]]
+                        data[row] = tuple(data[row])
+            row_headers = {'CohortId': 'Cohort id', 'AppointmentId': 'Appointment id', 'SiteNurseEmail': 'Site Nurse Email',
+                        'CreatedAt': 'Appointment date', 'CollectionDateTime': 'Collection Date Time', 'DateTimeTaken': 'Date Time Taken',
+                        'SampleId': 'Sample id', 'TissueSubType': 'Tissue Sub Type', 'ReceivedDateTime': 'Received Date Time',
+                        'VolumeUnit': 'Volume Unit', 'ParentId': 'Parent id', 'ProcessedDateTime': 'Processed Date Time', 'NumberOfChildren': 'Number Of Children', 'id': 'Id'}
+            for i in range(len(headers)):
+                if headers[i] in row_headers:
+                    headers[i] = row_headers[headers[i]]
+
+
+
+            page = int(request.GET.get('page', 1))
+            table = request.GET.get('table', 'False')
+            from django.conf import settings as django_settings
+            total_pages = math.ceil(len(data)/django_settings.ITEMS_PER_PAGE)
+            items_per_page = django_settings.ITEMS_PER_PAGE
+            record_start = (page-1) * items_per_page
+            record_end = page * items_per_page
+            if len(data) != 0:
+                headers.extend(['BloodSample Id', 'Processed Id'])
+                data = [headers]+data[record_start:record_end]
+            if request.GET.get('get_pages', 'False')=='True':
+                return JsonResponse({'status': 200, 'total_pages': 1 if total_pages==0 else  total_pages, "current_page": 1 if page==0 else  page,})
+
+            if table == "True":
+                return render(request, self.processed_review_table_template, {
+                    "objects": data,
+                    "current_page": 1 if page==0 else  page,
+                    "total_pages": 1 if total_pages==0 else  total_pages,
+                    'db_data': data,
+                    'bs_len': bs_len,
+                    'mr_len': mr_len, 'rr_len': rr_len,
+                    'pr_len': pr_len, 'settings': settings_options, 'filters': filter_options,
+                    "class": 'reviewProcessedDay',
+                })
+            shownextday = datetime.datetime.today().strftime(
+                '%d%b%y') in [i.strftime('%d%b%y') for i in days]
+
+            qry = ""
+
+            if request.GET.get('Site', ''):
+                qry += f" AND mr.\"Site\" = '{request.GET.get('Site')}'"
+            if request.GET.get('Visit', ''):
+                qry += f" AND mr.\"Visit\" = '{request.GET.get('Visit')}'"
+            if request.GET.get('Room', ''):
+                qry += f" AND mr.\"Room\" = '{request.GET.get('Room')}'"
+            # Getting Pagination count for Unmatched tables
+            if request.GET.get('State', ''):
+                for key, value in state_status.items():
+                    if value == request.GET.get('State'):
+                        qry += f" AND bs.\"State\" = '{key}'"
+            data_pr = UnmachedProcessedView.get_umatched_pr_data(self, day, qry)
+            pr_total_pages = math.ceil(len(data_pr)/settings.ITEMS_PER_PAGE)
+            data_rr = UnmachedProcessedView.get_umatched_rr_data(self, day, "")
+            rr_total_pages = math.ceil(len(data_rr)/settings.ITEMS_PER_PAGE)
+            context = {
+                "current_page": 1 if page==0 else  page,
+                "total_pages": 1 if total_pages==0 else total_pages,
+                'db_data': data,
+                'bs_len': bs_len,
+                'mr_len': mr_len, 'rr_len': rr_len,
+                'pr_len': pr_len, 'settings': settings_options, 'filters': filter_options,
+                "class": 'reviewProcessedDay',
+                "days": days,
+                "active": day,
+                "shownextday": shownextday,
+                "pr_total_pages": 1 if pr_total_pages==0 else pr_total_pages,
+                "rr_total_pages": 1 if rr_total_pages==0 else rr_total_pages,
+                }
+            return render(request, self.processed_review_template, context)
+
+class UnmachedManifestView(LoginRequiredMixin, View):
+    """
+    Class for login functionality
+    """
+    bs_review_table_template = 'review_manifest/bs_unmatched-table.html'
+    mf_review_table_template = 'review_manifest/mf_unmatched-table.html'
+
+    def get(self, request, *args, **kwargs):
+        """
+        Method to get the login form or redirect to Dashboard if session exists
+        :param request: request object
+        :return: HttpResponse object
+        """
+        umatched_type = request.GET.get("type", "")
+        page = int(request.GET.get('page', 1))
+        day, days = UploadView.get_dayformated_and_days(self, request)
+
+        if umatched_type=='umatched_bs':
+            mf_cohort_ids=ManifestRecords.objects.filter(
+            CollectionDateTime__range=(day.replace(hour=0, minute=0, second=0, microsecond=0), day.replace(
+                hour=23, minute=59, second=59, microsecond=0))).values_list('CohortId', flat=True)[::1]
+            if mf_cohort_ids:
+                query_results = BloodSample.objects.filter(
+                    CreatedAt__range=(day.replace(hour=0, minute=0, second=0, microsecond=0), day.replace(
+                        hour=23, minute=59, second=59, microsecond=0))
+                    ).exclude(CohortId__iregex=r'(' + '|'.join(mf_cohort_ids) + ')').order_by('CohortId')
+            else:
+                query_results = BloodSample.objects.filter(
+                    CreatedAt__range=(day.replace(hour=0, minute=0, second=0, microsecond=0), day.replace(
+                        hour=23, minute=59, second=59, microsecond=0))
+                    ).order_by('CohortId')
+
+            paginator = Paginator(query_results, settings.ITEMS_PER_PAGE)
+            if paginator.num_pages< page:
+                    page = paginator.num_pages
+            if request.GET.get('get_pages', 'False')=='True':
+                return JsonResponse({'status': 200, 'total_pages': paginator.num_pages, "current_page": page})
+            try:
+                results = paginator.page(page)
+            except PageNotAnInteger:
+                results = paginator.page(1)
+            except EmptyPage:
+                results = paginator.page(paginator.num_pages)
+            return render(request, self.bs_review_table_template, {
+                "objects": results.object_list,
+                "current_page": page,
+                "total_pages": paginator.num_pages
+            })
+
+        if umatched_type=='umatched_mf':
+            bs_cohort_ids=BloodSample.objects.filter(
+            CreatedAt__range=(day.replace(hour=0, minute=0, second=0, microsecond=0), day.replace(
+                hour=23, minute=59, second=59, microsecond=0))).values_list('CohortId', flat=True)[::1]
+            if bs_cohort_ids:
+                query_results = ManifestRecords.objects.filter(
+                    CollectionDateTime__range=(day.replace(hour=0, minute=0, second=0, microsecond=0), day.replace(
+                        hour=23, minute=59, second=59, microsecond=0))
+                    ).exclude(CohortId__iregex=r'(' + '|'.join(bs_cohort_ids) + ')').order_by('CohortId')
+            else:
+                query_results = ManifestRecords.objects.filter(
+                    CollectionDateTime__range=(day.replace(hour=0, minute=0, second=0, microsecond=0), day.replace(
+                        hour=23, minute=59, second=59, microsecond=0))
+                    ).order_by('CohortId')
+
+            if request.GET.get('Room', ''):
+                query_results= query_results.filter(Room=request.GET.get('Room'))
+
+            if request.GET.get('Visit', ''):
+                query_results= query_results.filter(Visit=request.GET.get('Visit'))
+
+            if request.GET.get('Site', ''):
+                query_results= query_results.filter(Site=request.GET.get('Site'))
+
+            paginator = Paginator(query_results, settings.ITEMS_PER_PAGE)
+
+            if paginator.num_pages< page:
+                    page = paginator.num_pages
+            if request.GET.get('get_pages', 'False')=='True':
+                return JsonResponse({'status': 200, 'total_pages': paginator.num_pages, "current_page": page})
+            try:
+                results = paginator.page(page)
+            except PageNotAnInteger:
+                results = paginator.page(1)
+            except EmptyPage:
+                results = paginator.page(paginator.num_pages)
+            return render(request, self.mf_review_table_template, {
+                "objects": results.object_list,
+                "current_page": page,
+                "total_pages": paginator.num_pages
+            })
+
+class UnmachedReceiptView(LoginRequiredMixin, View):
+    """
+    Class for login functionality
+    """
+    bs_review_table_template = 'review_receipt/bsr_unmatched-table.html'
+    rr_review_table_template = 'review_receipt/rr_unmatched-table.html'
+
+    def get(self, request, *args, **kwargs):
+        """
+        Method to get the login form or redirect to Dashboard if session exists
+        :param request: request object
+        :return: HttpResponse object
+        """
+        umatched_type = request.GET.get("type", "")
+        page = int(request.GET.get('page', 1))
+        day, days = UploadView.get_dayformated_and_days(self, request)
+        items_per_page = settings.ITEMS_PER_PAGE
+        qry = ""
+        if request.GET.get('Site', ''):
+            qry += f" AND mr.\"Site\" = '{request.GET.get('Site')}'"
+        if request.GET.get('Visit', ''):
+            qry += f" AND mr.\"Visit\" = '{request.GET.get('Visit')}'"
+        if request.GET.get('Room', ''):
+            qry += f" AND mr.\"Room\" = '{request.GET.get('Room')}'"
+        if umatched_type=='umatched_bsr':
+            data = self.get_umatched_bs_data(day, qry)
+            total_pages = math.ceil(len(data)/settings.ITEMS_PER_PAGE)
+            if total_pages< page:
+                    page = total_pages
+            if request.GET.get('get_pages', 'False')=='True':
+                return JsonResponse({'status': 200, 'total_pages': 1 if total_pages==0 else  total_pages, "current_page": 1 if page==0 else  page})
+            record_start = (page-1) * items_per_page
+            record_end = page * items_per_page
+            data = data[record_start:record_end]
+
+            for row in range(len(data)):
+                data[row]['State'] = state_status[data[row]['State']]
+                data[row]['Visit'] = visit_choices[data[row]['Visit']]
+                data[row]['Site'] = site_choices[data[row]['Site']]
+
+            return render(request, self.bs_review_table_template, {
+                "objects": data,
+                "current_page": page,
+                "total_pages": total_pages
+            })
+
+        elif umatched_type=='umatched_rr':
+            data = self.get_umatched_rr_data(day, "")
+
+            total_pages = math.ceil(len(data)/settings.ITEMS_PER_PAGE)
+            if total_pages< page:
+                    page = total_pages
+            if request.GET.get('get_pages', 'False')=='True':
+                return JsonResponse({'status': 200, 'total_pages': 1 if total_pages==0 else  total_pages, "current_page": 1 if page==0 else  page})
+            record_start = (page-1) * items_per_page
+            record_end = page * items_per_page
+            data = data[record_start:record_end]
+
+            # for row in range(len(data)):
+            #     data[row]['State'] = state_status[data[row]['State']]
+            return render(request, self.rr_review_table_template, {
+                "objects": data,
+                "current_page": 1 if page==0 else  page,
+                "total_pages": 1 if total_pages==0 else  total_pages
+            })
+    def get_umatched_bs_data(self, day, qry=""):
+        query = '''
+            SELECT "mr"."id",
+                bs."CohortId",
+                bs."Barcode" as "BloodSampleBarcode",
+                bs."AppointmentId",
+                bs."SiteNurseEmail",
+                bs."Comments",
+                bs."CreatedAt",
+                bs."State",
+                mr."Barcode" as "ManifestBarcode",
+                mr."Visit",
+                mr."Site",
+                mr."Room",
+                mr."CollectionDateTime",
+                mr."Comments" as "ManifestComments"
+            FROM blood_sample_manifestrecords as mr
+            INNER JOIN blood_sample_bloodsample as bs ON ( LOWER(mr."CohortId") = LOWER(bs."CohortId") )
+            WHERE LOWER(mr."Barcode") not in (select LOWER("Barcode") from blood_sample_receiptrecords)
+                    AND mr."CollectionDateTime" >= '{}'
+                    AND  mr."CollectionDateTime" < '{}'{}
+            order by bs."CohortId";
+            '''.format(day.replace(hour=0, minute=0, second=0, microsecond=0).strftime("%Y-%m-%d %H:%M:%S"),
+                    day.replace(hour=23, minute=59, second=59, microsecond=0).strftime("%Y-%m-%d %H:%M:%S"), qry)
+        
+        with connection.cursor() as cursor:
+            cursor.execute(query)
+            columns = [col[0] for col in cursor.description]
+            data = [
+                dict(zip(columns, row))
+                for row in cursor.fetchall()
+            ]
+        return data
+    def get_umatched_rr_data(self, day, qry=""):
+        query = '''
+            SELECT
+                rr."Barcode",
+                rr."id",
+                rr."Clinic",
+                rr."DateTimeTaken",
+                rr."TissueSubType",
+                rr."ReceivedDateTime",
+                rr."Volume",
+                rr."VolumeUnit",
+                rr."Comments" as "ReceiptComments"
+            FROM blood_sample_receiptrecords as rr
+            WHERE LOWER(rr."Barcode") not in (SELECT
+                                            LOWER("bs"."Barcode")
+                                        FROM blood_sample_manifestrecords as mr
+                                        INNER JOIN blood_sample_bloodsample as bs ON ( LOWER(mr."CohortId") = LOWER(bs."CohortId") )
+                                    )
+                    AND rr."DateTimeTaken" >= '{}'
+                    AND  rr."DateTimeTaken" < '{}'{}
+            order by rr."Barcode";
+            '''.format(day.replace(hour=0, minute=0, second=0, microsecond=0).strftime("%Y-%m-%d %H:%M:%S"),
+                    day.replace(hour=23, minute=59, second=59, microsecond=0).strftime("%Y-%m-%d %H:%M:%S"), qry)
+        with connection.cursor() as cursor:
+            cursor.execute(query)
+
+            columns = [col[0] for col in cursor.description]
+            data = [
+                dict(zip(columns, row))
+                for row in cursor.fetchall()
+            ]
+        return data
+
+
+class UnmachedProcessedView(LoginRequiredMixin, View):
+    """
+    Class for login functionality
+    """
+    rr_review_table_template = 'review_processed/rr_unmatched-table.html'
+    pr_review_table_template = 'review_processed/pr_unmatched-table.html'
+
+    def get(self, request, *args, **kwargs):
+        """
+        Method to get the login form or redirect to Dashboard if session exists
+        :param request: request object
+        :return: HttpResponse object
+        """
+        umatched_type = request.GET.get("type", "")
+        page = int(request.GET.get('page', 1))
+        day, days = UploadView.get_dayformated_and_days(self, request)
+        items_per_page = settings.ITEMS_PER_PAGE
+        qry = ""
+        if request.GET.get('Site', ''):
+            qry += f" AND mr.\"Site\" = '{request.GET.get('Site')}'"
+        if request.GET.get('Visit', ''):
+            qry += f" AND mr.\"Visit\" = '{request.GET.get('Visit')}'"
+        if request.GET.get('Room', ''):
+            qry += f" AND mr.\"Room\" = '{request.GET.get('Room')}'"
+
+        if umatched_type=='umatched_rr':
+            if request.GET.get('State', ''):
+                for key, value in state_status.items():
+                    if value == request.GET.get('State'):
+                        qry += f" AND bs.\"State\" = '{key}'"
+            data = self.get_umatched_rr_data(day, qry)
+            total_pages = math.ceil(len(data)/settings.ITEMS_PER_PAGE)
+            if total_pages< page:
+                    page = total_pages
+            if request.GET.get('get_pages', 'False')=='True':
+                return JsonResponse({'status': 200, 'total_pages': 1 if total_pages==0 else  total_pages, "current_page": 1 if page==0 else  page})
+            record_start = (page-1) * items_per_page
+            record_end = page * items_per_page
+            data = data[record_start:record_end]
+
+            for row in range(len(data)):
+                data[row]['State'] = state_status[data[row]['State']]
+                data[row]['Visit'] = visit_choices[data[row]['Visit']]
+                data[row]['Site'] = site_choices[data[row]['Site']]
+
+            return render(request, self.rr_review_table_template, {
+                "objects": data,
+                "current_page": page,
+                "total_pages": total_pages
+            })
+
+        elif umatched_type=='umatched_pr':
+            data = self.get_umatched_pr_data(day, "")
+
+            total_pages = math.ceil(len(data)/settings.ITEMS_PER_PAGE)
+            if total_pages< page:
+                    page = total_pages
+            if request.GET.get('get_pages', 'False')=='True':
+                return JsonResponse({'status': 200, 'total_pages': 1 if total_pages==0 else  total_pages, "current_page": 1 if page==0 else  page})
+            record_start = (page-1) * items_per_page
+            record_end = page * items_per_page
+            data = data[record_start:record_end]
+
+            # for row in range(len(data)):
+            #     data[row]['State'] = state_status[data[row]['State']]
+            return render(request, self.pr_review_table_template, {
+                "objects": data,
+                "current_page": 1 if page==0 else  page,
+                "total_pages": 1 if total_pages==0 else  total_pages
+            })
+    def get_umatched_pr_data(self, day, qry=""):
+        query = '''
+            SELECT "pr"."id",
+                pr."ParentId",
+                pr."Barcode",
+                pr."ProcessedDateTime",
+                pr."Volume",
+                pr."NumberOfChildren",
+                pr."Comments"
+            FROM blood_sample_processedreport as pr
+            WHERE LOWER(pr."ParentId") not in (
+                    SELECT
+                        LOWER(rr."SampleId")
+                    FROM blood_sample_receiptrecords as rr
+                    inner join blood_sample_manifestrecords as mr on (LOWER(rr."Barcode") = LOWER(mr."Barcode"))
+                    inner join blood_sample_bloodsample as bs on (LOWER(bs."CohortId") = LOWER(mr."CohortId"))
+                ) AND pr."ProcessedDateTime" >= '{}' AND  pr."ProcessedDateTime" < '{}'{}
+            order by pr."ParentId";
+            '''.format(day.replace(hour=0, minute=0, second=0, microsecond=0).strftime("%Y-%m-%d %H:%M:%S"),
+                    day.replace(hour=23, minute=59, second=59, microsecond=0).strftime("%Y-%m-%d %H:%M:%S"), qry)
+
+        with connection.cursor() as cursor:
+            cursor.execute(query)
+            columns = [col[0] for col in cursor.description]
+            data = [
+                dict(zip(columns, row))
+                for row in cursor.fetchall()
+            ]
+        return data
+    def get_umatched_rr_data(self, day, qry=""):
+        query = '''
+            SELECT
+                bs."CohortId",
+                bs."AppointmentId",
+                bs."Barcode" as "BloodSampleBarcode",
+                bs."Comments",
+                bs."SiteNurseEmail",
+                bs."CreatedAt",
+                bs."State",
+                mr."id" as "ManifestId",
+                mr."Barcode" as "ManifestBarcode",
+                mr."CohortId" as "ManifestCohortId",
+                mr."Site",
+                mr."Visit",
+                mr."Room",
+                mr."CollectionDateTime",
+                mr."Comments" as "ManifestComments",
+                rr."id" as "ReceiptId",
+                rr."Barcode" as "ReceiptBarcode",
+                rr."Clinic",
+                rr."DateTimeTaken",
+                rr."TissueSubType",
+                rr."ReceivedDateTime",
+                rr."Volume",
+                rr."VolumeUnit",
+                rr."SampleId",
+                rr."Comments" as "ReceiptComments"
+            FROM blood_sample_receiptrecords as rr
+            inner join blood_sample_manifestrecords as mr on (LOWER(rr."Barcode") = LOWER(mr."Barcode"))
+            inner join blood_sample_bloodsample as bs on (LOWER(bs."CohortId") = LOWER(mr."CohortId"))
+            WHERE LOWER(rr."SampleId") not in (SELECT
+                                            LOWER("pr"."ParentId")
+                                        FROM blood_sample_processedreport as pr
+                                        join blood_sample_receiptrecords as rr on LOWER(pr."ParentId") = LOWER(rr."SampleId")
+                                        join blood_sample_manifestrecords as mr on LOWER(rr."Barcode") = LOWER(mr."Barcode")
+                                        join blood_sample_bloodsample as bs on LOWER(bs."CohortId") = LOWER(mr."CohortId")
+                                    )
+                    AND rr."ReceivedDateTime" >= '{}'
+                    AND  rr."ReceivedDateTime" < '{}'{}
+            order by bs."CohortId";
+            '''.format(day.replace(hour=0, minute=0, second=0, microsecond=0).strftime("%Y-%m-%d %H:%M:%S"),
+                    day.replace(hour=23, minute=59, second=59, microsecond=0).strftime("%Y-%m-%d %H:%M:%S"), qry)
+
+        with connection.cursor() as cursor:
+            cursor.execute(query)
+
+            columns = [col[0] for col in cursor.description]
+            data = [
+                dict(zip(columns, row))
+                for row in cursor.fetchall()
+            ]
+        return data
 class EditBloodSampleView(LoginRequiredMixin, View):
     """
     Class for login functionality
@@ -1237,11 +1990,11 @@ class EditBloodSampleView(LoginRequiredMixin, View):
 
         data_edit = request.GET.dict()
         data_edit = {key: data_edit[key]
-                     for key in ['CohortId', 'Comments', 'Barcode', 'State', 'AppointmentId', 'CreatedAt']}
+                     for key in ['Comments', 'Barcode', 'State']}
 
         data_object = object.__dict__
         data_object = {key: data_object[key]
-                       for key in ['CohortId', 'Comments', 'Barcode', 'State', 'AppointmentId', 'CreatedAt']}
+                       for key in ['Comments', 'Barcode', 'State']}
         diffs = [(k, (v, data_edit[k]))
                  for k, v in data_object.items() if v != data_edit[k]]
         for i in diffs:
@@ -1253,3 +2006,404 @@ class EditBloodSampleView(LoginRequiredMixin, View):
             )
         object.save()
         return JsonResponse({'status': 200, 'message': f'{request.GET.get("id")} sample updated successfully'})
+
+class EditProcessedBsView(LoginRequiredMixin, View):
+    """
+    Class for login functionality
+    """
+
+    blood_sample_review_template = 'review_processed/processed-bs-edit.html'
+
+    def get(self, request, *args, **kwargs):
+        """
+        Method to get the login form or redirect to Dashboard if session exists
+        :param request: request object
+        :return: HttpResponse object
+        """
+        return render(request, self.blood_sample_review_template, {
+            "object": BloodSample.objects.get(id=int(request.GET.get('id'))),
+            "processed_object": ProcessedReport.objects.get(id=int(request.GET.get('processed_id'))),
+            "STATECHOICE": dict(STATECHOICE)
+        })
+
+    def post(self, request, *args, **kwargs):
+        object = BloodSample.objects.get(id=int(request.GET.get('id')))
+
+        data_edit = request.GET.dict()
+        data_edit = {key: data_edit[key]
+                     for key in ['Comments', 'State']}
+
+        data_object = object.__dict__
+        data_object = {key: data_object[key]
+                       for key in ['Comments', 'State']}
+        diffs = [(k, (v, data_edit[k]))
+                 for k, v in data_object.items() if v != data_edit[k]]
+        for i in diffs:
+            setattr(object, i[0], i[1][1])
+            BloodSampleChanges.objects.create(
+                Field=i[0],
+                FromValue=i[1][0],
+                ChangedBy=request.user,
+            )
+        object.save()
+        return JsonResponse({'status': 200, 'message': f'{request.GET.get("id")} sample updated successfully'})
+
+
+class EditManifestView(LoginRequiredMixin, View):
+    """
+    Class for login functionality
+    """
+
+    manifest_edit_template = 'review_manifest/manifest-edit.html'
+
+    def get(self, request, *args, **kwargs):
+        """
+        Method to get the login form or redirect to Dashboard if session exists
+        :param request: request object
+        :return: HttpResponse object
+        """
+        Rooms = ManifestRecords.objects.all().values_list('Room', flat=True).distinct()[::1]
+        return render(request, self.manifest_edit_template, {
+            "object": ManifestRecords.objects.get(id=int(request.GET.get('id'))),
+            "rooms": sorted(Rooms, key=lambda L: (L.lower(), L)),
+        })
+
+    def post(self, request, *args, **kwargs):
+
+        object = ManifestRecords.objects.get(id=int(request.GET.get('id')))
+
+        data_edit = request.GET.dict()
+        data_edit = {key: data_edit[key]
+                     for key in ['CohortId', 'Barcode', 'Room', 'Visit', 'Site', 'Comments']}
+
+        data_object = object.__dict__
+        data_object = {key: data_object[key]
+                       for key in ['CohortId', 'Barcode', 'Room', 'Visit', 'Site', 'Comments']}
+        diffs = [(k, (v, data_edit[k]))
+                 for k, v in data_object.items() if v != data_edit[k]]
+        for i in diffs:
+            setattr(object, i[0], i[1][1])
+            ManifestChanges.objects.create(
+                Field=i[0],
+                FromValue=i[1][0],
+                ChangedBy=request.user,
+            )
+        object.save()
+        return JsonResponse({'status': 200, 'message': f'{request.GET.get("id")} manifest updated successfully'})
+
+class EditReceiptView(LoginRequiredMixin, View):
+    """
+    Class for login functionality
+    """
+
+    receipt_edit_template = 'review_receipt/receipt-edit.html'
+
+    def get(self, request, *args, **kwargs):
+        """
+        Method to get the login form or redirect to Dashboard if session exists
+        :param request: request object
+        :return: HttpResponse object
+        """
+        if request.GET.get('manifest', 'False')=='True':
+            return render(request, self.receipt_edit_template, {
+                "object": ReceiptRecords.objects.get(id=int(request.GET.get('id'))),
+                "manifest_object":ManifestRecords.objects.get(id=int(request.GET.get('manifestid'))),
+            })
+        else:
+            return render(request, self.receipt_edit_template, {
+                "object": ReceiptRecords.objects.get(id=int(request.GET.get('id'))),
+                "manifest_object":None
+            })
+
+    def post(self, request, *args, **kwargs):
+        object = ReceiptRecords.objects.get(id=int(request.GET.get('id')))
+
+        data_edit = request.GET.dict()
+        data_edit = {key: data_edit[key]
+                    for key in ['Barcode', 'DateTimeTaken', 'Comments']}
+
+        data_object = object.__dict__
+        data_object = {key: data_object[key]
+                    for key in ['Barcode', 'DateTimeTaken', 'Comments']}
+        diffs = [(k, (v, data_edit[k]))
+                for k, v in data_object.items() if v != data_edit[k]]
+        for i in diffs:
+            setattr(object, i[0], i[1][1])
+            ReceiptChanges.objects.create(
+                Field=i[0],
+                FromValue=i[1][0],
+                ChangedBy=request.user,
+            )
+        object.save()
+        return JsonResponse({'status': 200, 'message': f'{request.GET.get("id")} receipt updated successfully'})
+
+
+class EditProcessedView(LoginRequiredMixin, View):
+    """
+    Class for login functionality
+    """
+
+    processed_edit_template = 'review_processed/processed-edit.html'
+
+    def get(self, request, *args, **kwargs):
+        """
+        Method to get the login form or redirect to Dashboard if session exists
+        :param request: request object
+        :return: HttpResponse object
+        """
+
+        return render(request, self.processed_edit_template, {
+            "object": ProcessedReport.objects.get(id=int(request.GET.get('id'))),
+        })
+
+    def post(self, request, *args, **kwargs):
+        object = ProcessedReport.objects.get(id=int(request.GET.get('id')))
+
+        data_edit = request.GET.dict()
+        data_edit = {key: data_edit[key]
+                    for key in ['ParentId', 'Comments']}
+
+        data_object = object.__dict__
+        data_object = {key: data_object[key]
+                    for key in ['ParentId', 'Comments']}
+        diffs = [(k, (v, data_edit[k]))
+                for k, v in data_object.items() if v != data_edit[k]]
+        for i in diffs:
+            setattr(object, i[0], i[1][1])
+            ProcessedReportChanges.objects.create(
+                Field=i[0],
+                FromValue=i[1][0],
+                ChangedBy=request.user,
+            )
+        object.save()
+        return JsonResponse({'status': 200, 'message': f'{request.GET.get("id")} processed report updated successfully'})
+
+
+class GetManifestFiltersView(LoginRequiredMixin, View):
+
+    """
+    Class for login functionality
+    """
+
+    def get(self, request, *args, **kwargs):
+        """
+        Method to get the login form or redirect to Dashboard if session exists
+        :param request: request object
+        :return: HttpResponse object
+        """
+        Rooms = ManifestRecords.objects.all().values_list('Room', flat=True).distinct()[::1]
+        return JsonResponse({'status': 200,
+                             'rooms': sorted(Rooms, key=lambda L: (L.lower(), L)),
+                            })
+
+
+
+
+class FinalStateChartView(LoginRequiredMixin, View):
+    
+    """
+    Class for login functionality
+    """
+
+    def get(self, request, *args, **kwargs):
+        """
+        Method to get the login form or redirect to Dashboard if session exists
+        :param request: request object
+        :return: HttpResponse object
+        """
+        query = '''
+            SELECT
+                DATE(bs."CreatedAt"),
+                SUM (CASE
+                        WHEN bs."State"='0' THEN 1
+                    ELSE 0
+                    END
+                ) AS "State-0",
+                SUM (
+                    CASE
+                    WHEN bs."State" = '1' THEN 1
+                    ELSE 0
+                    END
+                ) AS "State-1",
+                SUM (
+                    CASE
+                    WHEN bs."State" = '2' THEN 1
+                    ELSE 0
+                    END
+                ) AS "State-2",
+                SUM (
+                    CASE
+                    WHEN bs."State" = '3' THEN 1
+                    ELSE 0
+                    END
+                ) AS "State-3",
+                SUM (
+                    CASE
+                    WHEN bs."State" = '4' THEN 1
+                    ELSE 0
+                    END
+                ) AS "State-4"
+            FROM
+                blood_sample_bloodsample as bs
+            GROUP BY DATE(bs."CreatedAt") order by DATE(bs."CreatedAt")
+        '''
+
+        with connection.cursor() as cursor:
+            cursor.execute(query)
+            columns = [col[0] for col in cursor.description]
+            data = [
+                dict(zip(columns, row))
+                for row in cursor.fetchall()
+            ]
+        dates = [i['date'] for i in data]
+        data=[{
+            "name": 'ACTIVE',
+            "data": [i['State-0'] for i in data]
+        },{
+            "name": 'UNABLE_TO_DRAW',
+            "data": [i['State-1'] for i in data]
+        },{
+            "name": 'UNABLE_TO_PROCESS',
+            "data": [i['State-2'] for i in data]
+        },{
+            "name": 'PROCESSED_ON_TIME',
+            "data": [i['State-3'] for i in data]
+        },{
+            "name": 'PROCESSED_NOT_ON_TIME',
+            "data": [i['State-4'] for i in data]
+        }]
+        return JsonResponse({'status': 200,
+                            'dates':dates,
+                            'data':data,
+                            })
+
+class NurseStatsChartView(LoginRequiredMixin, View):
+
+    """
+    Class for login functionality
+    """
+
+    def get(self, request, *args, **kwargs):
+        """
+        Method to get the login form or redirect to Dashboard if session exists
+        :param request: request object
+        :return: HttpResponse object
+        """
+        query = '''
+            SELECT
+                bs."SiteNurseEmail" as x,
+                round(cast(SUM (CASE
+                    WHEN bs."State"='1' THEN 1
+                    ELSE 0
+                    END 
+                ) as decimal(7,2))/
+                cast(count(bs."State") as decimal(7,2))*100, 2) as y,
+                count(bs."State") as countData
+            FROM
+                blood_sample_bloodsample as bs
+            GROUP BY bs."SiteNurseEmail" order by bs."SiteNurseEmail"
+        '''
+        with connection.cursor() as cursor:
+            cursor.execute(query)
+            nurse_day = [
+                {'x':row[0].split('@')[0], 'y':float(row[1]),'countData':row[2]}
+                for row in cursor.fetchall()
+            ]
+        return JsonResponse({'status': 200,
+                             'nurse_day':nurse_day,
+                            })
+class UnresolvedChartView(LoginRequiredMixin, View):
+    
+    """
+    Class for login functionality
+    """
+
+    def get(self, request, *args, **kwargs):
+        """
+        Method to get the login form or redirect to Dashboard if session exists
+        :param request: request object
+        :return: HttpResponse object
+        """
+        query = '''
+            SELECT
+                DATE(mr."CollectionDateTime"),
+                SUM (CASE
+                        WHEN mr."Site"='0' THEN 1
+                    ELSE 0
+                    END
+                ) AS "FMH",
+                SUM (CASE
+                        WHEN mr."Site"='1' THEN 1
+                    ELSE 0
+                    END
+                ) AS "KGH",
+                SUM (CASE
+                        WHEN mr."Site"='2' THEN 1
+                    ELSE 0
+                    END
+                ) AS "Mile End Hospital",
+                SUM (CASE
+                        WHEN mr."Site"='3' THEN 1
+                    ELSE 0
+                    END
+                ) AS "UCLH"
+            FROM blood_sample_manifestrecords as mr
+            WHERE LOWER(mr."CohortId") not in (SELECT LOWER("bs"."CohortId") FROM blood_sample_bloodsample as bs)
+            GROUP BY DATE(mr."CollectionDateTime") order by DATE(mr."CollectionDateTime")
+        '''
+        with connection.cursor() as cursor:
+            cursor.execute(query)
+            columns = [col[0] for col in cursor.description]
+            site_data = [
+                dict(zip(columns, row))
+                for row in cursor.fetchall()
+            ]
+        site_dates = [i['date'] for i in site_data]
+        site_data=[{
+            "name": 'FMH',
+            "data": [i['FMH'] for i in site_data]
+        },{
+            "name": 'KGH',
+            "data": [i['KGH'] for i in site_data]
+        },{
+            "name": 'Mile End Hospital',
+            "data": [i['Mile End Hospital'] for i in site_data]
+        },{
+            "name": 'UCLH',
+            "data": [i['UCLH'] for i in site_data]
+        }]
+        return JsonResponse({'status': 200,
+                             'site_dates':site_dates,
+                             'site_data':site_data,
+                            })
+class ProcessedNotOnTimeView(LoginRequiredMixin, View):
+    
+    """
+    Class for login functionality
+    """
+
+    def get(self, request, *args, **kwargs):
+        """
+        Method to get the login form or redirect to Dashboard if session exists
+        :param request: request object
+        :return: HttpResponse object
+        """
+        query = '''
+            SELECT
+                DATE(bs."CreatedAt"),
+                count(1)
+            FROM
+                blood_sample_bloodsample as bs
+            WHERE now() - '36 hour'::interval > bs."CreatedAt" AND bs."State" in ('0','4')
+            GROUP BY DATE(bs."CreatedAt") order by DATE(bs."CreatedAt")
+        '''
+        with connection.cursor() as cursor:
+            cursor.execute(query)
+            processed_not_ontime = [
+                [row[0], row[1]]
+                for row in cursor.fetchall() if row[1]
+            ]
+        return JsonResponse({'status': 200,
+                            'processed_not_ontime':processed_not_ontime,
+                            'processed_hours':settings.PROCESSING_HOURS,
+                            })

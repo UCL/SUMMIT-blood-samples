@@ -7,7 +7,7 @@
             <div class="row">
                 <div class="col">
                     <label for="CohortId">CohortId:</label>
-                    <input type="text" class="form__control" name="CohortId" id="CohortId" value="{{object.CohortId}}" maxlength="7">
+                    <input type="text" class="form__control" name="CohortId" id="CohortId" value="{{object.CohortId}}" maxlength="7" disabled>
                 </div>
                 <div class="col">
                     <label for="Barcode">Barcode:</label>
@@ -17,7 +17,7 @@
             <div class="row">
                 <div class="col">
                     <label for="AppointmentId">Appointment Id:</label>
-                    <input type="number" name="AppointmentId" class="form__control" id="AppointmentId" value="{{object.AppointmentId}}">
+                    <input type="number" name="AppointmentId" class="form__control" id="AppointmentId" value="{{object.AppointmentId}}"  disabled>
                 </div>
                 <div class="col">
                     <label for="State">State:</label>
@@ -30,10 +30,7 @@
                 </div>
             </div>
             <label for="CreatedAt">Appointment Date:</label>
-            <input type="datetime-local" name="CreatedAt" class="form__control" id="CreatedAt" value="{{object.CreatedAt|date:"Y-m-d" }}T{{object.CreatedAt|date:"H:i" }}">
-
-
-
+            <input type="datetime-local" name="CreatedAt" class="form__control" id="CreatedAt" value="{{object.CreatedAt|date:"Y-m-d" }}T{{object.CreatedAt|date:"H:i" }}"  disabled>
             <label for="Comments">Comments:</label>
             <textarea class="form__control" name="Comments" id="Comments" maxlength="5000">{{object.Comments}}</textarea>
         </div>
@@ -67,14 +64,8 @@ $(document).ready(function(){
                     $('.edit-sample-div').html("");
                     $('.review-sample').show();
                     $(".customModal").addClass("modal-xl");
-
-                    if (window.navigation =="False"){
-                        twbsPaginator("#pagination_blood_sample", "#sample_table", window.page, window.total_pages,
-                        '/review?table=True&type=blood_sample&day='+$('.activeDay').data('activeday')+'&page=');
-                    } else{
-                        twbsPaginator("#pagination_blood_sample", "#sample_table", window.page, window.total_pages,
-                            '/review?table=True&type=blood_sample&day='+$('.reviewBloodDay.activeDay').data('activeday')+'&page=');
-                    }
+                    twbsPaginator("#pagination_blood_sample", "#sample_table", window['page#pagination_blood_sample'], window['total_pages#pagination_blood_sample'],
+                    '/review?table=True&type=blood_sample&day='+$('.reviewBloodDay.activeDay').data('activeday')+'&page=');
                 }else{
                     $('.error').html('Internal server error occured');
                 }

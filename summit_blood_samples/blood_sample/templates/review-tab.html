@@ -48,6 +48,7 @@ $(document).ready(function(){
     $('.reviewBtnTab').click(function() {
 		$('.modal-loader').show();
 		$("#blood-sample-modal").modal();
+		$('#blood-sample-modal .close').attr('id', 'close-'+$(this).data('review'));
 		$(".customModal").addClass("modal-xl");
 		$.ajax({
             url: '/review?firstOpen=True&type='+$(this).data('review'),

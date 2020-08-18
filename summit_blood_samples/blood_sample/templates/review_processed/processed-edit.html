@@ -1,0 +1,120 @@
+<h3>Edit - Processed Report</h3>
+<div class="custom-form">
+<form method="POST" class="post-form custom-form" id="edit-processed-form" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="form-group">
+            <input type="text" class="form__control" name="id" value={{object.id}} hidden>
+            <div class="row">
+                <div class="col">
+                    <label for="ParentId">Parent Id:</label>
+                    <input type="text" class="form__control" name="ParentId" id="ParentId" value="{{object.ParentId}}" maxlength="7">
+                </div>
+                <div class="col">
+                    <label for="Barcode">Barcode:</label>
+                    <input type="text" name="Barcode" class="form__control" id="Barcode" value="{{object.Barcode}}" maxlength="10" disabled>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col">
+                    <label for="NumberOfChildren">Number Of Children:</label>
+                    <input type="number" name="NumberOfChildren" class="form__control" id="NumberOfChildren" value="{{object.NumberOfChildren}}"  disabled>
+                </div>
+                <div class="col">
+                    <label for="Volume">Volume:</label>
+                    <input type="text" name="Volume" class="form__control" id="Volume" value="{{object.Volume}}"  disabled>
+                </div>
+            </div>
+            <label for="ProcessedDateTime">Processed Date:</label>
+            <input type="datetime-local" name="ProcessedDateTime" class="form__control" id="ProcessedDateTime" value="{{object.ProcessedDateTime|date:"Y-m-d" }}T{{object.ProcessedDateTime|date:"H:i" }}"  disabled>
+            <label for="Comments">Comments:</label>
+            <textarea class="form__control" name="Comments" id="Comments" maxlength="5000">{{object.Comments}}</textarea>
+        </div>
+
+</form>
+</div>
+<em class="error"></em>
+<div class="text-right bottom-buttons">
+    <button type="button" class="btn btn-cancel cancel-submit-edit">Cancel</button>
+    <button type="button" class="btn btn-submit" id="submit_edit_unmached_pr">Submit</button>
+</div>
+<script>
+$(document).ready(function(){
+    $('.cancel-submit-edit').click(function() {
+        $('.review-processed').show();
+        $(".customModal").addClass("modal-xl");
+        $('.edit-processed-div').html("");
+    });
+    $('#submit_edit_unmached_pr').click(function() {
+        $('.modal-loader').show();
+        $.ajax({
+            url: 'edit_processed?'+$('#edit-processed-form').serialize(),
+            type: 'POST',
+            processData: false,
+            contentType: false,
+            beforeSend: function(xhr){
+                xhr.setRequestHeader('X-CSRFToken', '{{ csrf_token }}');
+            },
+            success: function(data){
+                if (data.status==200){
+                    $('.modal-loader').hide();
+                    $('.edit-processed-div').html("");
+                    $('.review-processed').show();
+                    $(".customModal").addClass("modal-xl");
+                    var bloodSamples = [];
+                    $.each($("input[name='BloodSample']:checked"), function () {
+                        bloodSamples.push($(this).val());
+                    });
+                    var manifest = [];
+                    $.each($("input[name='Manifest']:checked"), function () {
+                        manifest.push($(this).val());
+                    });
+                    var receipt = [];
+                    $.each($("input[name='Receipt']:checked"), function () {
+                        receipt.push($(this).val());
+                    });
+                    var processed = [];
+                    $.each($("input[name='Processed']:checked"), function () {
+                        processed.push($(this).val());
+                    });
+                    $.ajax({
+                        url: '/review?get_pages=True&type=processed&day='+$('.reviewProcessedDay.activeDay').data('activeday')+'&'+$('.processed-filter-form').serialize()+'&page='+window['page#pagination_processed']+'&BloodSample=' + bloodSamples+'&Manifest=' + manifest+'&Receipt=' + receipt+'&Processed=' + processed,
+                        type: 'get',
+                        success: function(data){
+                            twbsPaginator("#pagination_processed", "#processed_table", data.current_page, data.total_pages,
+                            '/review?table=True&type=processed&day='+$('.reviewProcessedDay.activeDay').data('activeday')+'&'+$('.processed-filter-form').serialize()+'&BloodSample=' + bloodSamples+'&Manifest=' + manifest+'&Receipt=' + receipt+'&Processed=' + processed+'&page=');
+                        }
+                    });
+                    $.ajax({
+                        url: '/unmatched_processed?get_pages=True&type=umatched_rr&day='+$('.reviewProcessedDay.activeDay').data('activeday')+'&'+$('.processed-filter-form').serialize()+'&page='+window['page#pagination_umatched_rr_pr'],
+                        type: 'get',
+                        success: function(data){
+                            twbsPaginator("#pagination_umatched_rr_pr", "#umatched_rr_pr_table", data.current_page, data.total_pages,
+                            '/unmatched_processed?&type=umatched_rr&day='+$('.reviewProcessedDay.activeDay').data('activeday')+'&'+$('.processed-filter-form').serialize()+'&page=');
+                        }
+                    });
+                    $.ajax({
+                        url: '/unmatched_processed?get_pages=True&type=umatched_pr&day='+$('.reviewProcessedDay.activeDay').data('activeday')+'&'+$('.processed-filter-form').serialize()+'&page='+window['page#pagination_umatched_pr'],
+                        type: 'get',
+                        success: function(data){
+                            twbsPaginator("#pagination_umatched_pr", "#umatched_pr_table", data.current_page, data.total_pages,
+                            '/unmatched_processed?&type=umatched_pr&day='+$('.reviewProcessedDay.activeDay').data('activeday')+'&'+$('.processed-filter-form').serialize()+'&page=');
+                        }
+                    });
+                    $.ajax({
+                        url: '/home_tab',
+                        type: 'GET',
+                        success: function(data){
+                                $('#home-container').html(data);
+                                $('.modal-loader').hide();
+                            }
+                    });
+                }else{
+                    $('.error').html('Internal server error occured');
+                }
+                $('.modal-loader').hide();
+            }
+
+        });
+    });
+});
+</script>

@@ -29,6 +29,23 @@
 </div>
 <script type="text/javascript">
     $(document).ready(function(){
+        $('.edit-sample-div').html("");
+        $('#blood-sample-modal .close').click(function(e) {
+            e.preventDefault();
+            e.stopImmediatePropagation();
+            if ($('.edit-sample-div').text()==""){
+                $('#blood-sample-modal').off('hide.bs.modal');
+                $("#blood-sample-modal").modal('hide');
+            } else{
+                $('#blood-sample-modal').on('hide.bs.modal', function () {
+                    return false;
+                });
+                $('.review-sample').show();
+                $(".customModal").addClass("modal-xl");
+                $('.edit-sample-div').html("");
+            }
+            $('#blood-sample-modal').off('hide.bs.modal');
+        });
         twbsPaginator("#pagination_blood_sample", "#sample_table", "{{current_page}}", "{{total_pages}}",
         '/review?table=True&type=blood_sample&day='+$('.reviewBloodDay.activeDay').data('activeday')+'&page=');
         function getNav(day){

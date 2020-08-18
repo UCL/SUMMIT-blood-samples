@@ -2,13 +2,13 @@
 function twbsPaginator(paginator_div_id, div_id, current_page, total_pages, url){
     $(paginator_div_id).empty();
     $(paginator_div_id).removeData("twbs-pagination");
-    window.total_pages=total_pages;
-    window.page=current_page;
+    window['total_pages' + paginator_div_id]=total_pages;
+    window['page' + paginator_div_id]=current_page;
     $(paginator_div_id).unbind("page");
     $(paginator_div_id).twbsPagination({
         totalPages: total_pages,
         // the current page that show on start
-        startPage: parseInt(window.page),
+        startPage: parseInt(window['page' + paginator_div_id]),
     
         // maximum visible pages
         visiblePages: 7,
@@ -43,7 +43,7 @@ function twbsPaginator(paginator_div_id, div_id, current_page, total_pages, url)
             $('.modal-loader').show();
             var that = $(this);
             var t;
-            window.page=page;
+            window['page' + paginator_div_id]=page;
             $.ajax({
                 url: url + page,
                 type: 'GET',
@@ -57,7 +57,6 @@ function twbsPaginator(paginator_div_id, div_id, current_page, total_pages, url)
                     $('.modal-loader').hide();
                 }
             });
-    
         },
 
         // pagination Classes

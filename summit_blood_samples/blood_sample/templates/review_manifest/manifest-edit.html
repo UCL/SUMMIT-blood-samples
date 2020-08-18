@@ -1,0 +1,125 @@
+<h3>Edit - Manifest</h3>
+<div class="custom-form">
+<form method="POST" class="post-form custom-form" id="edit-manifest-form">
+        {% csrf_token %}
+        <div class="form-group">
+            <input type="text" class="form__control" name="id" value={{object.id}} hidden>
+            <div class="row">
+                <div class="col">
+                    <label for="CohortId">CohortId:</label>
+                    <input type="text" class="form__control" name="CohortId" id="CohortId" value="{{object.CohortId}}" maxlength="7">
+                </div>
+                <div class="col">
+                    <label for="Barcode">Barcode:</label>
+                    <input type="text" name="Barcode" class="form__control" id="Barcode" value="{{object.Barcode}}" maxlength="10">
+                </div>
+            </div>
+            <div class="row">
+                <div class="col">
+                    <label for="Room">Room:</label>
+                    <select name="Room" id="Room" class="form__control ">
+                    <option>Please select</option>
+                        {% for room in rooms %}
+                            <option value="{{ room }}" {% if object.Room == room  %} selected="selected" {% endif %}>{{ room }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col">
+                    <label for="Visit">Visit:</label>
+                    <select name="Visit" id="Visit" class="form__control ">
+                        <option>Please select</option>
+                        <option value="0" {% if object.Visit == "0"  %} selected="selected" {% endif %}>Y0</option>
+                        <option value="1" {% if object.Visit == "1"  %} selected="selected" {% endif %}>Y0+3M</option>
+                        <option value="2" {% if object.Visit == "2"  %} selected="selected" {% endif %}>Y1</option>
+                        <option value="3" {% if object.Visit == "3"  %} selected="selected" {% endif %}>Y2</option>
+                    </select>
+                </div>
+
+            </div>
+            <div class="row">
+                <div class="col">
+                    <label for="Site">Site:</label>
+                    <select name="Site" id="Site" class="form__control ">
+                        <option>Please select</option>
+                        <option value="0" {% if object.Site == "0"  %} selected="selected" {% endif %}>FMH</option>
+                        <option value="1" {% if object.Site == "1"  %} selected="selected" {% endif %}>KGH</option>
+                        <option value="2" {% if object.Site == "2"  %} selected="selected" {% endif %}>Mile End Hospital</option>
+                        <option value="3" {% if object.Site == "3"  %} selected="selected" {% endif %}>UCLH</option>
+                    </select>
+                </div>
+            </div>
+            <label for="Comments">Comments:</label>
+            <textarea class="form__control" name="Comments" id="Comments" maxlength="5000">{{object.Comments}}</textarea>
+        </div>
+</form>
+</div>
+<em class="error"></em>
+<div class="text-right bottom-buttons">
+    <button type="button" class="btn btn-cancel cancel-submit-manifest-edit">Cancel</button>
+    <button type="button" class="btn btn-submit" id="submit_edit_Manifest">Submit</button>
+</div>
+<script>
+$(document).ready(function(){
+    $('.cancel-submit-manifest-edit').click(function() {
+        $('.review-manifest').show();
+        $(".customModal").addClass("modal-xl");
+        $('.edit-manifest-div').html("");
+    });
+    $('#submit_edit_Manifest').click(function() {
+        $('.modal-loader').show();
+        $.ajax({
+            url: 'edit_manifest?'+$('#edit-manifest-form').serialize(),
+            type: 'POST',
+            processData: false,
+            contentType: false,
+            beforeSend: function(xhr){
+                xhr.setRequestHeader('X-CSRFToken', '{{ csrf_token }}');
+            },
+            success: function(data){
+                if (data.status==200){
+                    $('.edit-manifest-div').html("");
+                    $('.review-manifest').show();
+                    $(".customModal").addClass("modal-xl");
+                    $('.modal-loader').hide();
+                    $.ajax({
+                        url: '/review?get_pages=True&type=manifest&day='+$('.reviewManifestDay.activeDay').data('activeday')+'&'+$('.manifest-filter-form').serialize()+'&page='+window['page#pagination_manifest'],
+                        type: 'get',
+                        success: function(data){
+                            twbsPaginator("#pagination_manifest", "#manifest_table", data.current_page, data.total_pages,
+                            '/review?table=True&type=manifest&day='+$('.reviewManifestDay.activeDay').data('activeday')+'&'+$('.manifest-filter-form').serialize()+'&page=');
+                        }
+                    });
+                    $.ajax({
+                        url: '/unmatched_manifest?get_pages=True&type=umatched_mf&day='+$('.reviewManifestDay.activeDay').data('activeday')+'&'+$('.manifest-filter-form').serialize()+'&page='+window['page#pagination_umatched_mf'],
+                        type: 'get',
+                        success: function(data){
+                            twbsPaginator("#pagination_umatched_mf", "#umatched_mf_table", data.current_page, data.total_pages,
+                            '/unmatched_manifest?&type=umatched_mf&day='+$('.reviewManifestDay.activeDay').data('activeday')+'&'+$('.manifest-filter-form').serialize()+'&page=');
+                        }
+                    });
+                    $.ajax({
+                        url: '/unmatched_manifest?get_pages=True&type=umatched_bs&day='+$('.reviewManifestDay.activeDay').data('activeday')+'&'+$('.manifest-filter-form').serialize()+'&page='+window['page#pagination_umatched_bs'],
+                        type: 'get',
+                        success: function(data){
+                            twbsPaginator("#pagination_umatched_bs", "#umatched_bs_table", data.current_page, data.total_pages,
+                            '/unmatched_manifest?&type=umatched_bs&day='+$('.reviewManifestDay.activeDay').data('activeday')+'&'+$('.manifest-filter-form').serialize()+'&page=');
+                        }
+                    });
+                    $.ajax({
+                        url: '/home_tab',
+                        type: 'GET',
+                        success: function(data){
+                                $('#home-container').html(data);
+                                $('.modal-loader').hide();
+                            }
+                    });
+                }else{
+                    $('.error').html('Internal server error occured');
+                }
+                $('.modal-loader').hide();
+            }
+
+        });
+    });
+});
+</script>

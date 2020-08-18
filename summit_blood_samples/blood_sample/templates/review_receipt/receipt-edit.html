@@ -1,0 +1,119 @@
+<h3>Edit - Receipt</h3>
+<div class="custom-form">
+<form method="POST" class="post-form custom-form" id="edit-receipt-manifest-form">
+        {% csrf_token %}
+        <div class="form-group">
+            <input type="text" class="form__control" name="id" value={{object.id}} hidden>
+            <label for="Barcode">Barcode:</label>
+            <input type="text" name="Barcode" class="form__control" id="Barcode" value="{{object.Barcode}}" maxlength="10">
+            <label for="DateTimeTaken">Date Time Taken:</label>
+            <input type="datetime-local" name="DateTimeTaken" class="form__control" id="DateTimeTaken" value="{{object.DateTimeTaken|date:"Y-m-d" }}T{{object.DateTimeTaken|date:"H:i" }}">
+            {% if manifest_object %}
+            <div class="row">
+                <div class="col">
+                    <label for="CohortId">CohortId:</label>
+                    <input type="text" class="form__control" name="CohortId" id="CohortId" value="{{manifest_object.CohortId}}" maxlength="7" disabled>
+                </div>
+                <div class="col">
+                    <label for="Room">Room:</label>
+                    <input type="text" class="form__control" name="Room" id="Room" value="{{manifest_object.Room}}" maxlength="7" disabled>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col">
+                    <label for="Visit">Visit:</label>
+                    <input type="text" class="form__control" name="Visit" id="Visit" value="{{manifest_object.Visit}}" maxlength="7" disabled>
+                </div>
+                <div class="col">
+                    <label for="Site">Site:</label>
+                    <input type="text" name="Site" class="form__control" id="Site" value="{{manifest_object.Site}}" disabled>
+                </div>
+            </div>
+            {% else %}
+                <div class="row">
+                    <div class="col">
+                        <label for="Clinic">Clinic:</label>
+                        <input type="text" name="Clinic" class="form__control" id="Clinic" value="{{object.Clinic}}" disabled>
+                    </div>
+                    <div class="col">
+                        <label for="Volume">Volume:</label>
+                        <input type="text" name="Volume" class="form__control" id="Volume" value="{{object.Volume}}" disabled>
+                    </div>
+                </div>
+            {% endif %}
+            <label for="Comments">Comments:</label>
+            <textarea class="form__control" name="Comments" id="Comments" maxlength="5000">{{object.Comments}}</textarea>
+        </div>
+</form>
+</div>
+<em class="error"></em>
+<div class="text-right bottom-buttons">
+    <button type="button" class="btn btn-cancel cancel-submit-receipt-manifest-edit">Cancel</button>
+    <button type="button" class="btn btn-submit" id="submit_edit_Receipt">Submit</button>
+</div>
+<script>
+$(document).ready(function(){
+    $('.cancel-submit-receipt-manifest-edit').click(function() {
+        $('.review-receipt').show();
+        $(".customModal").addClass("modal-xl");
+        $('.edit-receipt-div').html("");
+    });
+    $('#submit_edit_Receipt').click(function() {
+        $('.modal-loader').show();
+        $.ajax({
+            url: 'edit_receipt?'+$('#edit-receipt-manifest-form').serialize(),
+            type: 'POST',
+            processData: false,
+            contentType: false,
+            beforeSend: function(xhr){
+                xhr.setRequestHeader('X-CSRFToken', '{{ csrf_token }}');
+            },
+            success: function(data){
+                if (data.status==200){
+                    $('.edit-receipt-div').html("");
+                    $('.review-receipt').show();
+                    $(".customModal").addClass("modal-xl");
+                    $('.modal-loader').hide();
+
+                    $.ajax({
+                        url: '/review?get_pages=True&type=receipt&day='+$('.reviewReceiptDay.activeDay').data('activeday')+'&'+$('.receipt-filter-form').serialize()+'&page='+window['page#pagination_receipt'],
+                        type: 'get',
+                        success: function(data){
+                            twbsPaginator("#pagination_receipt", "#receipt_table", data.current_page, data.total_pages,
+                            '/review?table=True&type=receipt&day='+$('.reviewReceiptDay.activeDay').data('activeday')+'&'+$('.receipt-filter-form').serialize()+'&page=');
+                        }
+                    });
+                    $.ajax({
+                        url: '/unmatched_receipt?get_pages=True&type=umatched_bsr&day='+$('.reviewReceiptDay.activeDay').data('activeday')+'&'+$('.receipt-filter-form').serialize()+'&page='+window['page#pagination_umatched_bsr'],
+                        type: 'get',
+                        success: function(data){
+                            twbsPaginator("#pagination_umatched_bsr", "#umatched_bsr_table", data.current_page, data.total_pages,
+                            '/unmatched_receipt?&type=umatched_bsr&day='+$('.reviewReceiptDay.activeDay').data('activeday')+'&'+$('.receipt-filter-form').serialize()+'&page=');
+                        }
+                    });
+                    $.ajax({
+                        url: '/unmatched_receipt?get_pages=True&type=umatched_rr&day='+$('.reviewReceiptDay.activeDay').data('activeday')+'&'+$('.receipt-filter-form').serialize()+'&page='+window['page#pagination_umatched_rr'],
+                        type: 'get',
+                        success: function(data){
+                            twbsPaginator("#pagination_umatched_rr", "#umatched_rr_table", data.current_page, data.total_pages,
+                            '/unmatched_receipt?&type=umatched_rr&day='+$('.reviewReceiptDay.activeDay').data('activeday')+'&'+$('.receipt-filter-form').serialize()+'&page=');
+                        }
+                    });
+                    $.ajax({
+                        url: '/home_tab',
+                        type: 'GET',
+                        success: function(data){
+                                $('#home-container').html(data);
+                                $('.modal-loader').hide();
+                            }
+                    });
+                }else{
+                    $('.error').html('Internal server error occured');
+                }
+                $('.modal-loader').hide();
+            }
+
+        });
+    });
+});
+</script>

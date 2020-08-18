@@ -14,6 +14,13 @@
             <th class="manifest-header">Room</th>
             <th class="manifest-header">Collection Date Time</th>
             <th class="manifest-header">Comments</th>
+            <th class="receipt-header">Cohort Id</th>
+            <th class="receipt-header">Barcode</th>
+            <th class="receipt-header">Clinic</th>
+            <th class="receipt-header">Date Time Taken</th>
+            <th class="receipt-header">Received Date Time</th>
+            <th class="receipt-header">Volume</th>
+            <th class="receipt-header">Comments</th>
             <th>Edit</th>
         </tr>
         {% for item in objects %}
@@ -29,29 +36,36 @@
             <td class="manifest-col">{{ item.Room }}</td>
             <td class="manifest-col">{{ item.CollectionDateTime }}</td>
             <td class="manifest-col"><a rel="tooltip" data-html="true" title="<h6>{{ item.ManifestComments }}</h6>" >{{ item.ManifestComments|truncatechars:20 }}</a></td>
-            <td><a data-editmanifest="{{item.id}}" class="edit-manifest" style="cursor:pointer;"><img class="warning-svg" src="{% static 'indigo/images/edit.svg' %}" style="margin-bottom: 0px;width:20px;height: 20px;" /></a></td>
+            <td class="receipt-col">{{ item.ManifestCohortId }}</td>
+            <td class="receipt-col">{{ item.ReceiptBarcode }}</td>
+            <td class="receipt-col">{{ item.Clinic }}</td>
+            <td class="receipt-col">{{ item.DateTimeTaken }}</td>
+            <td class="receipt-col">{{ item.ReceivedDateTime }}</td>
+            <td class="receipt-col">{{ item.Volume }}</td>
+            <td class="receipt-col"><a rel="tooltip" data-html="true" title="<h6>{{ item.ReceiptComments }}</h6>" >{{ item.ReceiptComments|truncatechars:20 }}</a></td>
+            <td><a data-editreceipt="{{item.ReceiptId}}" data-editmanifest="{{item.ManifestId}}" class="edit-manifest-receipt" style="cursor:pointer;"><img class="warning-svg" src="{% static 'indigo/images/edit.svg' %}" style="margin-bottom: 0px;width:20px;height: 20px;" /></a></td>
         </tr>
         {% endfor %}
     </table>
 </div>
 {% else %}
-No matched manifest records found
+No matched receipt records found
 {% endif %}
 <script type="text/javascript">
 $(document).ready(function(){
     $("[rel='tooltip']").tooltip();
-    $('.edit-manifest').click(function() {
+    $('.edit-manifest-receipt').click(function() {
         $('#blood-sample-modal').on('hide.bs.modal', function () {
             return false;
         })
         $('.modal-loader').show();
         $.ajax({
-            url: 'edit_manifest?id='+$(this).data('editmanifest'),
+            url: 'edit_receipt?id='+$(this).data('editreceipt'),
             type: 'GET',
             success: function(data){
                 $('.modal-loader').hide();
-                $('.edit-manifest-div').html(data);
-                $('.review-manifest').hide();
+                $('.edit-receipt-div').html(data);
+                $('.review-receipt').hide();
                 $(".customModal").removeClass("modal-xl");
             },
             error: function (error) {

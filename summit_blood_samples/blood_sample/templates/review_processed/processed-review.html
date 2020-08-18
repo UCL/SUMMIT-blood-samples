@@ -1,0 +1,197 @@
+{% load static %}
+{% now "d b" as todays_date %}
+
+<div class="site-content__main custom-modal-content review-processed">
+    <h3>Review - Processed Records</h3>
+        {% include "day-nav.html" %}
+        <style>
+        .reviewProcessedDay-container{
+            padding: 0px 110px;
+            margin-bottom: -40px;
+            margin-top: -30px;
+        }
+        .reviewProcessedDay:hover{
+            background: none !important;
+        }
+
+        </style>
+    <div class="custom-form" style="min-height: 470px;">
+        <span class="float-right">
+
+            <!-- Example single danger button -->
+            <span>
+                <img data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" class="btn-svg processed-filters" src="{% static 'indigo/images/filter.svg' %}"  />
+                <div class="dropdown-menu dropdown-menu-left dropdown-menu-lg-left" style="    font-size: 13px;width: 300px;left: -30px !important;">
+                    <form method="GET" class="form-group post-form px-4 py-3 processed-filter-form">
+                            {% csrf_token %}
+                            <div class="form-group">
+                                <label for="FilterReceiptVisit">Visit:</label>
+                                <select name="Visit" id="FilterReceiptVisit" class="form__control ">
+                                    <option value="">Please select</option>
+                                    <option value="0">Y0</option>
+                                    <option value="1">Y0+3M</option>
+                                    <option value="2">Y1</option>
+                                    <option value="3">Y2</option>
+                                </select>
+                                <label for="FilterReceiptSite">Site:</label>
+                                <select name="Site" id="FilterReceiptSite" class="form__control ">
+                                    <option value="">Please select</option>
+                                    <option value="0">FMH</option>
+                                    <option value="1">KGH</option>
+                                    <option value="2">Mile End Hospital</option>
+                                    <option value="3">UCLH</option>
+                                </select>
+                                <label for="FilterReceiptRoom">Room:</label>
+                                <select name="Room" id="FilterReceiptRoom" class="form__control ">
+                                    <option value="">Please select</option>
+                                </select>
+                                <label for="State">State:</label>
+                                <select name="State" id="State" class="form__control">
+                                    <option value="">Please Select</option>
+                                    <option value="ACTIVE">ACTIVE</option>
+                                    <option value="UNABLE_TO_DRAW">UNABLE_TO_DRAW</option>
+                                    <option value="UNABLE_TO_PROCESS">UNABLE_TO_PROCESS</option>
+                                    <option value="PROCESSED_ON_TIME">PROCESSED_ON_TIME</option>
+                                    <option value="PROCESSED_NOT_ON_TIME">PROCESSED_NOT_ON_TIME</option>
+                                </select>
+                            </div>
+                    </form>
+                    <em class="error"></em>
+                    <div class="text-center px-4 py-3">
+                        <button type="button" class="btn btn-submit" data-dismiss="modal" id="filter-processed-submit">Submit</button>
+                    </div>
+                </div>
+            </span>
+            <span>
+                <img data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" class="btn-svg processed-settings" src="{% static 'indigo/images/gear.svg' %}"  />
+                <div class="dropdown-menu dropdown-menu-left dropdown-menu-lg-left" style="
+                        font-size: 13px;
+                        width: 500px;
+                        overflow-x: hidden;
+                        left: -30px !important;
+                        height: 400px;
+                        overflow-y: auto;
+                        padding: 13px 0px 10px 10px;">
+                    {% include 'review_processed/processed-settings.html' %}
+                </div>
+            </span>
+        </span>
+        <h2 class="text-center">Matched Records</h2>
+        <div id="processed_table"></div>
+        <div id="pagination_processed" class="pagination-md pull-right"></div></br><br/>
+        <div>
+            <h2 class="text-center">Unmatched Records</h2>
+        </div>
+        <div class="container">
+            <div class="row">
+                <div class="col" style="padding-left: 0px;">
+                    <div id="umatched_rr_pr_table"></div>
+                    <div id="pagination_umatched_rr_pr" class="pagination-md pull-right table-responsive"></div></br>
+                </div>
+                <div class="col">
+                    <div id="umatched_pr_table"></div>
+                    <div id="pagination_umatched_pr" class="pagination-md pull-right table-responsive"></div></br>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="site-content__main custom-modal-content edit-processed-div">
+</div>
+<script type="text/javascript">
+    $(document).ready(function(){
+        $('.edit-processed-div').html("");
+        $('#blood-sample-modal .close').click(function(e) {
+            e.preventDefault();
+            e.stopImmediatePropagation();
+            if ($('.edit-processed-div').text()==""){
+                $('#blood-sample-modal').off('hide.bs.modal');
+                $("#blood-sample-modal").modal('hide');
+            } else{
+                $('#blood-sample-modal').on('hide.bs.modal', function () {
+                    return false;
+                });
+                $('.review-processed').show();
+                $(".customModal").addClass("modal-xl");
+                $('.edit-processed-div').html("");
+            }
+            $('#blood-sample-modal').off('hide.bs.modal');
+        });
+
+        $('.dropdown-menu').on('click', function(event) {
+            event.stopPropagation();
+        });
+        $.ajax({
+            url: '/get_manifest_filters',//?day='+$('.reviewManifestDay.activeDay').data('activeday'),
+            type: 'get',
+            success: function(data){
+                $.each(data.rooms, function(key, value) {
+                    $('#FilterReceiptRoom')
+                        .append($("<option></option>")
+                                    .attr("value", value)
+                                    .text(value));
+                });
+            }
+        });
+        twbsPaginator("#pagination_processed", "#processed_table", "{{current_page}}", "{{total_pages}}",
+        '/review?table=True&type=processed&day='+$('.reviewProcessedDay.activeDay').data('activeday')+'&page=');
+        twbsPaginator("#pagination_umatched_rr_pr", "#umatched_rr_pr_table", "{{current_page}}", "{{rr_total_pages}}",
+        '/unmatched_processed?&type=umatched_rr&day='+$('.reviewProcessedDay.activeDay').data('activeday')+'&page=');
+        twbsPaginator("#pagination_umatched_pr", "#umatched_pr_table", "{{current_page}}", "{{pr_total_pages}}",
+        '/unmatched_processed?&type=umatched_pr&day='+$('.reviewProcessedDay.activeDay').data('activeday')+'&page=');
+        function getNav(day){
+            $('.modal-loader').show();
+            $.ajax({
+                url: '/review?type=processed&day='+day,
+                type: 'get',
+                success: function(data){
+                    $('.modal-body').html(data);
+                    $('.modal-loader').hide();
+                }
+            });
+        }
+        $('.reviewProcessedDay').click(function() {
+            $(".md-step").addClass("active");
+            $(this).removeClass("active");
+            getNav($(this).data('currentday'));
+        });
+
+        $('#processed-settings-submit, #filter-processed-submit').click(function() {
+            var bloodSamples = [];
+            $.each($("input[name='BloodSample']:checked"), function () {
+                bloodSamples.push($(this).val());
+                
+            });
+            var manifest = [];
+            $.each($("input[name='Manifest']:checked"), function () {
+                manifest.push($(this).val());
+            });
+            var receipt = [];
+            $.each($("input[name='Receipt']:checked"), function () {
+                receipt.push($(this).val());
+            });
+            var processed = [];
+            $.each($("input[name='Processed']:checked"), function () {
+                processed.push($(this).val());
+            });
+            $.ajax({
+                url: '/review?get_pages=True&type=processed&day='+$('.reviewProcessedDay.activeDay').data('activeday')+'&'+$('.processed-filter-form').serialize()+'&BloodSample=' + bloodSamples+'&Manifest=' + manifest+'&Receipt=' + receipt+'&Processed=' + processed,
+                type: 'get',
+                success: function(data){
+                    twbsPaginator("#pagination_processed", "#processed_table", data.current_page, data.total_pages,
+                    '/review?table=True&type=processed&day='+$('.reviewProcessedDay.activeDay').data('activeday')+'&'+$('.processed-filter-form').serialize()+'&BloodSample=' + bloodSamples+'&Manifest=' + manifest+'&Receipt=' + receipt+'&Processed=' + processed+'&page=');
+                }
+            });
+            $.ajax({
+                url: '/unmatched_processed?get_pages=True&type=umatched_rr&day='+$('.reviewProcessedDay.activeDay').data('activeday')+'&'+$('.processed-filter-form').serialize(),
+                type: 'get',
+                success: function(data){
+                    twbsPaginator("#pagination_umatched_rr_pr", "#umatched_rr_pr_table", data.current_page, data.total_pages,
+                    '/unmatched_processed?&type=umatched_rr&day='+$('.reviewProcessedDay.activeDay').data('activeday')+'&'+$('.processed-filter-form').serialize()+'&page=');
+                }
+            });
+            $('.processed-filters').dropdown('hide');
+            $('.processed-settings').dropdown('hide');
+        });
+    });
+</script>

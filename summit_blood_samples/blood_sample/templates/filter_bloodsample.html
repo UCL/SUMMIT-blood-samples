@@ -31,6 +31,17 @@
                         <input type="date" id="DateTo" value="{{to}}" data-date-format="dd/mm/yyyy" class="form__control"></input>
                     </div>
                 </div>
+                <label for="Visits">Visit:</label>
+                <select name="Visits" id="Visits" class="form__control">
+                    <option value="">Please Select</option>
+                    {% for visit in visits %}
+                    {% if visit in filters.Visit %}
+                    <option value="{{visit}}" selected>{{visit}}</option>
+                    {% else %}
+                    <option value="{{visit}}">{{visit}}</option>
+                    {% endif %}
+                    {% endfor %}
+                </select>
                 <label for="Sites">Site:</label>
                 <select name="Sites" id="Sites" class="form__control">
                     <option value="">Please Select</option>
@@ -50,17 +61,6 @@
                     <option value="{{room}}" selected>{{room}}</option>
                     {% else %}
                     <option value="{{room}}">{{room}}</option>
-                    {% endif %}
-                    {% endfor %}
-                </select>
-                <label for="Visits">Visit:</label>
-                <select name="Visits" id="Visits" class="form__control">
-                    <option value="">Please Select</option>
-                    {% for visit in visits %}
-                    {% if visit in filters.Visit %}
-                    <option value="{{visit}}" selected>{{visit}}</option>
-                    {% else %}
-                    <option value="{{visit}}">{{visit}}</option>
                     {% endif %}
                     {% endfor %}
                 </select>

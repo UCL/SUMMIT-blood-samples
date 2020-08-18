@@ -59,8 +59,18 @@
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js" integrity="sha384-OgVRvuATP1z7JjHLkuOU7Xw704+h835Lr+6QL9UvYjZE3Ipu6Tp75j7Bh/kR0JKI" crossorigin="anonymous"></script>
 
 <!--TWBS Paginator-->
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/twbs-pagination/1.4.2/jquery.twbsPagination.js"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/twbs-pagination/1.4.2/jquery.twbsPagination.min.js"></script>
+<!-- High CHarts Loading -->
+<script src="https://code.highcharts.com/stock/highstock.js"></script>
+{% comment %} <script src="https://code.highcharts.com/highcharts.js"></script> {% endcomment %}
+<script src="https://code.highcharts.com/modules/annotations.js"></script>
+<script src="https://code.highcharts.com/modules/accessibility.js"></script>
+{% comment %} <script src="http://github.highcharts.com/modules/drilldown.js"></script> {% endcomment %}
+<script src="http://code.highcharts.com/maps/modules/map.js"></script>
+<script src="https://code.highcharts.com/modules/export-data.js"></script>
+<script src="https://code.highcharts.com/modules/exporting.js"></script>
+<script src="https://code.highcharts.com/highcharts-more.js"></script>
+<script src="https://code.highcharts.com/stock/modules/exporting.js"></script>
 
     <script>
       var cuttingTheMustard = document.querySelector && window.localStorage && window.addEventListener;
@@ -188,110 +198,8 @@
   {% include "indigo/includes/modal.html" %}
   {% include 'indigo/twbsPagination.html' %}
   {% include "indigo/includes/footer.html" %}
-  <svg class="modal-loader" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 340 340">
-    <circle cx="170" cy="170" r="160" stroke="#ff5a5f"/>
-    <circle cx="170" cy="170" r="135" stroke="#615957"/>
-    <circle cx="170" cy="170" r="110" stroke="#ff5a5f"/>
-    <circle cx="170" cy="170" r="85" stroke="#615957"/>
-  </svg>
-  <style>
+  <img class="modal-loader-svg modal-loader" src="{% static 'indigo/images/loading.svg' %}" />
 
-
-.modal-loader {
-  max-width: 15rem;
-  width: 100%;
-  height: auto;
-  stroke-linecap: round;
-}
-
-circle {
-  fill: none;
-  stroke-width: 3.5;
-  -webkit-animation-name: preloader;
-          animation-name: preloader;
-  -webkit-animation-duration: 3s;
-          animation-duration: 3s;
-  -webkit-animation-iteration-count: infinite;
-          animation-iteration-count: infinite;
-  -webkit-animation-timing-function: ease-in-out;
-          animation-timing-function: ease-in-out;
-  -webkit-transform-origin: 170px 170px;
-          transform-origin: 170px 170px;
-  will-change: transform;
-}
-circle:nth-of-type(1) {
-  stroke-dasharray: 550;
-}
-circle:nth-of-type(2) {
-  stroke-dasharray: 500;
-}
-circle:nth-of-type(3) {
-  stroke-dasharray: 450;
-}
-circle:nth-of-type(4) {
-  stroke-dasharray: 300;
-}
-circle:nth-of-type(1) {
-  -webkit-animation-delay: -0.15s;
-          animation-delay: -0.15s;
-}
-circle:nth-of-type(2) {
-  -webkit-animation-delay: -0.3s;
-          animation-delay: -0.3s;
-}
-circle:nth-of-type(3) {
-  -webkit-animation-delay: -0.45s;
-  -moz-animation-delay:  -0.45s;
-          animation-delay: -0.45s;
-}
-circle:nth-of-type(4) {
-  -webkit-animation-delay: -0.6s;
-  -moz-animation-delay: -0.6s;
-          animation-delay: -0.6s;
-}
-
-@-webkit-keyframes preloader {
-  50% {
-    -webkit-transform: rotate(360deg);
-            transform: rotate(360deg);
-  }
-}
-
-@keyframes preloader {
-  50% {
-    -webkit-transform: rotate(360deg);
-            transform: rotate(360deg);
-  }
-}
-
-
-.modal-loader {
-  position: fixed;
-  z-index: 1450;
-  height: 9em;
-  width: 8em;
-  overflow: show;
-  margin: auto;
-  top: 0;
-  left: 0;
-  bottom: 0;
-  right: 0;
-}
-
-/* Transparent Overlay */
-.modal-loader:before {
-  content: '';
-  display: block;
-  position: fixed;
-  top: 0;
-  left: 0;
-  height: 9em;
-  width: 8em;
-    background: radial-gradient(rgba(20, 20, 20,.8), rgba(0, 0, 0, .8));
-
-  background: -webkit-radial-gradient(rgba(20, 20, 20,.8), rgba(0, 0, 0,.8));
-}
-</style>
   {% comment %}
   This is where django_debug_toolbar can inject its markup - it is important to do this before
   requirejs is kicked off - debug toolbar messes around with define() and can cause loading
@@ -312,7 +220,7 @@ circle:nth-of-type(4) {
     <script src="{% indigo_static 'js/main.js' %}"></script>
     <script>
       $('.modal-loader').hide();
-      
+
       require.config({
           baseUrl: '{% indigo_static "js/lib" %}'
       });

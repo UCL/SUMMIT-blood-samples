@@ -89,15 +89,36 @@ class ManifestImports(models.Model):
     #     return reverse("blood_sample_ManifestImports_update", args=(self.pk,))
 
 
+SITECHOICE = [
+    (0, 'FMH'),
+    (1, 'KGH'),
+    (2, 'Mile End Hospital'),
+    (3, 'UCLH'),
+]
+
+
+VISITCHOICE = [
+    (0, 'Y0'),
+    (1, 'Y0+3M'),
+    (2, 'Y1'),
+    (3, 'Y2'),
+]
 class ManifestRecords(models.Model):
-    Visit = models.CharField(max_length=10)
+    Visit = models.CharField(
+        max_length=1,
+        choices=VISITCHOICE,
+    )
     ImportId = models.ForeignKey(
         ManifestImports, on_delete=models.CASCADE, related_name='ManifestRecordsImportId')
-    Site = models.CharField(max_length=100)
+    Site = models.CharField(
+        max_length=1,
+        choices=SITECHOICE,
+    )
     Room = models.CharField(max_length=20)
     CohortId = models.CharField(max_length=7)
     Barcode = models.CharField(max_length=10)
     CollectionDateTime = models.DateTimeField()
+    Comments = models.CharField(max_length=5000, blank=True)
 
     class Meta:
         pass
@@ -105,35 +126,30 @@ class ManifestRecords(models.Model):
     def __str__(self):
         return str(self.pk)
 
+    def site_verbose(self):
+        return '' if self.Site == '' else dict(SITECHOICE)[int(self.Site)]
+    def visit_verbose(self):
+        return '' if self.Visit == '' else dict(VISITCHOICE)[int(self.Visit)]
+
     # def get_absolute_url(self):
     #     return reverse("blood_sample_ManifestRecords_detail", args=(self.pk,))
 
     # def get_update_url(self):
     #     return reverse("blood_sample_ManifestRecords_update", args=(self.pk,))
 
+class ManifestChanges(models.Model):
+    Field = models.CharField(max_length=50)
+    FromValue = models.CharField(max_length=5000)
+    ChangedBy = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name='ManifestChangedBy')
+    ChangedAt = models.DateTimeField(auto_now=True, editable=False)
 
-# class RecieptReportChanges(models.Model):
+    class Meta:
+        pass
 
-#     # Fields
-#     from_value = models.CharField(max_length=500)
-#     created = models.DateTimeField(auto_now=True, editable=False)
-#     field = models.CharField(max_length=50)
-#     record_id = models.IntegerField()
-#     changed_at = models.DateTimeField()
-#     changed_by = models.CharField(max_length=255)
-#     last_updated = models.DateTimeField(auto_now=True, editable=False)
+    def __str__(self):
+        return str(self.pk)
 
-#     class Meta:
-#         pass
-
-#     def __str__(self):
-#         return str(self.pk)
-
-#     def get_absolute_url(self):
-#         return reverse("blood_sample_RecieptReportChanges_detail", args=(self.pk,))
-
-#     def get_update_url(self):
-#         return reverse("blood_sample_RecieptReportChanges_update", args=(self.pk,))
 
 
 class ReceiptImports(models.Model):
@@ -161,6 +177,7 @@ class ReceiptRecords(models.Model):
     Volume = models.CharField(max_length=500)
     VolumeUnit = models.CharField(max_length=4)
     Condition = models.CharField(max_length=500)
+    Comments = models.CharField(max_length=5000, blank=True)
     ImportId = models.ForeignKey(
         ReceiptImports, on_delete=models.CASCADE, related_name='RecieptRecordsImportId')
 
@@ -175,7 +192,18 @@ class ReceiptRecords(models.Model):
 
     # def get_update_url(self):
     #     return reverse("blood_sample_RecieptRecords_update", args=(self.pk,))
+class ReceiptChanges(models.Model):
+    Field = models.CharField(max_length=50)
+    FromValue = models.CharField(max_length=5000)
+    ChangedBy = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name='ReceiptChangedBy')
+    ChangedAt = models.DateTimeField(auto_now=True, editable=False)
 
+    class Meta:
+        pass
+
+    def __str__(self):
+        return str(self.pk)
 
 class ProcessedImports(models.Model):
     FilePath = models.CharField(max_length=500)
@@ -201,6 +229,7 @@ class ProcessedReport(models.Model):
     Volume = models.CharField(max_length=500)
     VolumeUnit = models.CharField(max_length=2)
     NumberOfChildren = models.CharField(max_length=500)
+    Comments = models.CharField(max_length=5000, blank=True)
     ImportId = models.ForeignKey(
         ProcessedImports, on_delete=models.CASCADE, related_name='ProcessedImportsImportId')
 
@@ -216,6 +245,18 @@ class ProcessedReport(models.Model):
     # def get_update_url(self):
     #     return reverse("blood_sample_ProcessedRecords_update", args=(self.pk,))
 
+class ProcessedReportChanges(models.Model):
+    Field = models.CharField(max_length=50)
+    FromValue = models.CharField(max_length=5000)
+    ChangedBy = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name='ProcessedReportChangedBy')
+    ChangedAt = models.DateTimeField(auto_now=True, editable=False)
+
+    class Meta:
+        pass
+
+    def __str__(self):
+        return str(self.pk)
 
 PROCESSING_STATUS = [
     (0, 'Complete'),
@@ -225,9 +266,19 @@ PROCESSING_STATUS = [
     (4, 'Not applicable'),
 ]
 
+SAMPLE_TYPE = [
+    (0, 'RBC'),
+    (1, 'Plasma'),
+    (2, 'BuffyCoat'),
+    (3, 'Plasma'),
+]
+
 
 class ProcessedAliquots(models.Model):
-    SampleType = models.CharField(max_length=100)
+    SampleType = models.CharField(
+        max_length=1,
+        choices=SAMPLE_TYPE,
+    )
     Volume = models.CharField(max_length=500)
     VolumeUnit = models.CharField(max_length=2)
     PostProcessingStatus = models.CharField(
@@ -249,6 +300,20 @@ class ProcessedAliquots(models.Model):
 
     # def get_update_url(self):
     #     return reverse("blood_sample_Aliquots_update", args=(self.pk,))
+
+class ProcessedAliquotsChanges(models.Model):
+    Field = models.CharField(max_length=50)
+    FromValue = models.CharField(max_length=5000)
+    ChangedBy = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name='ProcessedAliquotsChangedBy')
+    ChangedAt = models.DateTimeField(auto_now=True, editable=False)
+
+    class Meta:
+        pass
+
+    def __str__(self):
+        return str(self.pk)
+
 
 # class AliquotChanges(models.Model):
 
