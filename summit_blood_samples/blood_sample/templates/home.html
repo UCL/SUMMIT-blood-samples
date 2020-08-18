@@ -73,19 +73,6 @@ $(document).ready(function(){
     } else if($(this).attr('data-tab')=='download'){
       $('#downloadbloodSample').click();
     } else if($(this).attr('data-tab')=='report'){
-        $('#blood-sample-status').hide();
-        $('#nurse-unable-draw').hide();
-        $('#site-final-status').hide();
-        $('#processed-not-on-time').hide();
-
-        $('.modal-loader').hide();
-        $('.loader-final-state').show();
-        $('.loader-nurse-stats').show();
-        $('.loader-unresolved').show();
-        $('.loader-processed-not-on-time').show();
-
-
-
       Highcharts.setOptions({
           chart: {
               style: {
@@ -93,12 +80,12 @@ $(document).ready(function(){
               }
           }
       });
+
       $.ajax({
-          url: '/final_state_chart',
+          url: '/charts',
           type: 'get',
           success: function(data){
-              $('.loader-final-state').hide();
-              $('#blood-sample-status').show();
+              $('.modal-loader').hide();
               Highcharts.chart('blood-sample-status', {
                   chart: {
                       type: 'column',
@@ -106,8 +93,8 @@ $(document).ready(function(){
                       "height": 500,
                       borderWidth: 0,
                       borderRadius: 5,
-                      //plotBackgroundColor: null,
-                      //plotShadow: false,
+                      plotBackgroundColor: null,
+                      plotShadow: false,
                       plotBorderWidth: 0
                   },
 
@@ -217,7 +204,7 @@ $(document).ready(function(){
                       },
 
                   },
-                  colors: ['#0072b2','#009e73','#d55e00','#56b4e9','#f0e442'],
+                  colors: ['rgb(0 114 178)','rgb(0 158 115)','rgb(213 94 0)','rgb(86 180 233)','rgb(240 228 66)'],
 
                   rangeSelector: {
                       selected: 1
@@ -235,14 +222,7 @@ $(document).ready(function(){
                           }
                       }
               });
-          }
-      });
-      $.ajax({
-          url: '/nurse_stats_chart',
-          type: 'get',
-          success: function(data){
-              $('.loader-nurse-stats').hide();
-              $('#nurse-unable-draw').show();
+
               Highcharts.chart('nurse-unable-draw', {
                   chart: {
                       type: 'column',
@@ -328,7 +308,7 @@ $(document).ready(function(){
                       }
                       //pointFormat: 'Unable to Draw: <b>{point.y:.1f}%</b> <br/>Total Blood Drawn: <b>{point.countData}</b>'
                   },
-                  colors: ['#0072b2','#009e73','#d55e00','#56b4e9','#f0e442'],
+                  colors: ['rgb(0 114 178)','rgb(0 158 115)','rgb(213 94 0)','rgb(86 180 233)','rgb(240 228 66)'],
                   plotOptions: {column: {colorByPoint: true}},
                   series:[ {
                               name: 'Nurse Data',
@@ -350,14 +330,7 @@ $(document).ready(function(){
                       }
                   }
               });
-          }
-      });
-      $.ajax({
-          url: '/unresolved_chart',
-          type: 'get',
-          success: function(data){
-              $('.loader-unresolved').hide();
-              $('#site-final-status').show();
+
               Highcharts.chart('site-final-status', {
                   chart: {
                       type: 'column',
@@ -473,7 +446,7 @@ $(document).ready(function(){
 
                   },
 
-                  colors: ['#0072b2','#009e73','#f0e442','#d55e00'],
+                  colors: ['rgb(0 114 178)','rgb(0 158 115)','rgb(240 228 66)','rgb(213 94 0)'],
 
                   series: data.site_data,
 
@@ -488,15 +461,6 @@ $(document).ready(function(){
                           }
                       }
               });
-          }
-      });
-
-      $.ajax({
-          url: '/processed_not_on_time_chart',
-          type: 'get',
-          success: function(data){
-              $('.loader-processed-not-on-time').hide();
-              $('#processed-not-on-time').show();
               Highcharts.chart('processed-not-on-time', {
                   chart: {
                       type: 'column',
@@ -575,7 +539,7 @@ $(document).ready(function(){
                   tooltip: {
                       pointFormat: 'Not Processed on Time: <b>{point.y}</b>'// <br/>Total Blood Drawn: {this.x}'
                   },
-                  colors: ['#d55e00'],
+                  colors: ['rgb(0 158 115)'],
                   series: [{
                       name: 'Not processed on time data',
                       data: data.processed_not_ontime,

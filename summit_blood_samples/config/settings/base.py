@@ -61,10 +61,12 @@ DJANGO_APPS = [
     'django.contrib.humanize',
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    # "django.contrib.humanize", # Handy template tags
     "django.contrib.admin",
     "django.forms",
 ]
 THIRD_PARTY_APPS = [
+    "whitenoise.runserver_nostatic",
     "crispy_forms",
     # "allauth",
     # "allauth.account",
@@ -75,7 +77,7 @@ THIRD_PARTY_APPS = [
 
 LOCAL_APPS = [
     # "summit_blood_samples.users.apps.UsersConfig",
-
+    
     "manage_users",
     "blood_sample",
     "indigo",
@@ -131,6 +133,7 @@ AUTH_PASSWORD_VALIDATORS = [
 # https://docs.djangoproject.com/en/dev/ref/settings/#middleware
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.locale.LocaleMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -144,7 +147,7 @@ MIDDLEWARE = [
 # STATIC
 # ------------------------------------------------------------------------------
 # https://docs.djangoproject.com/en/dev/ref/settings/#static-root
-STATIC_ROOT = "/static"
+STATIC_ROOT = str(ROOT_DIR / "staticfiles")
 # https://docs.djangoproject.com/en/dev/ref/settings/#static-url
 STATIC_URL = "/static/"
 # https://docs.djangoproject.com/en/dev/ref/contrib/staticfiles/#std:setting-STATICFILES_DIRS
@@ -154,6 +157,7 @@ STATICFILES_FINDERS = [
     "django.contrib.staticfiles.finders.FileSystemFinder",
     "django.contrib.staticfiles.finders.AppDirectoriesFinder",
 ]
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # MEDIA
 # ------------------------------------------------------------------------------
@@ -167,6 +171,7 @@ UPLOAD_ROOT = str(ROOT_DIR / "uploads")
 ITEMS_PER_PAGE = 10
 
 PROCESSING_HOURS = 36
+
 # TEMPLATES
 # ------------------------------------------------------------------------------
 # https://docs.djangoproject.com/en/dev/ref/settings/#templates
@@ -231,10 +236,16 @@ X_FRAME_OPTIONS = "DENY"
 # EMAIL_TIMEOUT = 5
 EMAIL_BACKEND ='django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'mail01.valuelabs.com'
+
+
 EMAIL_HOST_USER = 'krishna.n@valuelabs.com'
+
 EMAIL_HOST_PASSWORD = 'Jul@2020'
+
 EMAIL_PORT = 587
+
 EMAIL_USE_TLS = True
+
 EMAIL_FROM = 'Summit Blood Samples <krishna.n@valuelabs.com>'
 DEFAULT_FROM_EMAIL = 'Summit Blood Samples <krishna.n@valuelabs.com>'
 

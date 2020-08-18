@@ -84,19 +84,11 @@ class HomeTabView(LoginRequiredMixin, View):
             if r_date not in manifest_dates:
                 manifest_dates.append(r_date)
 
-        query='''
-            SELECT mr."CollectionDateTime"
-            FROM "blood_sample_manifestrecords" as mr
-            WHERE LOWER(mr."CohortId") NOT IN (SELECT LOWER(bs."CohortId") from blood_sample_bloodsample as bs)
-            ORDER BY mr."CollectionDateTime" ASC
-        '''
+        blood_sample_cohort = BloodSample.objects.all().values_list('CohortId', flat=True)[::1]
+        unmatched_manifest = ManifestRecords.objects.exclude(CohortId__iregex=r'(' + '|'.join(blood_sample_cohort) + ')').values('CollectionDateTime').order_by('CollectionDateTime')
         un_manifest_dates = []
-        with connection.cursor() as cursor:
-            cursor.execute(query)
-            unmatched_manifest=list(cursor.fetchall())
-            
-        for date in unmatched_manifest:
-            c_date = date[0].strftime('%B %d, %Y')
+        for date in list(unmatched_manifest):
+            c_date = date['CollectionDateTime'].strftime('%B %d, %Y')
             if c_date not in un_manifest_dates:
                 un_manifest_dates.append(c_date)
         manifest_barcode = ManifestRecords.objects.all().values_list('Barcode', flat=True)[::1]
@@ -2196,10 +2188,7 @@ class GetManifestFiltersView(LoginRequiredMixin, View):
                              'rooms': sorted(Rooms, key=lambda L: (L.lower(), L)),
                             })
 
-
-
-
-class FinalStateChartView(LoginRequiredMixin, View):
+class ChartsView(LoginRequiredMixin, View):
     
     """
     Class for login functionality
@@ -2272,23 +2261,7 @@ class FinalStateChartView(LoginRequiredMixin, View):
             "name": 'PROCESSED_NOT_ON_TIME',
             "data": [i['State-4'] for i in data]
         }]
-        return JsonResponse({'status': 200,
-                            'dates':dates,
-                            'data':data,
-                            })
 
-class NurseStatsChartView(LoginRequiredMixin, View):
-
-    """
-    Class for login functionality
-    """
-
-    def get(self, request, *args, **kwargs):
-        """
-        Method to get the login form or redirect to Dashboard if session exists
-        :param request: request object
-        :return: HttpResponse object
-        """
         query = '''
             SELECT
                 bs."SiteNurseEmail" as x,
@@ -2309,21 +2282,6 @@ class NurseStatsChartView(LoginRequiredMixin, View):
                 {'x':row[0].split('@')[0], 'y':float(row[1]),'countData':row[2]}
                 for row in cursor.fetchall()
             ]
-        return JsonResponse({'status': 200,
-                             'nurse_day':nurse_day,
-                            })
-class UnresolvedChartView(LoginRequiredMixin, View):
-    
-    """
-    Class for login functionality
-    """
-
-    def get(self, request, *args, **kwargs):
-        """
-        Method to get the login form or redirect to Dashboard if session exists
-        :param request: request object
-        :return: HttpResponse object
-        """
         query = '''
             SELECT
                 DATE(mr."CollectionDateTime"),
@@ -2372,22 +2330,7 @@ class UnresolvedChartView(LoginRequiredMixin, View):
             "name": 'UCLH',
             "data": [i['UCLH'] for i in site_data]
         }]
-        return JsonResponse({'status': 200,
-                             'site_dates':site_dates,
-                             'site_data':site_data,
-                            })
-class ProcessedNotOnTimeView(LoginRequiredMixin, View):
-    
-    """
-    Class for login functionality
-    """
-
-    def get(self, request, *args, **kwargs):
-        """
-        Method to get the login form or redirect to Dashboard if session exists
-        :param request: request object
-        :return: HttpResponse object
-        """
+        #CHart 4
         query = '''
             SELECT
                 DATE(bs."CreatedAt"),
@@ -2404,6 +2347,11 @@ class ProcessedNotOnTimeView(LoginRequiredMixin, View):
                 for row in cursor.fetchall() if row[1]
             ]
         return JsonResponse({'status': 200,
+                             'dates':dates,
+                             'data':data,
+                             'nurse_day':nurse_day,
+                             'site_dates':site_dates,
+                             'site_data':site_data,
                             'processed_not_ontime':processed_not_ontime,
                             'processed_hours':settings.PROCESSING_HOURS,
                             })

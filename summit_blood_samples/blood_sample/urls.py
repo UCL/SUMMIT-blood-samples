@@ -45,13 +45,7 @@ urlpatterns = [
          name='GetManifestFilters'),
      path('home_tab', HomeTabView.as_view(),
          name='HomeTab'),
-     path('final_state_chart', FinalStateChartView.as_view(),
-         name='FinalStateChart'),
-     path('nurse_stats_chart', NurseStatsChartView.as_view(),
-         name='NurseStatsChart'),
-     path('unresolved_chart', UnresolvedChartView.as_view(),
-         name='UnresolvedChart'),
-     path('processed_not_on_time_chart', ProcessedNotOnTimeView.as_view(),
-         name='ProcessedNotOnTime'),
+     path('charts', ChartsView.as_view(),
+         name='Charts'),
 
 ]
