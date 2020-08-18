@@ -27,6 +27,7 @@ RUN sed -i 's/\r$//g' /entrypoint
 RUN chmod +x /entrypoint
 RUN chown django /entrypoint
 
+
 COPY ./compose/production/django/start /start
 RUN sed -i 's/\r$//g' /start
 RUN chmod +x /start
