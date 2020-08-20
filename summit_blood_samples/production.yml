@@ -3,6 +3,8 @@ version: '3.8'
 volumes:
   production_postgres_data:
   production_postgres_data_backups:
+  staticfiles:
+  uploads:
 
 services:
   django:
@@ -18,11 +20,11 @@ services:
       - ./.envs/.production/.django
       - ./.envs/.production/.postgres
     volumes:
-      - type: bind
-        source: ./uploads
+      - type: volume
+        source: uploads
         target: /uploads
-      - type: bind
-        source: ./staticfiles
+      - type: volume
+        source: staticfiles
         target: /static
     command: /start
 
@@ -72,8 +74,8 @@ services:
       - type: bind
         source: ./compose/production/nginx/snippets
         target: /etc/nginx/snippets
-      - type: bind
-        source: ./staticfiles
+      - type: volume
+        source: staticfiles
         target: /static
     depends_on:
       - django

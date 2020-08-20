@@ -34,6 +34,11 @@ RUN chmod +x /start
 RUN chown django /start
 COPY --chown=django:django . /app
 
+# Create folders with correct permissions
+RUN mkdir /static
+RUN mkdir /uploads
+RUN chown django:django /static /uploads
+
 USER django
 
 WORKDIR /app
