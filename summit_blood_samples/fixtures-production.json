@@ -23,7 +23,7 @@
         "model": "sites.site",
         "pk": 1,
         "fields": {
-            "domain": "summitbloodsamples.rc.ucl.ac.uk:8000",
+            "domain": "summitbloodsamples.rc.ucl.ac.uk",
             "name": "Blood Sample Site"
         }
     }
