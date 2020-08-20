@@ -90,25 +90,30 @@ Get the full stack up & running from inside the *summit_blood_samples* dir with
 `$ docker-compose -f production.yml up --build`
 Then open a new terminal to initialise the database as follows
 
-##### Migrations
-`$ docker-compose -f production.yml run --rm django python manage.py makemigrations`
+##### Run migrations
 
 `$ docker-compose -f production.yml run --rm django python manage.py migrate`
+
+##### Initial data
+The initial data that needs to be loaded includes the user Roles and the site's FQDN
+
+`$ docker-compose -f production.yml run --rm django python manage.py loaddata fixtures-production.json`
 
 ##### Admin user
 
 `$ docker-compose -f production.yml run --rm django python manage.py createsuperuser`
 
-##### Initial data
-The initial data that needs to be loaded includes the user Roles and the site's FQDN
-
-Update `summit_blood_sampls/fixtures.json` with the FQDN as the value for the "domain" key, then load with
-
-`$ docker-compose -f production.yml run --rm django python manage.py loaddata fixtures.json`
-
-***NB***: Once the superuser is created they need to be added to the ***Administrators*** role in the admin interface
-at **/admin**
+***NB***: Once the superuser is created they need to be added to the ***Administrators*** role.
 Until this is done, an *Internal Error* will occur on any page loaded while the user is logged in.
+
+Assuming this is the first user, you can do this in the Django shell as follows:
+```
+$ docker-compose -f production.yml run --rm django python manage.py shell
+> from django.contrib.auth.models import User
+> from manage_users.models import *
+> ur = UserRoles(user_id=User.objects.get(), role_id=ManageRoles.objects.get(pk=1))
+> ur.save()
+```
 
 ##### pgAdmin
 The pgAdmin interface is available on port **2345**
@@ -146,15 +151,19 @@ Use `local.yml` rather than `production.yml` for commands.
 
 `$ docker-compose -f local.yml up --build`
 
-### Initial data
+#### Initial data
 In fixtures.json change the "domain": "127.0.0.1:8000" to your server IP 127.0.0.1:8000 or myproject.mydomain.com and run below command
 
 `$ docker-compose -f local.yml run --rm django python manage.py loaddata fixtures.json`
 
-### User creation
+#### User creation
 `$ docker-compose -f local.yml run --rm django python manage.py createsuperuser`
 
 **NB: Once superuser is created need to add role to the created user in django admin.**
+
+#### Database migrations
+`$ docker-compose -f local.yml run --rm django python manage.py makemigrations`
+
 
 ----
 
