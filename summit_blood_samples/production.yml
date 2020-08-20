@@ -10,6 +10,8 @@ services:
       context: .
       dockerfile: ./compose/production/django/Dockerfile
     image: summit_blood_samples_production_django
+    expose:
+      - 5000
     depends_on:
       - postgres
     env_file:
@@ -44,6 +46,8 @@ services:
       context: .
       dockerfile: ./compose/production/pgadmin/Dockerfile
     image: summit_blood_samples_production_pgadmin
+    expose:
+      - 80
     env_file:
       - ./.envs/.production/.pgadmin
     depends_on:
