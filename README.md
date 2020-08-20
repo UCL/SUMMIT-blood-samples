@@ -65,6 +65,16 @@ Update `summit_blood_samples/config/settings/production.py`
     EMAIL_FROM = 'Summit Blood Samples <email address>'
     DEFAULT_FROM_EMAIL = 'Summit Blood Samples <email address>'
 
+#### SSL configuration
+The real SSL certificate is stored on UCL's F5s.
+We just need a self-signed certificate for the VM to allow the traffic between VM and F5 to be encrypted.
+
+In `summit_blood_samples/compose/production/nginx/certs` do:
+```
+sudo openssl req -x509 -nodes -days 365 -config summitselfsigned.cnf -newkey rsa:2048 -keyout summitselfsigned.key -out summitselfsigned.crt
+chmod 600 summitselfsigned.key
+```
+
 
 #### Static files
 The cookiecutter template seems designed for static files to be served from a cloud based CDN.
@@ -102,9 +112,13 @@ Until this is done, an *Internal Error* will occur on any page loaded while the 
 
 ##### pgAdmin
 The pgAdmin interface is available on port **2345**
+
 Login with the *PGADMIN_DEFAULT_EMAIL* & *PGADMIN_DEFAULT_PASSWORD* credentials set above.
+
 Select **Add new server**
+
 In the *Create Server* dialog, enter **postgres** as the name and click on the *Connection* tab.
+
 Enter **postgres** as the host name and the *POSTGRES_USER* & *POSTGRES_PASSWORD* credentials from above
 for the username & password fields.
 
