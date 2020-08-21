@@ -99,6 +99,8 @@ The initial data that needs to be loaded includes the user Roles and the site's 
 
 `$ docker-compose -f production.yml run --rm django python manage.py loaddata fixtures-production.json`
 
+Restart Django after this to ensure the any old site value is not cached.
+
 ##### Admin user
 
 `$ docker-compose -f production.yml run --rm django python manage.py createsuperuser`
