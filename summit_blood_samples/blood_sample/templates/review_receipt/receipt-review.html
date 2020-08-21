@@ -79,7 +79,7 @@
 <script type="text/javascript">
     $(document).ready(function(){
         $('.edit-receipt-div').html("");
-        $('#blood-sample-modal .close').click(function(e) {
+        $(document).on('click','#close-receipt',function(e){
             e.preventDefault();
             e.stopImmediatePropagation();
             if ($('.edit-receipt-div').text()==""){

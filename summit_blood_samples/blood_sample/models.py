@@ -12,11 +12,13 @@ class BloodSampleImport(models.Model):
     Deleted = models.BooleanField()
     Reviewed = models.BooleanField()
 
-    class Meta:
-        pass
-
     def __str__(self):
         return str(self.pk)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['CreatedAt'], name='CreatedAt_bs_import_idx'),
+        ]
 
 
 STATECHOICE = [
@@ -30,28 +32,37 @@ STATECHOICE = [
 
 class BloodSample(models.Model):
     id = models.BigIntegerField(primary_key=True)
-    CohortId = models.CharField(max_length=7)
+    CohortId = models.CharField(max_length=7, )
     Barcode = models.CharField(max_length=10)
     AppointmentId = models.BigIntegerField()
     SiteNurseEmail = models.CharField(max_length=255)
     ImportId = models.ForeignKey(
         BloodSampleImport, on_delete=models.CASCADE, related_name='BloodSampleImportImportId')
     Comments = models.CharField(max_length=5000)
-    CreatedAt = models.DateTimeField()
+    CreatedAt = models.DateTimeField()  # db_index=True,
     State = models.CharField(
         max_length=1,
         choices=STATECHOICE,
         default=0
     )
 
-    class Meta:
-        pass
-
     def __str__(self):
         return str(self.pk)
 
     def state_verbose(self):
         return '' if self.State == '' else dict(STATECHOICE)[int(self.State)]
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['CreatedAt', 'State'],
+                         name="CreatedAt_and_State_idx"),
+            models.Index(fields=['CohortId'], name='CohortId_bs_idx'),
+        ]
+
+    def save(self,):
+        self.CohortId = self.CohortId.upper()
+        self.Barcode = self.Barcode.upper()
+        super(BloodSample, self).save()
 
 
 class BloodSampleChanges(models.Model):
@@ -60,9 +71,6 @@ class BloodSampleChanges(models.Model):
     ChangedBy = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name='BloodSampleChangedBy')
     ChangedAt = models.DateTimeField(auto_now=True, editable=False)
-
-    class Meta:
-        pass
 
     def __str__(self):
         return str(self.pk)
@@ -76,17 +84,13 @@ class ManifestImports(models.Model):
     CreatedAt = models.DateTimeField()
     Deleted = models.BooleanField()
 
-    class Meta:
-        pass
-
     def __str__(self):
         return str(self.pk)
 
-    # def get_absolute_url(self):
-    #     return reverse("blood_sample_ManifestImports_detail", args=(self.pk,))
-
-    # def get_update_url(self):
-    #     return reverse("blood_sample_ManifestImports_update", args=(self.pk,))
+    class Meta:
+        indexes = [
+            models.Index(fields=['CreatedAt'], name='CreatedAt_mf_import_idx'),
+        ]
 
 
 SITECHOICE = [
@@ -103,6 +107,8 @@ VISITCHOICE = [
     (2, 'Y1'),
     (3, 'Y2'),
 ]
+
+
 class ManifestRecords(models.Model):
     Visit = models.CharField(
         max_length=1,
@@ -120,22 +126,30 @@ class ManifestRecords(models.Model):
     CollectionDateTime = models.DateTimeField()
     Comments = models.CharField(max_length=5000, blank=True)
 
-    class Meta:
-        pass
-
     def __str__(self):
         return str(self.pk)
 
     def site_verbose(self):
         return '' if self.Site == '' else dict(SITECHOICE)[int(self.Site)]
+
     def visit_verbose(self):
         return '' if self.Visit == '' else dict(VISITCHOICE)[int(self.Visit)]
 
-    # def get_absolute_url(self):
-    #     return reverse("blood_sample_ManifestRecords_detail", args=(self.pk,))
+    def save(self,):
+        self.CohortId = self.CohortId.upper()
+        self.Barcode = self.Barcode.upper()
+        super(ManifestRecords, self).save()
 
-    # def get_update_url(self):
-    #     return reverse("blood_sample_ManifestRecords_update", args=(self.pk,))
+    class Meta:
+        indexes = [
+            models.Index(fields=['CollectionDateTime', 'Site', 'Visit', 'Room'],
+                         name="CDT_S_V_R_mr_idx"),
+            models.Index(fields=['CollectionDateTime', 'Visit', 'Room'],
+                         name="CDT_V_R_idx"),
+            models.Index(fields=['CohortId'], name='CohortId_mr_idx'),
+            models.Index(fields=['Barcode'], name='Barcode_mr_idx'),
+        ]
+
 
 class ManifestChanges(models.Model):
     Field = models.CharField(max_length=50)
@@ -144,12 +158,8 @@ class ManifestChanges(models.Model):
         User, on_delete=models.CASCADE, related_name='ManifestChangedBy')
     ChangedAt = models.DateTimeField(auto_now=True, editable=False)
 
-    class Meta:
-        pass
-
     def __str__(self):
         return str(self.pk)
-
 
 
 class ReceiptImports(models.Model):
@@ -160,11 +170,13 @@ class ReceiptImports(models.Model):
     CreatedAt = models.DateTimeField()
     Deleted = models.BooleanField()
 
-    class Meta:
-        pass
-
     def __str__(self):
         return str(self.pk)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['CreatedAt'], name='CreatedAt_rr_import_idx'),
+        ]
 
 
 class ReceiptRecords(models.Model):
@@ -181,17 +193,23 @@ class ReceiptRecords(models.Model):
     ImportId = models.ForeignKey(
         ReceiptImports, on_delete=models.CASCADE, related_name='RecieptRecordsImportId')
 
-    class Meta:
-        pass
-
     def __str__(self):
         return str(self.pk)
 
-    # def get_absolute_url(self):
-    #     return reverse("blood_sample_RecieptRecords_detail", args=(self.pk,))
+    class Meta:
+        indexes = [
+            models.Index(fields=['Barcode'], name='Barcode_rr_idx'),
+            models.Index(fields=['DateTimeTaken'],
+                         name='DateTimeTaken_rr_idx'),
+            models.Index(fields=['SampleId'], name='SampleId_rr_idx'),
+        ]
 
-    # def get_update_url(self):
-    #     return reverse("blood_sample_RecieptRecords_update", args=(self.pk,))
+    def save(self,):
+        self.SampleId = self.SampleId.upper()
+        self.Barcode = self.Barcode.upper()
+        super(ReceiptRecords, self).save()
+
+
 class ReceiptChanges(models.Model):
     Field = models.CharField(max_length=50)
     FromValue = models.CharField(max_length=5000)
@@ -199,11 +217,9 @@ class ReceiptChanges(models.Model):
         User, on_delete=models.CASCADE, related_name='ReceiptChangedBy')
     ChangedAt = models.DateTimeField(auto_now=True, editable=False)
 
-    class Meta:
-        pass
-
     def __str__(self):
         return str(self.pk)
+
 
 class ProcessedImports(models.Model):
     FilePath = models.CharField(max_length=500)
@@ -213,11 +229,13 @@ class ProcessedImports(models.Model):
     CreatedAt = models.DateTimeField()
     Deleted = models.BooleanField()
 
-    class Meta:
-        pass
-
     def __str__(self):
         return str(self.pk)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['CreatedAt'], name='CreatedAt_pr_import_idx'),
+        ]
 
 
 class ProcessedReport(models.Model):
@@ -233,17 +251,22 @@ class ProcessedReport(models.Model):
     ImportId = models.ForeignKey(
         ProcessedImports, on_delete=models.CASCADE, related_name='ProcessedImportsImportId')
 
-    class Meta:
-        pass
-
     def __str__(self):
         return str(self.pk)
 
-    # def get_absolute_url(self):
-    #     return reverse("blood_sample_ProcessedRecords_detail", args=(self.pk,))
+    class Meta:
+        indexes = [
+            models.Index(fields=['ParentId'], name='ParentId_pr_idx'),
+            models.Index(fields=['ProcessedDateTime'],
+                         name='ProcessedDateTime_pr_idx'),
+            models.Index(fields=['ReceivedDateTime'],
+                         name='ReceivedDateTime_pr_idx'),
+        ]
 
-    # def get_update_url(self):
-    #     return reverse("blood_sample_ProcessedRecords_update", args=(self.pk,))
+    def save(self,):
+        self.ParentId = self.ParentId.upper()
+        super(ProcessedReport, self).save()
+
 
 class ProcessedReportChanges(models.Model):
     Field = models.CharField(max_length=50)
@@ -252,11 +275,9 @@ class ProcessedReportChanges(models.Model):
         User, on_delete=models.CASCADE, related_name='ProcessedReportChangedBy')
     ChangedAt = models.DateTimeField(auto_now=True, editable=False)
 
-    class Meta:
-        pass
-
     def __str__(self):
         return str(self.pk)
+
 
 PROCESSING_STATUS = [
     (0, 'Complete'),
@@ -289,17 +310,9 @@ class ProcessedAliquots(models.Model):
     SampleId = models.CharField(max_length=8)
     SampleIdFile = models.CharField(max_length=500)
 
-    class Meta:
-        pass
-
     def __str__(self):
         return str(self.pk)
 
-    # def get_absolute_url(self):
-    #     return reverse("blood_sample_Aliquots_detail", args=(self.pk,))
-
-    # def get_update_url(self):
-    #     return reverse("blood_sample_Aliquots_update", args=(self.pk,))
 
 class ProcessedAliquotsChanges(models.Model):
     Field = models.CharField(max_length=50)
@@ -308,103 +321,5 @@ class ProcessedAliquotsChanges(models.Model):
         User, on_delete=models.CASCADE, related_name='ProcessedAliquotsChangedBy')
     ChangedAt = models.DateTimeField(auto_now=True, editable=False)
 
-    class Meta:
-        pass
-
     def __str__(self):
         return str(self.pk)
-
-
-# class AliquotChanges(models.Model):
-
-#     # Fields
-#     from_value = models.CharField(max_length=30)
-#     changed_by = models.CharField(max_length=255)
-#     field = models.CharField(max_length=50)
-#     created = models.DateTimeField(auto_now=True, editable=False)
-#     record_id = models.IntegerField()
-#     changed_at = models.DateTimeField()
-#     last_updated = models.DateTimeField(auto_now=True, editable=False)
-
-#     class Meta:
-#         pass
-
-#     def __str__(self):
-#         return str(self.pk)
-
-#     def get_absolute_url(self):
-#         return reverse("blood_sample_AliquotChanges_detail", args=(self.pk,))
-
-#     def get_update_url(self):
-#         return reverse("blood_sample_AliquotChanges_update", args=(self.pk,))
-
-
-# class ProcessedReportImports(models.Model):
-
-#     # Fields
-#     deleted = models.BooleanField()
-#     file_type = models.IntegerField(choices=CATEGORIES)
-#     created = models.DateTimeField(auto_now=True, editable=False)
-#     created_by = models.CharField(max_length=100)
-#     last_updated = models.DateTimeField(auto_now=True, editable=False)
-#     file_path = models.CharField(max_length=255)
-
-#     class Meta:
-#         pass
-
-#     def __str__(self):
-#         return str(self.pk)
-
-#     def get_absolute_url(self):
-#         return reverse("blood_sample_ProcessedReportImports_detail", args=(self.pk,))
-
-#     def get_update_url(self):
-#         return reverse("blood_sample_ProcessedReportImports_update", args=(self.pk,))
-
-
-# class ProcessedChanges(models.Model):
-
-#     # Fields
-#     record_id = models.IntegerField()
-#     last_updated = models.DateTimeField(auto_now=True, editable=False)
-#     changed_by = models.CharField(max_length=255)
-#     created = models.DateTimeField(auto_now=True, editable=False)
-#     field = models.CharField(max_length=50)
-#     from_value = models.CharField(max_length=500)
-#     changed_at = models.DateTimeField()
-
-#     class Meta:
-#         pass
-
-#     def __str__(self):
-#         return str(self.pk)
-
-#     def get_absolute_url(self):
-#         return reverse("blood_sample_ProcessedChanges_detail", args=(self.pk,))
-
-#     def get_update_url(self):
-#         return reverse("blood_sample_ProcessedChanges_update", args=(self.pk,))
-
-
-# class ManifestChanges(models.Model):
-
-#     # Fields
-#     field = models.CharField(max_length=50)
-#     changed_by = models.CharField(max_length=255)
-#     record_id = models.IntegerField()
-#     last_updated = models.DateTimeField(auto_now=True, editable=False)
-#     from_value = models.CharField(max_length=500)
-#     created = models.DateTimeField(auto_now=True, editable=False)
-#     changed_at = models.DateTimeField()
-
-#     class Meta:
-#         pass
-
-#     def __str__(self):
-#         return str(self.pk)
-
-#     def get_absolute_url(self):
-#         return reverse("blood_sample_ManifestChanges_detail", args=(self.pk,))
-
-#     def get_update_url(self):
-#         return reverse("blood_sample_ManifestChanges_update", args=(self.pk,))

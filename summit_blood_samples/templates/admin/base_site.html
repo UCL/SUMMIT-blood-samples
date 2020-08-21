@@ -39,6 +39,12 @@ a {
 #admin-title{
     color: #ff5a5f !important;
 }
+#home-page{
+    color: #ff5a5f !important;
+    font-weight: 600;
+    font-size: 15px;
+}
+
 .sortable.column-role{
     pointer-events: none;
 }
@@ -48,6 +54,10 @@ a {
 #toolbar{
     background:none !important;
     border: none !important;
+}
+
+#user-tools a {
+    border-bottom:none;
 }
 /*
 thead{
@@ -74,4 +84,19 @@ td, th {
     <div class="head">
         <a href="{% url 'admin:auth_user_changelist' %}"><h1 id="admin-title">Blood Sample Adminstration</h1></a>
     </div>
+{% endblock %}
+{% block userlinks %}
+    {% if site_url %}
+        <a href="{{ site_url }}" id="home-page">View site</a> /
+    {% endif %}
+    {% if user.is_active and user.is_staff %}
+        {% url 'django-admindocs-docroot' as docsroot %}
+        {% if docsroot %}
+            <a href="{{ docsroot }}">Documentation</a> /
+        {% endif %}
+    {% endif %}
+    {% if user.has_usable_password %}
+    <a href="{% url 'admin:password_change' %}">Change password</a> /
+    {% endif %}
+    <a href="{% url 'admin:logout' %}">Log out</a>
 {% endblock %}

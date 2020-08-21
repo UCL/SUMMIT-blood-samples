@@ -1,27 +1,19 @@
 from django.contrib import admin
-
-# from django.contrib.auth.models import User, AbstractUser
-# from django.contrib.auth.admin import UserAdmin
-from django.contrib.auth.models import User
 from django.contrib.auth.admin import UserAdmin
-from django.contrib.auth.forms import UserCreationForm, UserChangeForm
-from django.contrib.auth.models import Group
+from django.contrib.auth.models import Group, User
 from django.contrib.sites.models import Site
 from rest_framework.authtoken.models import Token
-from .models import ManageRoles, UserRoles  # Role, UserRoles, User
-#User._meta.get_field('email')._unique = True
-#User._meta.get_field('email').blank = False
-admin.site.unregister(Site)
-admin.site.unregister(Group)
+
+from .models import UserRoles
+
+# User._meta.get_field('email')._unique = True
+# User._meta.get_field('email').blank = False
 
 # Unregister the provided model admin
+admin.site.unregister(Site)
+admin.site.unregister(Group)
 admin.site.unregister(User)
-
 admin.site.unregister(Token)
-# admin.site.register(ManageRoles)
-
-# admin.site.register(UserRoles)
-
 
 class RoleAdmin(admin.TabularInline):
     list_display = ('name')
@@ -36,22 +28,10 @@ class RoleAdmin(admin.TabularInline):
 class EmailRequiredMixin(object):
     def __init__(self, *args, **kwargs):
         super(EmailRequiredMixin, self).__init__(*args, **kwargs)
-        # make user email field required
-        # self.fields['email'].unique = True
         self.fields['email'].required = True
 
 
-# class MyUserCreationForm(EmailRequiredMixin, UserCreationForm):
-#     pass
-
-
-# class MyUserChangeForm(EmailRequiredMixin, UserChangeForm):
-#     pass
-
 class UserAdmin(admin.ModelAdmin):
-    # form = MyUserChangeForm
-    # add_form = MyUserCreationForm
-
     inlines = [RoleAdmin, ]
     fields = ('first_name', 'last_name', 'username', 'email', 'is_active',)
     exclude = ('password1', 'password2',)
@@ -65,20 +45,6 @@ class UserAdmin(admin.ModelAdmin):
     def role(self, obj):
         return UserRoles.objects.filter(user_id=obj.id).first()
     role.admin_order_field = 'role_id__name'
-
-    def has_delete_permission(self, request, obj=None):
-        return False
-    # def save_model(self, request, obj, form, change):
-    #     import ipdb;ipdb.set_trace()
-    #     if form.data['email']=="":
-    #         messages.add_message(request, messages.ERROR, 'This field is required.')
-    #super(UserAdmin, self).save_model(request, obj, form, change)
-    # def get_form(self, request, obj=None, **kwargs):
-    #     form = super().get_form(request, obj, **kwargs)
-    #     form.fields['email'].required = True
-    #     # if not is_my_friend(request.user):
-    #     #     form.fields['email'].required = True
-    #     return form
 
 
 admin.site.register(User, UserAdmin)

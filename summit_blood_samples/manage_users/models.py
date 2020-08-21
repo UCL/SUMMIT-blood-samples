@@ -1,8 +1,6 @@
-from django.db import models
-# from django.contrib.auth.models import AbstractUser, User
 from django.conf import settings
-from django.contrib.auth.hashers import check_password
 from django.contrib.auth.models import User
+from django.db import models
 
 
 class ManageRoles(models.Model):
@@ -10,7 +8,6 @@ class ManageRoles(models.Model):
 
     class Meta:
         verbose_name_plural = "Roles"
-        # app_label = 'auth'
 
     def __str__(self):
         return str(self.name)
@@ -24,10 +21,9 @@ class UserRoles(models.Model):
 
     class Meta:
         verbose_name_plural = "User Roles"
-        # app_label = 'auth'
 
     def __str__(self):
-        return str(f'{self.role_id.name}')  # || {self.user_id.username}
+        return str(f'{self.role_id.name}')
 
     def save(self, *args, **kwargs):
         if self.role_id_id == 1 and self.user_id.is_superuser != True and self.user_id.is_staff != True:

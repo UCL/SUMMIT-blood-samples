@@ -79,7 +79,7 @@
 <script type="text/javascript">
     $(document).ready(function(){
         $('.edit-manifest-div').html("");
-        $('#blood-sample-modal .close').click(function(e) {
+        $(document).on('click','#close-manifest',function(e){
             e.preventDefault();
             e.stopImmediatePropagation();
             if ($('.edit-manifest-div').text()==""){

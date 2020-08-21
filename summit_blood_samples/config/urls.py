@@ -24,7 +24,8 @@ urlpatterns = [
          auth_views.LoginView.as_view(redirect_authenticated_user=True), name='login'),
     url(r'accounts/reset/done/$', reset_password_done, name="reset_password_done"),
     path('accounts/', include('django.contrib.auth.urls')),
-    path('admin/', admin.site.urls),
+    # path('admin/', admin.site.urls),
+    path('admin/', admin.site.urls, name='custom_admin'),
     url(r'^static/(?P<path>.*)$', django.views.static.serve,
         {'document_root': settings.STATIC_ROOT, 'show_indexes': settings.DEBUG})
 

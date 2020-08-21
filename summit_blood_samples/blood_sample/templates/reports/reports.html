@@ -1,19 +1,31 @@
+{% load static %}
 <div>
   <div class="row">
-    <div class="col" style="padding-right: 0px;">
+    <div class="col" style="padding-right: 0px;text-align: center;">
+      <img class="chart-loader loader-final-state" src="{% static 'indigo/images/loading.svg' %}" />
       <div id="blood-sample-status" style="padding-left:10px"></div>
     </div>
-    <div class="col">
+    <div class="col" style="text-align: center;">
+      <img class="chart-loader loader-nurse-stats" src="{% static 'indigo/images/loading.svg' %}" />
       <div id="nurse-unable-draw" style="padding-right:10px"></div>
     </div>
   </div>
   <br/>
   <div class="row">
-    <div class="col" style="padding-right: 0px;">
+    <div class="col" style="padding-right: 0px;text-align: center;">
+      <img class="chart-loader loader-unresolved" src="{% static 'indigo/images/loading.svg' %}" />
       <div id="site-final-status" style="padding-left:10px"></div>
     </div>
-    <div class="col">
+    <div class="col" style="text-align: center;">
+        <img class="chart-loader loader-processed-not-on-time" src="{% static 'indigo/images/loading.svg' %}" />
         <div id="processed-not-on-time" style="padding-right:10px"></div>
     </div>
   </div>
 </div>
+<style>
+.chart-loader{
+  width: 400px;
+  height: 500px;
+  padding: 130px;
+}
+</style>

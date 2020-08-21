@@ -19,28 +19,52 @@
     </head>
 {% load static %}
 <div id="download_blood_sample">
+
     <br>
     <h3>Download Blood Sample <span class="float-right"><img class="btn-svg filteroptions" id="filteroptions" src="{% static 'indigo/images/filter.svg' %}"  />
     <img class="btn-svg SettingsOptions" id="SettingsOptions" src="{% static 'indigo/images/gear.svg' %}" /></span></h3>
     <br>
     {% if "No Records to Display" == db_data %}
-      <h1>{{db_data}}</h1>
+      <h3>{{db_data}}</h3>
     {% else %}
     <div id="sample_table_download"></div>
     <div id="pagination_blood_sample_download" class="pagination-md pull-right"></div></br>
     <div class="text-right">
-    <a class="pull-left btn custom-btn dwncsvblood" type = "button" style="color:white ;" id="downloadcsvbloodSample">Download Blood Sample</a>
+    <a class="pull-left btn custom-btn dwncsvblood" type = "button" style="color:white;margin-top: -28px;" id="downloadcsvbloodSample">Download Blood Sample</a>
     </div>
     {% endif %}
+    <div class="snackbar" id="download-msg">Started Downloading...</div>
 </div>
 <script  type="text/javascript">
     var settings = "{{settings|safe}}";
     var filters = "{{filters|safe}}";
+    var total_records_cnt = "{{total_records_cnt|safe}}"
     $(document).ready(function(){
       twbsPaginator("#pagination_blood_sample_download", "#sample_table_download", "{{current_page}}", "{{total_pages}}",
             '/download_blood_sample?filters='+filters+'&settings='+settings+'&table=True&page=');
     $('.dwncsvblood').click(function() {
+      if (total_records_cnt>50000){
+        $("#blood-sample-modal").modal();
+        var htmlData ='<div id="download_confirm" class="site-content__main custom-modal-content"><h3>Download Confirmation</h3><h6>Records are greater that 50,000 please confirm or apply some filter and then download</h6>'+
+                '<div class="text-right bottom-buttons"><button type="button" class="btn btn-cancel" data-dismiss="modal">Cancel</button><a type="button" class="btn btn-submit" id="download-continue" style="margin-left: 10px;color: white;font-weight: bold;">Continue</a></div>'+
+                '</div>'
+        $('.modal-body').html(htmlData);
+        return
+      }
       this.setAttribute("href", '/download_blood_sample?csv=true&filters='+filters+'&settings='+settings);
+      $("#download-msg").addClass("show").delay(3000).queue(function(next){
+        $(this).removeClass("show");
+        next();
+      });
+    });
+    $(document).on('click','#download-continue',function(e){
+      this.setAttribute("href", '/download_blood_sample?csv=true&filters='+filters+'&settings='+settings);
+      $("#blood-sample-modal").modal('toggle');
+      $("#download-msg").addClass("show").delay(3000).queue(function(next){
+        $(this).removeClass("show");
+        next();
+      });
+
     });
     $('.filteroptions').click(function() {
     $('.modal-loader').show();

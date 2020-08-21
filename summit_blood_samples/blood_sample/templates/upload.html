@@ -63,6 +63,22 @@
 
 <script  type="text/javascript">
 $(document).ready(function(){
+	function getUpload(day){
+		$.ajax({
+			url: '/upload?day='+day,
+			type: 'get',
+			success: function(data){
+				$('#upload-container').html(data);
+				$('.modal-loader').hide();
+			}
+		});
+	}
+	$('.uploadDay').click(function() {
+		$('.modal-loader').show();
+		$(".md-step").addClass("active");
+		$(this).removeClass("active");
+		getUpload($(this).data('currentday'));
+	});
     $('#bloodSample').click(function() {
 		$('.modal-loader').show();
 		$("#blood-sample-modal").modal();
@@ -114,6 +130,7 @@ $(document).ready(function(){
 	$('.reviewBtn').click(function() {
 		$('.modal-loader').show();
 		$("#blood-sample-modal").modal();
+		$('#blood-sample-modal .close').attr('id', 'close-'+$(this).data('review'));
 		$(".customModal").addClass("modal-xl");
 
 

@@ -101,7 +101,7 @@
 <script type="text/javascript">
     $(document).ready(function(){
         $('.edit-processed-div').html("");
-        $('#blood-sample-modal .close').click(function(e) {
+        $(document).on('click','#close-processed',function(e){
             e.preventDefault();
             e.stopImmediatePropagation();
             if ($('.edit-processed-div').text()==""){

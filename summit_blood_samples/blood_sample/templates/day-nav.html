@@ -31,8 +31,7 @@
 		{% endif %}
         </div>
 	{% endfor %}
-
-	<div class="md-step {% if not shownextday %} active {{class}}{% endif %}" data-currentday="next-{{days.3|date:"M. j, Y, "}}" {% if shownextday %} disabled{% endif %}>
+	<div class="md-step {{class}}-md-step-bg{% if not shownextday %} {{class}} active {% endif %}" data-currentday="next-{{days.3|date:"M. j, Y, "}}" {% if shownextday %} disabled{% endif %}>
         <div class="md-step-circle">
 			<span>
 					<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" id="Capa_1" x="0px" y="0px" viewBox="0 0 490.8 490.8" style="

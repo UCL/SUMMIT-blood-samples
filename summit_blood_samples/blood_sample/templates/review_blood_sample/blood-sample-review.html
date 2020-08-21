@@ -30,7 +30,7 @@
 <script type="text/javascript">
     $(document).ready(function(){
         $('.edit-sample-div').html("");
-        $('#blood-sample-modal .close').click(function(e) {
+        $(document).on('click','#close-blood_sample',function(e){
             e.preventDefault();
             e.stopImmediatePropagation();
             if ($('.edit-sample-div').text()==""){

@@ -34,7 +34,7 @@
   </div>
   <div class="tab-pane fade show" id="nav-review" role="tabpanel" aria-labelledby="nav-review-tab">{% include 'review-tab.html' %}</div>
   <div class="tab-pane fade show" id="nav-download" role="tabpanel" aria-labelledby="nav-download-tab">{% include 'download.html' %}</div>
-  <div class="tab-pane fade show" id="nav-report" role="tabpanel" aria-labelledby="nav-report-tab" style="background:rgb(158 158 158 / 0.2)">{% include 'reports/reports.html' %}</div>
+  <div class="tab-pane fade show" id="nav-report" role="tabpanel" aria-labelledby="nav-report-tab">{% include 'reports/reports.html' %}</div>
 </div>
 {% else %}
 <h4 class="">You are not logged in <a href="{% url 'login' %}">login</a></h4>
@@ -73,6 +73,19 @@ $(document).ready(function(){
     } else if($(this).attr('data-tab')=='download'){
       $('#downloadbloodSample').click();
     } else if($(this).attr('data-tab')=='report'){
+        $('#blood-sample-status').hide();
+        $('#nurse-unable-draw').hide();
+        $('#site-final-status').hide();
+        $('#processed-not-on-time').hide();
+
+        $('.modal-loader').hide();
+        $('.loader-final-state').show();
+        $('.loader-nurse-stats').show();
+        $('.loader-unresolved').show();
+        $('.loader-processed-not-on-time').show();
+
+
+
       Highcharts.setOptions({
           chart: {
               style: {
@@ -80,12 +93,12 @@ $(document).ready(function(){
               }
           }
       });
-
       $.ajax({
-          url: '/charts',
+          url: '/final_state_chart',
           type: 'get',
           success: function(data){
-              $('.modal-loader').hide();
+              $('.loader-final-state').hide();
+              $('#blood-sample-status').show();
               Highcharts.chart('blood-sample-status', {
                   chart: {
                       type: 'column',
@@ -93,8 +106,8 @@ $(document).ready(function(){
                       "height": 500,
                       borderWidth: 0,
                       borderRadius: 5,
-                      plotBackgroundColor: null,
-                      plotShadow: false,
+                      //plotBackgroundColor: null,
+                      //plotShadow: false,
                       plotBorderWidth: 0
                   },
 
@@ -204,7 +217,7 @@ $(document).ready(function(){
                       },
 
                   },
-                  colors: ['rgb(0 114 178)','rgb(0 158 115)','rgb(213 94 0)','rgb(86 180 233)','rgb(240 228 66)'],
+                  colors: ['#0072b2','#009e73','#d55e00','#56b4e9','#f0e442'],
 
                   rangeSelector: {
                       selected: 1
@@ -222,7 +235,14 @@ $(document).ready(function(){
                           }
                       }
               });
-
+          }
+      });
+      $.ajax({
+          url: '/nurse_stats_chart',
+          type: 'get',
+          success: function(data){
+              $('.loader-nurse-stats').hide();
+              $('#nurse-unable-draw').show();
               Highcharts.chart('nurse-unable-draw', {
                   chart: {
                       type: 'column',
@@ -304,11 +324,11 @@ $(document).ready(function(){
                   tooltip: {
                       formatter () {
                           const pointData = data.nurse_day.find(row => row.y === this.point.y)
-                          return '<b>'+pointData.x+'</b><br/> Unable to Draw: <b>'+this.point.y+'%</b> <br/>Total Blood Drawn: <b>'+pointData.countData+'</b>'
+                          return '<b>'+pointData.x+'</b><br/> Unable to Draw: <b>'+this.point.y+'%</b> <br/>Total Blood Drawn: <b>'+pointData.countData+'</b> <br/>Total Unable to Draw: <b>'+pointData.countUnabletodraw+'</b>'
                       }
-                      //pointFormat: 'Unable to Draw: <b>{point.y:.1f}%</b> <br/>Total Blood Drawn: <b>{point.countData}</b>'
+                      //pointFormat: 'Unable to Draw: <b>{point.y:.1f}%</br> <br/>Total Blood Drawn: <b>{point.countData}</b>'
                   },
-                  colors: ['rgb(0 114 178)','rgb(0 158 115)','rgb(213 94 0)','rgb(86 180 233)','rgb(240 228 66)'],
+                  colors: ['#0072b2','#009e73','#d55e00','#56b4e9','#f0e442'],
                   plotOptions: {column: {colorByPoint: true}},
                   series:[ {
                               name: 'Nurse Data',
@@ -330,7 +350,14 @@ $(document).ready(function(){
                       }
                   }
               });
-
+          }
+      });
+      $.ajax({
+          url: '/unresolved_chart',
+          type: 'get',
+          success: function(data){
+              $('.loader-unresolved').hide();
+              $('#site-final-status').show();
               Highcharts.chart('site-final-status', {
                   chart: {
                       type: 'column',
@@ -446,7 +473,7 @@ $(document).ready(function(){
 
                   },
 
-                  colors: ['rgb(0 114 178)','rgb(0 158 115)','rgb(240 228 66)','rgb(213 94 0)'],
+                  colors: ['#0072b2','#009e73','#f0e442','#d55e00'],
 
                   series: data.site_data,
 
@@ -461,6 +488,15 @@ $(document).ready(function(){
                           }
                       }
               });
+          }
+      });
+
+      $.ajax({
+          url: '/processed_not_on_time_chart',
+          type: 'get',
+          success: function(data){
+              $('.loader-processed-not-on-time').hide();
+              $('#processed-not-on-time').show();
               Highcharts.chart('processed-not-on-time', {
                   chart: {
                       type: 'column',
@@ -539,7 +575,7 @@ $(document).ready(function(){
                   tooltip: {
                       pointFormat: 'Not Processed on Time: <b>{point.y}</b>'// <br/>Total Blood Drawn: {this.x}'
                   },
-                  colors: ['rgb(0 158 115)'],
+                  colors: ['#d55e00'],
                   series: [{
                       name: 'Not processed on time data',
                       data: data.processed_not_ontime,
@@ -564,12 +600,6 @@ $(document).ready(function(){
     }
     $(this).tab('show');
   })
-
-  $('body').delegate('.uploadDay', 'click',function() {
-      $(".md-step").addClass("active");
-      $(this).removeClass("active");
-      getUpload($(this).data('currentday'));
-  });
 });
 </script>
 
