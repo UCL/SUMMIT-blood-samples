@@ -4,6 +4,7 @@ from django.contrib.sites.shortcuts import get_current_site
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.http import HttpRequest
+from django.conf import settings
 
 
 @receiver(post_save, sender=User)
@@ -21,5 +22,5 @@ def create_user_profile(sender, instance, created, **kwargs):
             form.save(
                 request=request,
                 use_https=False,
-                from_email="krishna.n@valuelabs.com",
+                from_email=settings.EMAIL_HOST_USER,
                 html_email_template_name='registration/new_user_html_password_reset_email.html')
