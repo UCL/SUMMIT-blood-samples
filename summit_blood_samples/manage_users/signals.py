@@ -22,5 +22,5 @@ def create_user_profile(sender, instance, created, **kwargs):
             form.save(
                 request=request,
                 use_https=False,
-                from_email=settings.EMAIL_HOST_USER,
+                from_email=settings.DEFAULT_FROM_EMAIL,
                 html_email_template_name='registration/new_user_html_password_reset_email.html')
