@@ -23,14 +23,25 @@
                 <div class="row">
                     <div class="col">
                         <label for="DateFrom">Date From:</label>
-                        <input type="date" value="{{from}}" id="DateFrom" data-date-format="dd/mm/yyyy" class="form__control"></input>
+                        <input type="date" value="{{from}}" id="DateFrom" data-date-format="dd/mm/yyyy" class="form__control" required></input>
                         <em class="date_error"></em>
                     </div>
                     <div class="col">
                         <label for="DateTo">Date To:</label>
-                        <input type="date" id="DateTo" value="{{to}}" data-date-format="dd/mm/yyyy" class="form__control"></input>
+                        <input type="date" id="DateTo" value="{{to}}" data-date-format="dd/mm/yyyy" class="form__control" required></input>
                     </div>
                 </div>
+                <label for="Visits">Visit:</label>
+                <select name="Visits" id="Visits" class="form__control">
+                    <option value="">Please Select</option>
+                    {% for visit in visits %}
+                    {% if visit in filters.Visit %}
+                    <option value="{{visit}}" selected>{{visit}}</option>
+                    {% else %}
+                    <option value="{{visit}}">{{visit}}</option>
+                    {% endif %}
+                    {% endfor %}
+                </select>
                 <label for="Sites">Site:</label>
                 <select name="Sites" id="Sites" class="form__control">
                     <option value="">Please Select</option>
@@ -50,17 +61,6 @@
                     <option value="{{room}}" selected>{{room}}</option>
                     {% else %}
                     <option value="{{room}}">{{room}}</option>
-                    {% endif %}
-                    {% endfor %}
-                </select>
-                <label for="Visits">Visit:</label>
-                <select name="Visits" id="Visits" class="form__control">
-                    <option value="">Please Select</option>
-                    {% for visit in visits %}
-                    {% if visit in filters.Visit %}
-                    <option value="{{visit}}" selected>{{visit}}</option>
-                    {% else %}
-                    <option value="{{visit}}">{{visit}}</option>
                     {% endif %}
                     {% endfor %}
                 </select>
@@ -87,7 +87,9 @@
 <script>
     var settings = "{{settings|safe}}";
     $('#filter-submit').click(function() {
+        $('.modal-loader').show();
         if (new Date($('#DateFrom').val()) > new Date($('#DateTo').val())){
+            $('.modal-loader').hide();
             $('.date_error').html("from date must be greaterthan to date");
             alert('from date must be greaterthan to date');
             return

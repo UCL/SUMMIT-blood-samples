@@ -28,3 +28,7 @@ def user_is_entry_datamanager_tag(user):
 @register.simple_tag
 def user_is_entry_bloodsamplemanager_tag(user):
     return user.is_authenticated and UserRoles.objects.get(user_id=user).role_id.id in [3]
+
+@register.simple_tag
+def last_but_one(data):
+    return data[-2]

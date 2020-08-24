@@ -1,4 +1,5 @@
 {% extends "indigo/template-horizontal-nav-one-col.html" %}
+{% load static %}
 {% load blood_sample %}
 {% block page_title %}Welcome to UCL - Summit Blood Sample{% endblock page_title %}
 {% block content %}
@@ -9,15 +10,15 @@
 
 <nav>
   <div class="nav nav-tabs" id="nav-tab" role="tablist">
-    <a class="nav-item nav-link active" id="nav-home-tab" data-toggle="tab" href="#nav-home" role="tab" aria-controls="nav-home" aria-selected="true">Home</a>
+    <a class="nav-item nav-link active" id="nav-home-tab" data-tab="home" data-toggle="tab-ajax" href="#nav-home" role="tab" aria-controls="nav-home" aria-selected="true">Home</a>
     {% if admin or datamanager %}
-      <a class="nav-item nav-link" id="nav-upload-tab" data-toggle="tab" href="#nav-upload" role="tab" aria-controls="nav-upload" aria-selected="false">Uploads</a>
-      <a class="nav-item nav-link" id="nav-review-tab" data-toggle="tab" href="#nav-review" role="tab" aria-controls="nav-review" aria-selected="false">Review</a>
+      <a class="nav-item nav-link" id="nav-upload-tab" data-tab="upload" data-toggle="tab-ajax" href="#nav-upload" role="tab" aria-controls="nav-upload" aria-selected="false">Uploads</a>
+      <a class="nav-item nav-link" id="nav-review-tab" data-tab="review" data-toggle="tab-ajax" href="#nav-review" role="tab" aria-controls="nav-review" aria-selected="false">Review</a>
     {% endif %}
 
 
-    <a class="nav-item nav-link" id="nav-download-tab" data-toggle="tab" href="#nav-download" role="tab" aria-controls="nav-download" aria-selected="false">Download</a>
-    <a class="nav-item nav-link" id="nav-report-tab" data-toggle="tab" href="#nav-report" role="tab" aria-controls="nav-report" aria-selected="false">Reports</a>
+    <a class="nav-item nav-link" id="nav-download-tab" data-tab="download" data-toggle="tab-ajax" href="#nav-download" role="tab" aria-controls="nav-download" aria-selected="false">Download</a>
+    <a class="nav-item nav-link" id="nav-report-tab" data-tab="report" data-toggle="tab-ajax" href="#nav-report" role="tab" aria-controls="nav-report" aria-selected="false">Reports</a>
     {% if admin %}
     <a class="nav-item nav-link" href="{% url 'admin:auth_user_changelist' %}" aria-controls="nav-admin" aria-selected="false">User Management</a>
     {% endif %}
@@ -25,48 +26,580 @@
 </nav>
 <div class="tab-content" id="nav-tabContent">
   <div class="tab-pane fade show active" id="nav-home" role="tabpanel" aria-labelledby="nav-home-tab">
-    <h4 class="ml-5">Unresolved Days</h4>
-    <ul class="list-group">
-      <li class="list-group-item d-flex justify-content-between align-items-center">Day 1/1/2020 Site XYZ Room 1 Visit YX issue Lorum ipsum <a class="btn btn-sm btn-go">GO</a>
-      </li>
-      <li class="list-group-item d-flex justify-content-between align-items-center">Day 1/1/2020 Site XYZ Room 1 Visit YX issue Lorum ipsum <a class="btn btn-sm btn-go">GO</a>
-      </li>
-      <li class="list-group-item d-flex justify-content-between align-items-center">Day 1/1/2020 Site XYZ Room 1 Visit YX issue Lorum ipsum <a class="btn btn-sm btn-go">GO</a>
-      </li>
-    </ul>
+    <div id="home-container">
+    </div>
   </div>
   <div class="tab-pane fade show" id="nav-upload" role="tabpanel" aria-labelledby="nav-upload-tab">
-
-  <div id="upload-container">
-  </div>
+    <div id="upload-container"></div>
   </div>
   <div class="tab-pane fade show" id="nav-review" role="tabpanel" aria-labelledby="nav-review-tab">{% include 'review-tab.html' %}</div>
   <div class="tab-pane fade show" id="nav-download" role="tabpanel" aria-labelledby="nav-download-tab">{% include 'download.html' %}</div>
-  <div class="tab-pane fade show" id="nav-report" role="tabpanel" aria-labelledby="nav-report-tab">Comming Soon!</div>
+  <div class="tab-pane fade show" id="nav-report" role="tabpanel" aria-labelledby="nav-report-tab">{% include 'reports/reports.html' %}</div>
 </div>
 {% else %}
 <h4 class="">You are not logged in <a href="{% url 'login' %}">login</a></h4>
 {% endif %}
 <script type="text/javascript">
 $(document).ready(function(){
-    getUpload();
-    function getUpload(day){
-        $('.modal-loader').show();
-        $.ajax({
-            url: '/upload?day='+day,
-            type: 'get',
-            success: function(data){
-                $('#upload-container').html(data);
-                $('.modal-loader').hide();
-            }
-        });
-    }
-    $('body').delegate('.uploadDay', 'click',function() {
-        $(".md-step").addClass("active");
-        $(this).removeClass("active");
-        getUpload($(this).data('currentday'));
+  $('.modal-loader').show();
+  function getHome(){
+      $.ajax({
+          url: '/home_tab',
+          type: 'GET',
+          success: function(data){
+                  $('#home-container').html(data);
+                  $('.modal-loader').hide();
+              }
+      });
+  }
+  function getUpload(day){
+      $.ajax({
+          url: '/upload?day='+day,
+          type: 'get',
+          success: function(data){
+              $('#upload-container').html(data);
+              $('.modal-loader').hide();
+          }
+      });
+  }
+  getHome();
+  $('[data-toggle="tab-ajax"]').click(function(e) {
+    $('.modal-loader').show();
+    if ($(this).attr('data-tab')=='home'){
+      getHome();
+    } else if($(this).attr('data-tab')=='upload'){
+      getUpload();
 
-   });
+    } else if($(this).attr('data-tab')=='download'){
+      $('#downloadbloodSample').click();
+    } else if($(this).attr('data-tab')=='report'){
+        $('#blood-sample-status').hide();
+        $('#nurse-unable-draw').hide();
+        $('#site-final-status').hide();
+        $('#processed-not-on-time').hide();
+
+        $('.modal-loader').hide();
+        $('.loader-final-state').show();
+        $('.loader-nurse-stats').show();
+        $('.loader-unresolved').show();
+        $('.loader-processed-not-on-time').show();
+
+
+
+      Highcharts.setOptions({
+          chart: {
+              style: {
+                  fontFamily: 'Open Sans, sans-serif'
+              }
+          }
+      });
+      $.ajax({
+          url: '/final_state_chart',
+          type: 'get',
+          success: function(data){
+              $('.loader-final-state').hide();
+              $('#blood-sample-status').show();
+              Highcharts.chart('blood-sample-status', {
+                  chart: {
+                      type: 'column',
+                      zoomType: 'xy',
+                      "height": 500,
+                      borderWidth: 0,
+                      borderRadius: 5,
+                      //plotBackgroundColor: null,
+                      //plotShadow: false,
+                      plotBorderWidth: 0
+                  },
+
+                  title: {
+                      text: 'Final states by days'
+                  },
+                  /*mapNavigation: {
+                      enableMouseWheelZoom: true
+                  },*/
+                  navigator: {
+                      enabled: true,
+                      xAxis: {
+                          startOnTick: false,
+                          labels: {
+                          formatter: function() {
+                              return '';
+                          }
+                          },
+                          tickPositions: []
+                      }
+                  },
+                  xAxis: {
+                      categories: data.dates,
+                      scrollbar: {
+                          enabled: false
+                      },
+                      title: {
+                          text: 'Days',
+                          style:{
+                              color: 'black',
+                              'font-weight': '600',
+                              'font-size': '13px',
+                          }
+                      },
+                      labels: {
+                          style: {
+                              color: 'black',
+                              'font-weight': '500',
+                              'font-size': '12px',
+                          }
+                      },
+                  },
+                  yAxis: {
+                      min: 0,
+                      title: {
+                          text: 'Blood sample count',
+                          style:{
+                              color: 'black',
+                              'font-weight': '600',
+                              'font-size': '13px',
+                          },
+                          labels: {
+                              style: {
+                                  color: 'black',
+                                  'font-weight': '500',
+                                  'font-size': '12px',
+                              },
+                              //overflow: 'justify'
+                          },
+                      },
+
+                      stackLabels: {
+                          enabled: false,
+                          style: {
+                              color: 'black',
+                              'font-weight': '500',
+                              'font-size': '12px',
+                              color: ( // theme
+                                  Highcharts.defaultOptions.title.style &&
+                                  Highcharts.defaultOptions.title.style.color
+                              ) || 'gray'
+                          }
+                      }
+                  },
+                  legend: {
+                      align: 'right',
+                      x: 0,
+                      verticalAlign: 'top',
+                      y: -5,
+                      floating: false,
+                      backgroundColor:
+                          Highcharts.defaultOptions.legend.backgroundColor || '#efeeee',
+                      borderColor: '#CCC',
+                      borderWidth: 1,
+                      shadow: true,
+                      itemStyle: {
+                          color: 'black',
+                          'font-weight': '600',
+                          'font-size': '12px',
+                      }
+
+                  },
+                  tooltip: {
+                      headerFormat: '<b>{point.x}</b><br/>',
+                      pointFormat: '{series.name}: {point.y}<br/>Total: {point.stackTotal}',
+                      //footerFormat: '</table>',
+                      //shared: true,
+                      //useHTML: true
+                  },
+                  plotOptions: {
+                      column: {
+                          stacking: 'normal',
+                          dataLabels: {
+                              enabled: false,
+                          },
+
+                      },
+
+                  },
+                  colors: ['#0072b2','#009e73','#d55e00','#56b4e9','#f0e442'],
+
+                  rangeSelector: {
+                      selected: 1
+                  },
+                  series: data.data,
+
+                  credits: {
+                              enabled: false
+                          },
+                  exporting: {
+                          buttons: {
+                          contextButton: {
+                              menuItems: Highcharts.getOptions().exporting.buttons.contextButton.menuItems.filter(item => item !== 'printChart')
+                          }
+                          }
+                      }
+              });
+          }
+      });
+      $.ajax({
+          url: '/nurse_stats_chart',
+          type: 'get',
+          success: function(data){
+              $('.loader-nurse-stats').hide();
+              $('#nurse-unable-draw').show();
+              Highcharts.chart('nurse-unable-draw', {
+                  chart: {
+                      type: 'column',
+                      zoomType: 'xy',
+                      "height": 500,
+                      borderWidth: 0,
+                      borderRadius: 5,
+                      plotBackgroundColor: null,
+                      plotShadow: false,
+                      plotBorderWidth: 0
+                  },
+                  title: {
+                      text: 'Unable to draw split by nurse'
+                  },
+                  navigator: {
+                      enabled: true,
+                      xAxis: {
+                          startOnTick: false,
+                          labels: {
+                          formatter: function() {
+                              return '';
+                          }
+                          },
+                          tickPositions: []
+                      }
+                  },
+                  xAxis: {
+                      type: 'category',
+                      scrollbar: {
+                          enabled: false
+                      },
+                      title: {
+                          text: 'Nurses',
+                          style:{
+                              color: 'black',
+                              'font-weight': '600',
+                              'font-size': '13px',
+                          }
+                      },
+                      labels: {
+                          style: {
+                              color: 'black',
+                              'font-weight': '500',
+                              'font-size': '12px',
+                          },
+                          overflow: 'justify',
+                          useHTML: true,
+                          formatter: function () {
+                              var x = this.value;
+                              if (x.length > 8) {
+                                  return '<div class="hastip" title="' + x + '">' + x.substring(0,8) + '...' + '</div>';
+                              }
+                              return '<div class="hastip" title="' + x + '">' + x +'</div>';
+                          }
+                      }
+                  },
+                  yAxis: {
+                      min: 0,
+                      title: {
+                          text: '% cases where blood can not be drawn',
+                          style:{
+                              color: 'black',
+                              'font-weight': '600',
+                              'font-size': '13px',
+                          },
+                          labels: {
+                              style: {
+                                  color: 'black',
+                                  'font-weight': '500',
+                                  'font-size': '12px',
+                              },
+                              //overflow: 'justify'
+                          },
+                      }
+                  },
+                  legend: {
+                      enabled: false
+                  },
+                  tooltip: {
+                      formatter () {
+                          const pointData = data.nurse_day.find(row => row.y === this.point.y)
+                          return '<b>'+pointData.x+'</b><br/> Unable to Draw: <b>'+this.point.y+'%</b> <br/>Total Blood Drawn: <b>'+pointData.countData+'</b> <br/>Total Unable to Draw: <b>'+pointData.countUnabletodraw+'</b>'
+                      }
+                      //pointFormat: 'Unable to Draw: <b>{point.y:.1f}%</br> <br/>Total Blood Drawn: <b>{point.countData}</b>'
+                  },
+                  colors: ['#0072b2','#009e73','#d55e00','#56b4e9','#f0e442'],
+                  plotOptions: {column: {colorByPoint: true}},
+                  series:[ {
+                              name: 'Nurse Data',
+                              data: data.nurse_day.map(row => [row.x, row.y])
+
+                          }],
+                  /*[{
+                      name: 'Nurse Data',
+                      data: data.nurse_day,
+                  }],*/
+                  credits: {
+                      enabled: false
+                  },
+                  exporting: {
+                      buttons: {
+                      contextButton: {
+                          menuItems: Highcharts.getOptions().exporting.buttons.contextButton.menuItems.filter(item => item !== 'printChart')
+                      }
+                      }
+                  }
+              });
+          }
+      });
+      $.ajax({
+          url: '/unresolved_chart',
+          type: 'get',
+          success: function(data){
+              $('.loader-unresolved').hide();
+              $('#site-final-status').show();
+              Highcharts.chart('site-final-status', {
+                  chart: {
+                      type: 'column',
+                      zoomType: 'xy',
+                      "height": 500,
+                      borderWidth: 0,
+                      borderRadius: 5,
+                      plotBackgroundColor: null,
+                      plotShadow: false,
+                      plotBorderWidth: 0
+                  },
+
+                  title: {
+                      text: 'Unresolved cases by site'
+                  },
+
+                  navigator: {
+                      enabled: true,
+                      xAxis: {
+                          startOnTick: false,
+                          labels: {
+                          formatter: function() {
+                              return '';
+                          }
+                          },
+                          tickPositions: []
+                      }
+                  },
+                  xAxis: {
+                      categories: data.site_dates,
+                      scrollbar: {
+                          enabled: false
+                      },
+                      title: {
+                          text: 'Days',
+                          style:{
+                              color: 'black',
+                              'font-weight': '600',
+                              'font-size': '13px',
+                          }
+                      },
+                      labels: {
+                          style: {
+                              color: 'black',
+                              'font-weight': '500',
+                              'font-size': '12px',
+                          }
+                      },
+                  },
+                  yAxis: {
+                      min: 0,
+                      title: {
+                          text: 'Cases that need to be resolved',
+                          style:{
+                              color: 'black',
+                              'font-weight': '600',
+                              'font-size': '13px',
+                          },
+                          labels: {
+                              style: {
+                                  color: 'black',
+                                  'font-weight': '500',
+                                  'font-size': '12px',
+                              },
+                              //overflow: 'justify'
+                          },
+                      },
+
+                      stackLabels: {
+                          enabled: false,
+                          style: {
+                              color: 'black',
+                              'font-weight': '500',
+                              'font-size': '12px',
+                              color: ( // theme
+                                  Highcharts.defaultOptions.title.style &&
+                                  Highcharts.defaultOptions.title.style.color
+                              ) || 'gray'
+                          }
+                      }
+                  },
+                  legend: {
+                      align: 'right',
+                      x: 0,
+                      verticalAlign: 'top',
+                      y: -5,
+                      floating: false,
+                      backgroundColor:
+                          Highcharts.defaultOptions.legend.backgroundColor || '#efeeee',
+                      borderColor: '#CCC',
+                      borderWidth: 1,
+                      shadow: true,
+                      itemStyle: {
+                          color: 'black',
+                          'font-weight': '600',
+                          'font-size': '12px',
+                      }
+                  },
+                  tooltip: {
+                      headerFormat: '<b>{point.x}</b><br/>',
+                      pointFormat: '{series.name}: {point.y}<br/>Total: {point.stackTotal}',
+                      //footerFormat: '</table>',
+                      //shared: true,
+                      //useHTML: true
+                  },
+                  plotOptions: {
+                      column: {
+                          stacking: 'normal',
+                          dataLabels: {
+                              enabled: false
+                          }
+                      },
+
+                  },
+
+                  colors: ['#0072b2','#009e73','#f0e442','#d55e00'],
+
+                  series: data.site_data,
+
+                  credits: {
+                              enabled: false
+                          },
+                  exporting: {
+                          buttons: {
+                          contextButton: {
+                              menuItems: Highcharts.getOptions().exporting.buttons.contextButton.menuItems.filter(item => item !== 'printChart')
+                          }
+                          }
+                      }
+              });
+          }
+      });
+
+      $.ajax({
+          url: '/processed_not_on_time_chart',
+          type: 'get',
+          success: function(data){
+              $('.loader-processed-not-on-time').hide();
+              $('#processed-not-on-time').show();
+              Highcharts.chart('processed-not-on-time', {
+                  chart: {
+                      type: 'column',
+                      zoomType: 'xy',
+                      "height": 500,
+                      borderWidth: 0,
+                      borderRadius: 5,
+                      plotBackgroundColor: null,
+                      plotShadow: false,
+                      plotBorderWidth: 0
+                  },
+                  title: {
+                      text: 'Cases that were receipted outside of '+data.processed_hours+' hours'
+                  },
+                  navigator: {
+                      enabled: true,
+                      xAxis: {
+                          startOnTick: false,
+                          labels: {
+                          formatter: function() {
+                              return '';
+                          }
+                          },
+                          tickPositions: []
+                      }
+                  },
+                  xAxis: {
+                      type: 'category',
+                      scrollbar: {
+                          enabled: false
+                      },
+                      title: {
+                          text: 'Days',
+                          style:{
+                              color: 'black',
+                              'font-weight': '600',
+                              'font-size': '13px',
+                          }
+                      },
+                      labels: {
+                          style: {
+                              color: 'black',
+                              'font-weight': '500',
+                              'font-size': '12px',
+                          },
+                          overflow: 'justify',
+                          useHTML: true,
+                          formatter: function () {
+                              var x = this.value;
+                              return '<div class="hastip" title="' + x + '">' + x +'</div>';
+                          }
+                      }
+                  },
+                  yAxis: {
+                      min: 0,
+                      title: {
+                          text: 'Cases processed outside of '+data.processed_hours+' hours',
+                          style:{
+                              color: 'black',
+                              'font-weight': '600',
+                              'font-size': '13px',
+                          },
+                          labels: {
+                              style: {
+                                  color: 'black',
+                                  'font-weight': '500',
+                                  'font-size': '12px',
+                              },
+                              //overflow: 'justify'
+                          },
+                      }
+                  },
+                  legend: {
+                      enabled: false
+                  },
+                  tooltip: {
+                      pointFormat: 'Not Processed on Time: <b>{point.y}</b>'// <br/>Total Blood Drawn: {this.x}'
+                  },
+                  colors: ['#d55e00'],
+                  series: [{
+                      name: 'Not processed on time data',
+                      data: data.processed_not_ontime,
+                      //borderColor: 'rgb(163 237 186)',
+                      //borderWidth: 2,
+                  }],
+                  credits: {
+                      enabled: false
+                  },
+                  exporting: {
+                      buttons: {
+                      contextButton: {
+                          menuItems: Highcharts.getOptions().exporting.buttons.contextButton.menuItems.filter(item => item !== 'printChart')
+                      }
+                      }
+                  }
+              });
+          }
+      });
+    } else{
+      $('.modal-loader').hide();
+    }
+    $(this).tab('show');
+  })
 });
 </script>
 

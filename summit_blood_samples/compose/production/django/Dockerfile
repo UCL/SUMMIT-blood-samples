@@ -27,11 +27,17 @@ RUN sed -i 's/\r$//g' /entrypoint
 RUN chmod +x /entrypoint
 RUN chown django /entrypoint
 
+
 COPY ./compose/production/django/start /start
 RUN sed -i 's/\r$//g' /start
 RUN chmod +x /start
 RUN chown django /start
 COPY --chown=django:django . /app
+
+# Create folders with correct permissions
+RUN mkdir /static
+RUN mkdir /uploads
+RUN chown django:django /static /uploads
 
 USER django
 

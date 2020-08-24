@@ -5,25 +5,27 @@
 <script  type="text/javascript">
 $(document).ready(function(){
     $('.dwnblood').click(function() {
+        $('.modal-loader').show();
         $.ajax({
             url: '/download_blood_sample?BloodSample=id,CohortId,Comments,State&Manifest=Visit,Site,Room,Barcode&Receipt=SampleId,Clinic&Processed=TissueSubType&DateFrom=&DateTo=&Site=&Room=&State=&Visit=',
             type: 'GET',
             success: function(data){
                     $('#DownloadContainer').html(data);
+                    $('.modal-loader').hide();
                 }
         });
     });
 
     $('.Aliquotsdwn').click(function() {
+        $('.modal-loader').show();
         $.ajax({
             url: '/download_aliquots',
             type: 'GET',
             success: function(data){
                     $('#DownloadContainer').html(data);
+                    $('.modal-loader').hide();
                 }
         });
     });
-
-    $('#downloadbloodSample').click();
 });
 </script>

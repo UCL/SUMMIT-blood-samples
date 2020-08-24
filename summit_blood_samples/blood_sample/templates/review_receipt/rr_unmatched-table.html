@@ -1,0 +1,68 @@
+{% if objects %}
+{% load static %}
+<div class="table-responsive">
+    <table style="width:100%;border: none;" class="table table-bordered review-table" >
+        <tr tyle>
+            <th class="receipt-header">Barcode</th>
+            <th class="receipt-header">Clinic</th>
+            <th class="receipt-header">Date Time Taken</th>
+            <th class="receipt-header">Received Date Time</th>
+            <th class="receipt-header">Volume</th>
+            <th class="receipt-header">Comments</th>
+            <th>Edit</th>
+        </tr>
+        {% for item in objects %}
+        <tr>
+            <td class="receipt-col">{{ item.Barcode }}</td>
+            <td class="receipt-col">{{ item.Clinic }}</td>
+            <td class="receipt-col">{{ item.DateTimeTaken }}</td>
+            <td class="receipt-col">{{ item.ReceivedDateTime }}</td>
+            <td class="receipt-col">{{ item.Volume }}</td>
+            <td class="receipt-col"><a rel="tooltip" data-html="true" title="<h6>{{ item.ReceiptComments }}</h6>" >{{ item.ReceiptComments|truncatechars:20 }}</a></td>
+            <td><a data-editreceipt="{{item.id}}" class="edit-receipt" style="cursor:pointer;"><img class="warning-svg" src="{% static 'indigo/images/edit.svg' %}" style="margin-bottom: 0px;width:20px;height: 20px;" /></a></td>
+        </tr>
+        {% endfor %}
+    </table>
+</div>
+<style>
+.blood-sample-col{
+    background-color:rgb(184 247 217);
+    white-space: nowrap;
+}
+.manifest-col{
+    background-color:rgb(253, 253, 207);
+    white-space: nowrap;
+}
+.blood-sample-header{
+    background-color:rgb(192 230 209);
+}
+.manifest-header{
+    background-color:#eaeacb;
+}
+</style>
+{% else %}
+No unmatched receipt records found
+{% endif %}
+
+<script type="text/javascript">
+$(document).ready(function(){
+    $('.edit-receipt').click(function() {
+        $('#blood-sample-modal').on('hide.bs.modal', function () {
+            return false;
+        })
+        $('.modal-loader').show();
+        $.ajax({
+            url: 'edit_receipt?id='+$(this).data('editreceipt'),
+            type: 'GET',
+            success: function(data){
+                $('.modal-loader').hide();
+                $('.edit-receipt-div').html(data);
+                $('.review-receipt').hide();
+                $(".customModal").removeClass("modal-xl");
+            },
+            error: function (error) {
+            }
+        });
+    })
+});
+</script>

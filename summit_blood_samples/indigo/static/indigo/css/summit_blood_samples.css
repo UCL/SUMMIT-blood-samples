@@ -123,8 +123,13 @@ h6 {
 }
 
 .tab-content>.tab-pane {
-    padding: 25px 0;
+    padding: 25px 10px;
     min-height: calc(100vh - 300px);
+    background: rgba(158, 158, 158, 0.13) !important;
+}
+
+.uploadDay {
+    background: rgba(158, 158, 158, 0.13) !important;
 }
 
 .footer__list li {
@@ -489,6 +494,10 @@ li em {
     padding: 24px;
 }
 
+.uploadDay-md-step-bg {
+    background: rgba(158, 158, 158, 0.13) !important
+}
+
 .md-stepper-horizontal .md-step:hover,
 .md-stepper-horizontal .md-step:active {
     background-color: rgba(0, 0, 0, 0.04);
@@ -716,3 +725,173 @@ li em {
 }
 
 .md-stepper-horizontal .md-step:first-child {}
+
+.md-stepper-horizontal .md-step.activeDay.uploadDay.active .md-step-circle {
+    /* background-color: #999999 !important; */
+    background-color: #999999 !important;
+}
+
+.blood-sample-col {
+    background-color: rgb(184 247 217);
+    white-space: nowrap;
+}
+
+.manifest-col {
+    background-color: rgb(253, 253, 207);
+    white-space: nowrap;
+}
+
+.blood-sample-header {
+    background-color: rgb(192 230 209);
+    white-space: nowrap;
+}
+
+.manifest-header {
+    background-color: #eaeacb;
+    white-space: nowrap;
+}
+
+.receipt-header {
+    background-color: #cedada;
+    white-space: nowrap;
+}
+
+.receipt-col {
+    background-color: #cee3e8;
+    white-space: nowrap;
+}
+
+.processed-header {
+    background-color: #e5c8bf;
+    white-space: nowrap;
+}
+
+.processed-col {
+    background-color: #f5c5ba;
+    white-space: nowrap;
+}
+
+.highcharts-title {
+    text-decoration: underline !important;
+}
+
+.modal-loader-svg {
+    max-width: 15rem;
+    width: 100%;
+    height: auto;
+    stroke-linecap: round;
+}
+
+.modal-loader-svg {
+    position: fixed;
+    z-index: 1450;
+    height: 9em;
+    width: 8em;
+    overflow: show;
+    margin: auto;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+}
+
+
+/* Transparent Overlay */
+
+.modal-loader-svg:before {
+    content: '';
+    display: block;
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 9em;
+    width: 8em;
+    background: radial-gradient(rgba(20, 20, 20, .8), rgba(0, 0, 0, .8));
+    background: -webkit-radial-gradient(rgba(20, 20, 20, .8), rgba(0, 0, 0, .8));
+}
+
+.snackbar {
+    visibility: hidden;
+    /* Hidden by default. Visible on click */
+    min-width: 250px;
+    /* Set a default minimum width */
+    margin-left: -125px;
+    /* Divide value of min-width by 2 */
+    background-color: rgb(255 90 95 / .8);
+    /* Black background color */
+    color: #fff;
+    /* White text color */
+    text-align: center;
+    /* Centered text */
+    border-radius: 2px;
+    /* Rounded borders */
+    padding: 16px;
+    /* Padding */
+    position: fixed;
+    /* Sit on top of the screen */
+    z-index: 1;
+    /* Add a z-index if needed */
+    left: 50%;
+    /* Center the snackbar */
+    bottom: 30px;
+    /* 30px from the bottom */
+}
+
+
+/* Show the snackbar when clicking on a button (class added with JavaScript) */
+
+.snackbar.show {
+    visibility: visible;
+    /* Show the snackbar */
+    /* Add animation: Take 0.5 seconds to fade in and out the snackbar.
+  However, delay the fade out process for 2.5 seconds */
+    -webkit-animation: fadein 0.5s, fadeout 0.5s 2.5s;
+    animation: fadein 0.5s, fadeout 0.5s 2.5s;
+}
+
+
+/* Animations to fade the snackbar in and out */
+
+@-webkit-keyframes fadein {
+    from {
+        bottom: 0;
+        opacity: 0;
+    }
+    to {
+        bottom: 30px;
+        opacity: 1;
+    }
+}
+
+@keyframes fadein {
+    from {
+        bottom: 0;
+        opacity: 0;
+    }
+    to {
+        bottom: 30px;
+        opacity: 1;
+    }
+}
+
+@-webkit-keyframes fadeout {
+    from {
+        bottom: 30px;
+        opacity: 1;
+    }
+    to {
+        bottom: 0;
+        opacity: 0;
+    }
+}
+
+@keyframes fadeout {
+    from {
+        bottom: 30px;
+        opacity: 1;
+    }
+    to {
+        bottom: 0;
+        opacity: 0;
+    }
+}

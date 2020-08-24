@@ -3,7 +3,8 @@ version: '3.8'
 volumes:
   production_postgres_data:
   production_postgres_data_backups:
-  production_traefik:
+  staticfiles:
+  uploads:
 
 services:
   django:
@@ -11,15 +12,20 @@ services:
       context: .
       dockerfile: ./compose/production/django/Dockerfile
     image: summit_blood_samples_production_django
+    expose:
+      - 5000
     depends_on:
       - postgres
     env_file:
       - ./.envs/.production/.django
       - ./.envs/.production/.postgres
     volumes:
-      - type: bind
-        source: ./uploads
+      - type: volume
+        source: uploads
         target: /uploads
+      - type: volume
+        source: staticfiles
+        target: /static
     command: /start
 
   postgres:
@@ -37,17 +43,40 @@ services:
     env_file:
       - ./.envs/.production/.postgres
 
-  traefik:
+  pgadmin:
     build:
       context: .
-      dockerfile: ./compose/production/traefik/Dockerfile
-    image: summit_blood_samples_production_traefik
+      dockerfile: ./compose/production/pgadmin/Dockerfile
+    image: summit_blood_samples_production_pgadmin
+    expose:
+      - 80
+    env_file:
+      - ./.envs/.production/.pgadmin
     depends_on:
-      - django
-    volumes:
-      - type: volume
-        source: production_traefik
-        target: /etc/traefik/acme
+      - postgres
+
+  nginx:
+    build:
+      context: .
+      dockerfile: ./compose/production/nginx/Dockerfile
+    image: summit_blood_samples_production_nginx
     ports:
       - "0.0.0.0:80:80"
       - "0.0.0.0:443:443"
+      - "0.0.0.0:2345:2345"
+    volumes:
+      - type: bind
+        source: ./compose/production/nginx/conf.d
+        target: /etc/nginx/conf.d
+      - type: bind
+        source: ./compose/production/nginx/certs
+        target: /etc/nginx/certs
+      - type: bind
+        source: ./compose/production/nginx/snippets
+        target: /etc/nginx/snippets
+      - type: volume
+        source: staticfiles
+        target: /static
+    depends_on:
+      - django
+      - pgadmin

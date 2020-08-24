@@ -170,6 +170,8 @@ UPLOAD_ROOT = str(ROOT_DIR / "uploads")
 
 ITEMS_PER_PAGE = 10
 
+PROCESSING_HOURS = 36
+
 # TEMPLATES
 # ------------------------------------------------------------------------------
 # https://docs.djangoproject.com/en/dev/ref/settings/#templates

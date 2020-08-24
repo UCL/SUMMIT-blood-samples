@@ -40,5 +40,6 @@ $('#blood-sample-modal').on('hidden.bs.modal', function () {
     $('.modal-loader').hide();
     $(".customModal").removeClass("modal-xl");
     $(".modal-body").html("");
+    $("#blood-sample-modal .close").removeAttr("id");
 });
 </script>

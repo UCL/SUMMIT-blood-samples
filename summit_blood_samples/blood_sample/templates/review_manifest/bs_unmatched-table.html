@@ -1,0 +1,31 @@
+{% if objects %}
+{% load static %}
+<div class="table-responsive">
+    <table style="width:100%;border: none;" class="table table-bordered review-table" >
+        <tr>
+            <th class="blood-sample-header">Cohort Id</th>
+            <th class="blood-sample-header">Barcode</th>
+            <th class="blood-sample-header">Appointment Date</th>
+            <th class="blood-sample-header">Comments</th>
+            <th class="blood-sample-header">State</th>
+        </tr>
+        {% for item in objects %}
+            <tr>
+                <td  class="blood-sample-col">{{ item.CohortId }}</td>
+                <td  class="blood-sample-col">{{ item.Barcode }}</td>
+                <td  class="blood-sample-col">{{ item.CreatedAt }}</td>
+                <td  class="blood-sample-col"><a rel="tooltip" data-html="true" title="<h6>{{ item.Comments }}</h6>" >{{ item.Comments|truncatechars:20 }}</a></td>
+                <td  class="blood-sample-col">{{ item.state_verbose }}</td>
+            </tr>
+        {% endfor %}
+    </table>
+</div>
+{% else %}
+No unmatched blood sample records found
+{% endif %}
+
+<script>
+$(document).ready(function(){
+    $("[rel='tooltip']").tooltip();
+});
+</script>

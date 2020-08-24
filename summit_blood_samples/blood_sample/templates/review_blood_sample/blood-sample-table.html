@@ -10,7 +10,7 @@
         <th>Appointment Date</th>
         <th>Comments</th>
         <th>State</th>
-        <th></th>
+        <th>Edit</th>
     </tr>
     {% for item in objects %}
     <tr>
@@ -38,6 +38,9 @@
 $(document).ready(function(){
     $("[rel='tooltip']").tooltip();
     $('.edit-sample').click(function() {
+        $('#blood-sample-modal').on('hide.bs.modal', function () {
+            return false;
+        });
         $('.modal-loader').show();
         $.ajax({
             url: 'edit_blood_sample?id='+$(this).data('editsample'),

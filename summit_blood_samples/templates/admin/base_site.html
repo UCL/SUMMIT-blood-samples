@@ -4,7 +4,6 @@
 
 {% block title %}{{ title }} - Summit Blood Sample Adminstration{% endblock %}
 {% block extrahead %}
-
 <link rel="shortcut icon" href="{% indigo_static 'images/favicon.ico' %}" />
 <link rel="apple-touch-icon-precomposed" href="{% indigo_static 'favicon-152.png' %}">
 <meta name="msapplication-TileColor" content="#000000">
@@ -34,18 +33,50 @@ a {
     width: 80%;
 }
 #content h1, .breadcrumbs{
-    display:none;
+    //display:none;
 }
 
 #admin-title{
     color: #ff5a5f !important;
 }
+#home-page{
+    color: #ff5a5f !important;
+    font-weight: 600;
+    font-size: 15px;
+}
+
 .sortable.column-role{
     pointer-events: none;
 }
 #content-main{
     margin-top:45px;
 }
+#toolbar{
+    background:none !important;
+    border: none !important;
+}
+
+#user-tools a {
+    border-bottom:none;
+}
+/*
+thead{
+    border: 1px solid #dddddd;
+}
+table {
+  font-family: arial, sans-serif;
+  border: 1px solid #dddddd;
+  border-collapse: collapse;
+  width: 100%;
+}
+
+td, th {
+  border: 1px solid #dddddd;
+  text-align: left;
+  padding: 8px;
+}*/
+
+
 </style>
 {% endblock %}
 
@@ -53,4 +84,19 @@ a {
     <div class="head">
         <a href="{% url 'admin:auth_user_changelist' %}"><h1 id="admin-title">Blood Sample Adminstration</h1></a>
     </div>
+{% endblock %}
+{% block userlinks %}
+    {% if site_url %}
+        <a href="{{ site_url }}" id="home-page">View site</a> /
+    {% endif %}
+    {% if user.is_active and user.is_staff %}
+        {% url 'django-admindocs-docroot' as docsroot %}
+        {% if docsroot %}
+            <a href="{{ docsroot }}">Documentation</a> /
+        {% endif %}
+    {% endif %}
+    {% if user.has_usable_password %}
+    <a href="{% url 'admin:password_change' %}">Change password</a> /
+    {% endif %}
+    <a href="{% url 'admin:logout' %}">Log out</a>
 {% endblock %}

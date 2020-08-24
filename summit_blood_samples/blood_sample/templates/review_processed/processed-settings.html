@@ -1,0 +1,214 @@
+<div id="settings_processed" class="site-content__main">
+    <h2 class="text-center">Settings Options</h2>
+    <form>
+        <div class="row mt-5">
+            <div class="col-lg-6">
+                <ul class="ml-0" style="list-style:none;">
+                    <li >
+                        <b>Blood Samples</b>
+                        <ul style="list-style:none;">
+                            {% comment %} {% if "id" in settings.BS %}
+                            <li><input type="checkbox" id="BloodSample-id" name="BloodSample" value="id" checked> Id</input></li>
+                            {% else %}
+                            <li><input type="checkbox" id="BloodSample-id" name="BloodSample" value="id"> Id</input></li>
+                            {% endif %} {% endcomment %}
+                            {% if "CohortId" in settings.BS %}
+                            <li><input type="checkbox" id="BloodSample-CohortId" name="BloodSample" value="CohortId" checked> Cohort id</input></li>
+                            {% else %}
+                            <li><input type="checkbox" id="BloodSample-CohortId" name="BloodSample" value="CohortId"> Cohort id</input></li>
+                            {% endif %}
+                            {% if "AppointmentId" in settings.BS %}
+                            <li><input type="checkbox" id="BloodSample-AppointmentId" name="BloodSample" value="AppointmentId" checked> Appointment id</input></li>
+                            {% else %}
+                            <li><input type="checkbox" id="BloodSample-AppointmentId" name="BloodSample" value="AppointmentId"> Appointment id</input></li>
+                            {% endif %}
+                            {% if "Barcode" in settings.BS %}
+                            <li><input type="checkbox" id="BloodSample-Barcode" name="BloodSample" value="Barcode" checked> Barcode</input></li>
+                            {% else %}
+                            <li><input type="checkbox" id="BloodSample-Barcode" name="BloodSample" value="Barcode"> Barcode</input></li>
+                            {% endif %}
+                            {% if "Comments" in settings.BS %}
+                            <li><input type="checkbox" id="BloodSample-Comments" name="BloodSample" value="Comments" checked> Comments</input></li>
+                            {% else %}
+                            <li><input type="checkbox" id="BloodSample-Comments" name="BloodSample" value="Comments"> Comments</input></li>
+                            {% endif %}
+                            {% if "SiteNurseEmail" in settings.BS %}
+                            <li><input type="checkbox" id="BloodSample-SiteNurseEmail" name="BloodSample" value="SiteNurseEmail" checked> Site nurse email</input></li>
+                            {% else %}
+                            <li><input type="checkbox" id="BloodSample-SiteNurseEmail" name="BloodSample" value="SiteNurseEmail"> Site nurse email</input></li>
+                            {% endif %}
+                            {% if "CreatedAt" in settings.BS %}
+                            <li><input type="checkbox" id="BloodSample-CreatedAt" name="BloodSample" value="CreatedAt" checked> Appointment date</input></li>
+                            {% else %}
+                            <li><input type="checkbox" id="BloodSample-CreatedAt" name="BloodSample" value="CreatedAt"> Appointment date</input></li>
+                            {% endif %}
+                            {% if "State" in settings.BS %}
+                            <li><input type="checkbox" id="BloodSample-State" name="BloodSample" value="State" checked> State</input></li>
+                            {% else %}
+                            <li><input type="checkbox" id="BloodSample-State" name="BloodSample" value="State"> State</input></li>
+                            {% endif %}
+                        </ul>
+                      </li>
+                </ul>
+            </div>
+            <div class="col-lg-6">
+                <ul style="list-style:none;">
+                <li>
+                    <b>Manifest</b>
+                    <ul style="list-style:none;">
+                        {% if "CohortId" in settings.MR %}
+                        <li><input type="checkbox" id='Manifest-CohortId' name="Manifest" value="CohortId" checked> Cohort id</input></li>
+                        {% else %}
+                        <li><input type="checkbox" id='Manifest-CohortId' name="Manifest" value="CohortId"> Cohort id</input></li>
+                        {% endif %}
+                        {% if "Barcode" in settings.MR %}
+                        <li><input type="checkbox" id='Manifest-Barcode' name="Manifest" value="Barcode" checked> Barcode</input></li>
+                        {% else %}
+                        <li><input type="checkbox" id='Manifest-Barcode' name="Manifest" value="Barcode"> Barcode</input></li>
+                        {% endif %}
+                        {% if "Site" in settings.MR %}
+                        <li><input type="checkbox" id='Manifest-Site' name="Manifest" value="Site" checked> Site</input></li>
+                        {% else %}
+                        <li><input type="checkbox" id='Manifest-Site' name="Manifest" value="Site"> Site</input></li>
+                        {% endif %}
+                        {% if "Visit" in settings.MR %}
+                        <li><input type="checkbox" id='Manifest-Visit' name="Manifest" value="Visit" checked> Visit</input></li>
+                        {% else %}
+                        <li><input type="checkbox" id='Manifest-Visit' name="Manifest" value="Visit"> Visit</input></li>
+                        {% endif %}
+                        {% if "Room" in settings.MR %}
+                        <li><input type="checkbox" id='Manifest-Room' name="Manifest" value="Room" checked> Room</input></li>
+                        {% else %}
+                        <li><input type="checkbox" id='Manifest-Room' name="Manifest" value="Room"> Room</input></li>
+                        {% endif %}
+                        {% if "CollectionDateTime" in settings.MR %}
+                        <li><input type="checkbox" id='Manifest-CollectionDateTime' name="Manifest" value="CollectionDateTime" checked> Collection Date Time</input></li>
+                        {% else %}
+                        <li><input type="checkbox" id='Manifest-CollectionDateTime' name="Manifest" value="CollectionDateTime"> Collection Date Time</input></li>
+                        {% endif %}
+                        <!-- {% if "Comments" in settings.MR %}
+                        <li><input type="checkbox" id="Manifest-Comments" name="Manifest" value="Comments" checked> Comments</input></li>
+                        {% else %}
+                        <li><input type="checkbox" id="Manifest-Comments" name="Manifest" value="Comments"> Comments</input></li>
+                        {% endif %} -->
+                    </ul>
+                </li>
+            </ul>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-lg-6">
+                <ul class="ml-0" style="list-style:none;">
+                <li>
+                    <b>Receipt</b>
+                    <ul style="list-style:none;">
+                        {% if "Barcode" in settings.RR %}
+                        <li><input type="checkbox" id='Receipt-Barcode' name="Receipt" value="Barcode" checked> Barcode</input></li>
+                        {% else %}
+                        <li><input type="checkbox" id='Receipt-Barcode' name="Receipt" value="Barcode"> Barcode</input></li>
+                        {% endif %}
+                        {% if "Clinic" in settings.RR %}
+                        <li><input type="checkbox" id='Receipt-Clinic' name="Receipt" value="Clinic" checked> Clinic</input></li>
+                        {% else %}
+                        <li><input type="checkbox" id='Receipt-Clinic' name="Receipt" value="Clinic"> Clinic</input></li>
+                        {% endif %}
+                        {% if "DateTimeTaken" in settings.RR %}
+                        <li><input type="checkbox" id='Receipt-DateTimeTaken' name="Receipt" value="DateTimeTaken" checked> Date Time Taken</input></li>
+                        {% else %}
+                        <li><input type="checkbox" id='Receipt-DateTimeTaken' name="Receipt" value="DateTimeTaken"> Date Time Taken</input></li>
+                        {% endif %}
+                        {% if "SampleId" in settings.RR %}
+                        <li><input type="checkbox" id='Receipt-SampleId' name="Receipt" value="SampleId" checked> Sample id</input></li>
+                        {% else %}
+                        <li><input type="checkbox" id='Receipt-SampleId' name="Receipt" value="SampleId"> Sample id</input></li>
+                        {% endif %}
+                        {% if "TissueSubType" in settings.RR %}
+                        <li><input type="checkbox" id='Receipt-TissueSubType' name="Receipt" value="TissueSubType" checked> Tissue sub type</input></li>
+                        {% else %}
+                        <li><input type="checkbox" id='Receipt-TissueSubType' name="Receipt" value="TissueSubType"> Tissue sub type</input></li>
+                        {% endif %}
+                        {% if "ReceivedDateTime" in settings.RR %}
+                        <li><input type="checkbox" id='Receipt-ReceivedDateTime' name="Receipt" value="ReceivedDateTime" checked> Received date time</input></li>
+                        {% else %}
+                        <li><input type="checkbox" id='Receipt-ReceivedDateTime' name="Receipt" value="ReceivedDateTime"> Received date time</input></li>
+                        {% endif %}
+                        {% if "Volume" in settings.RR %}
+                        <li><input type="checkbox" id='Receipt-Volume' name="Receipt" value="Volume" checked> Volume</input></li>
+                        {% else %}
+                        <li><input type="checkbox" id='Receipt-Volume' name="Receipt" value="Volume"> Volume</input></li>
+                        {% endif %}
+                        {% if "VolumeUnit" in settings.RR %}
+                        <li><input type="checkbox" id='Receipt-VolumeUnit' name="Receipt" value="VolumeUnit" checked> Volume unit</input></li>
+                        {% else %}
+                        <li><input type="checkbox" id='Receipt-VolumeUnit' name="Receipt" value="VolumeUnit"> Volume unit</input></li>
+                        {% endif %}
+                        {% if "Condition" in settings.RR %}
+                        <li><input type="checkbox" id='Receipt-Condition' name="Receipt" value="Condition" checked> Condition</input></li>
+                        {% else %}
+                        <li><input type="checkbox" id='Receipt-Condition' name="Receipt" value="Condition"> Condition</input></li>
+                        {% endif %}
+                    </ul>
+                  </li>
+                </ul>
+            </div>
+            <div class="col-lg-6">
+                <ul style="list-style:none;">
+                <li>    
+                    <b>Processed</b>
+                    <ul style="list-style:none;">
+                        {% if "Barcode" in settings.PR %}
+                        <li><input type="checkbox" id='Processed-Barcode' name="Processed" value="Barcode" checked> Barcode</input></li>
+                        {% else %}
+                        <li><input type="checkbox" id='Processed-Barcode' name="Processed" value="Barcode"> Barcode</input></li>
+                        {% endif %}
+                        {% if "ParentId" in settings.PR %}
+                        <li><input type="checkbox" id='Processed-ParentId' name="Processed" value="ParentId" checked> Parent id</input></li>
+                        {% else %}
+                        <li><input type="checkbox" id='Processed-ParentId' name="Processed" value="ParentId"> Parent id</input></li>
+                        {% endif %}
+                        {% if "TissueSubType" in settings.PR %}
+                        <li><input type="checkbox" id='Processed-TissueSubType' name="Processed" value="TissueSubType" checked> Tissue sub type</input></li>
+                        {% else %}
+                        <li><input type="checkbox" id='Processed-TissueSubType' name="Processed" value="TissueSubType"> Tissue sub type</input></li>
+                        {% endif %}
+                        {% if "ReceivedDateTime" in settings.PR %}
+                        <li><input type="checkbox" id='Processed-ReceivedDateTime' name="Processed" value="ReceivedDateTime" checked> Received date time</input></li>
+                        {% else %}
+                        <li><input type="checkbox" id='Processed-ReceivedDateTime' name="Processed" value="ReceivedDateTime"> Received date time</input></li>
+                        {% endif %}
+                        {% if "ProcessedDateTime" in settings.PR %}
+                        <li><input type="checkbox" id='Processed-ProcessedDateTime' name="Processed" value="ProcessedDateTime" checked> Processed date time</input></li>
+                        {% else %}
+                        <li><input type="checkbox" id='Processed-ProcessedDateTime' name="Processed" value="ProcessedDateTime"> Processed date time</input></li>
+                        {% endif %}
+                        {% if "Volume" in settings.PR %}
+                        <li><input type="checkbox" id='Processed-Volume' name="Processed" value="Volume" checked> Volume</input></li>
+                        {% else %}
+                        <li><input type="checkbox" id='Processed-Volume' name="Processed" value="Volume"> Volume</input></li>
+                        {% endif %}
+                        {% if "VolumeUnit" in settings.PR %}
+                        <li><input type="checkbox" id='Processed-VolumeUnit' name="Processed" value="VolumeUnit" checked> Volume unit</input></li>
+                        {% else %}
+                        <li><input type="checkbox" id='Processed-VolumeUnit' name="Processed" value="VolumeUnit"> Volume unit</input></li>
+                        {% endif %}
+                        {% if "NumberOfChildren" in settings.PR %}
+                        <li><input type="checkbox" id='Processed-NumberOfChildren' name="Processed" value="NumberOfChildren" checked> Number of children</input></li>
+                        {% else %}
+                        <li><input type="checkbox" id='Processed-NumberOfChildren' name="Processed" value="NumberOfChildren"> Number of children</input></li>
+                        {% endif %}
+                        {% if "Comments" in settings.PR %}
+                        <li><input type="checkbox" id="Processed-Comments" name="Processed" value="Comments" checked> Comments</input></li>
+                        {% else %}
+                        <li><input type="checkbox" id="Processed-Comments" name="Processed" value="Comments"> Comments</input></li>
+                        {% endif %}
+                    </ul>
+                </li>
+            </ul>
+            </div>
+        </div>  
+    </form>
+    <em class="error"></em>
+    <div class="text-center bottom-buttons mt-3">
+        <button type="button" class="btn btn-submit" data-dismiss="modal" id="processed-settings-submit">Submit</button>
+    </div>
+</div>

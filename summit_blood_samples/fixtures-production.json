@@ -1,0 +1,30 @@
+[{
+        "model": "manage_users.manageroles",
+        "pk": 1,
+        "fields": {
+            "name": "Administrators"
+        }
+    },
+    {
+        "model": "manage_users.manageroles",
+        "pk": 2,
+        "fields": {
+            "name": "Data Manager"
+        }
+    },
+    {
+        "model": "manage_users.manageroles",
+        "pk": 3,
+        "fields": {
+            "name": "Blood Samples Manager"
+        }
+    },
+    {
+        "model": "sites.site",
+        "pk": 1,
+        "fields": {
+            "domain": "summitbloodsamples.rc.ucl.ac.uk",
+            "name": "Blood Sample Site"
+        }
+    }
+]

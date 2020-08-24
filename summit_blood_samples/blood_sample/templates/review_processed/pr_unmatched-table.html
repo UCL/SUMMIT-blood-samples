@@ -1,0 +1,53 @@
+{% if objects %}
+{% load static %}
+<div class="table-responsive">
+    <table style="width:100%;border: none;" class="table table-bordered unmatched-pr-table" >
+        <tr tyle>
+            <th class="processed-header">Parent Id</th>
+            <th class="processed-header">Barcode</th>
+            <th class="processed-header">Processed Date Time</th>
+            <th class="processed-header">Volume</th>
+            <th class="processed-header">Number Of Children</th>
+            <th class="processed-header">Comments</th>
+            <th>Edit</th>
+        </tr>
+        {% for item in objects %}
+        <tr>
+            <td class="processed-col">{{ item.ParentId }}</td>
+            <td class="processed-col">{{ item.Barcode }}</td>
+            <td class="processed-col">{{ item.ProcessedDateTime }}</td>
+            <td class="processed-col">{{ item.Volume }}</td>
+            <td class="processed-col">{{ item.NumberOfChildren }}</td>
+            <td class="processed-col"><a rel="tooltip" data-html="true" title="<h6>{{ item.Comments }}</h6>" >{{ item.Comments|truncatechars:20 }}</a></td>
+            <td><a data-editprocessed="{{item.id}}" class="edit-unmatched-processed" style="cursor:pointer;"><img class="warning-svg" src="{% static 'indigo/images/edit.svg' %}" style="margin-bottom: 0px;width:20px;height: 20px;" /></a></td>
+        </tr>
+        {% endfor %}
+    </table>
+</div>
+{% else %}
+No unmatched processed records found
+{% endif %}
+
+<script type="text/javascript">
+$(document).ready(function(){
+    $("[rel='tooltip']").tooltip();
+    $('.edit-unmatched-processed').click(function() {
+        $('#blood-sample-modal').on('hide.bs.modal', function () {
+            return false;
+        })
+        $('.modal-loader').show();
+        $.ajax({
+            url: 'edit_processed?id='+$(this).data('editprocessed'),
+            type: 'GET',
+            success: function(data){
+                $('.modal-loader').hide();
+                $('.edit-processed-div').html(data);
+                $('.review-processed').hide();
+                $(".customModal").removeClass("modal-xl");
+            },
+            error: function (error) {
+            }
+        });
+    })
+});
+</script>
