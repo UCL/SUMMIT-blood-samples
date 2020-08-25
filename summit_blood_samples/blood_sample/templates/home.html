@@ -108,7 +108,17 @@ $(document).ready(function(){
                       borderRadius: 5,
                       //plotBackgroundColor: null,
                       //plotShadow: false,
-                      plotBorderWidth: 0
+                      plotBorderWidth: 0,
+                      events: {
+                        load: function() {
+                            var chart = this,
+                            series = this.series[0],
+                            xAxis = chart.xAxis[0],
+                            newStart = series.xData[ (series.xData.length-12) ],
+                            newEnd = series.xData[ (series.xData.length) ];
+                            xAxis.setExtremes(newStart, newEnd);
+                        }
+                    }
                   },
 
                   title: {
@@ -208,7 +218,7 @@ $(document).ready(function(){
                       //useHTML: true
                   },
                   plotOptions: {
-                      column: {
+                    column: {
                           stacking: 'normal',
                           dataLabels: {
                               enabled: false,
@@ -252,7 +262,17 @@ $(document).ready(function(){
                       borderRadius: 5,
                       plotBackgroundColor: null,
                       plotShadow: false,
-                      plotBorderWidth: 0
+                      plotBorderWidth: 0,
+                      events: {
+                        load: function() {
+                            var chart = this,
+                            series = this.series[0],
+                            xAxis = chart.xAxis[0],
+                            newStart = series.xData[ (series.xData.length-12) ],
+                            newEnd = series.xData[ (series.xData.length) ];
+                            xAxis.setExtremes(newStart, newEnd);
+                        }
+                    }
                   },
                   title: {
                       text: 'Unable to draw split by nurse'
@@ -367,7 +387,17 @@ $(document).ready(function(){
                       borderRadius: 5,
                       plotBackgroundColor: null,
                       plotShadow: false,
-                      plotBorderWidth: 0
+                      plotBorderWidth: 0,
+                      events: {
+                        load: function() {
+                            var chart = this,
+                            series = this.series[0],
+                            xAxis = chart.xAxis[0],
+                            newStart = series.xData[ (series.xData.length-12) ],
+                            newEnd = series.xData[ (series.xData.length) ];
+                            xAxis.setExtremes(newStart, newEnd);
+                        }
+                    }
                   },
 
                   title: {
@@ -506,7 +536,17 @@ $(document).ready(function(){
                       borderRadius: 5,
                       plotBackgroundColor: null,
                       plotShadow: false,
-                      plotBorderWidth: 0
+                      plotBorderWidth: 0,
+                      events: {
+                        load: function() {
+                            var chart = this,
+                            series = this.series[0],
+                            xAxis = chart.xAxis[0],
+                            newStart = series.xData[ (series.xData.length-12) ],
+                            newEnd = series.xData[ (series.xData.length) ];
+                            xAxis.setExtremes(newStart, newEnd);
+                        }
+                    }
                   },
                   title: {
                       text: 'Cases that were receipted outside of '+data.processed_hours+' hours'
