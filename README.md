@@ -148,6 +148,15 @@ from inside the *summit_blood_samples* dir:
 Add the *-v* flag at the end of the above statement to remove all volumes as well, USE WITH EXTREME CAUTION!
 
 ----
+### Automatic running with systemd
+```sh
+sudo cp compose/production/summit-blood-samples.service /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable summit-blood-samples
+sudo systemctl start summit-blood-samples
+```
+
+----
 ### Local dev setup
 Use `local.yml` rather than `production.yml` for commands.
 
