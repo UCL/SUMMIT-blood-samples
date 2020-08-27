@@ -87,23 +87,23 @@ This directory is bind mounted to both the **django** and **nginx** containers.
 
 #### Database
 Get the full stack up & running from inside the *summit_blood_samples* dir with
-`$ docker-compose -f production.yml up --build`
+`$ sudo docker-compose -f production.yml up --build`
 Then open a new terminal to initialise the database as follows
 
 ##### Run migrations
 
-`$ docker-compose -f production.yml run --rm django python manage.py migrate`
+`$ sudo docker-compose -f production.yml run --rm django python manage.py migrate`
 
 ##### Initial data
 The initial data that needs to be loaded includes the user Roles and the site's FQDN
 
-`$ docker-compose -f production.yml run --rm django python manage.py loaddata fixtures-production.json`
+`$ sudo docker-compose -f production.yml run --rm django python manage.py loaddata fixtures-production.json`
 
 Restart Django after this to ensure the any old site value is not cached.
 
 ##### Admin user
 
-`$ docker-compose -f production.yml run --rm django python manage.py createsuperuser`
+`$ sudo docker-compose -f production.yml run --rm django python manage.py createsuperuser`
 
 ***NB***: Once the superuser is created they need to be added to the ***Administrators*** role.
 Until this is done, an *Internal Error* will occur on any page loaded while the user is logged in.
@@ -132,20 +132,29 @@ for the username & password fields.
 
 ### Build & Run
 from inside the *summit_blood_samples* dir:
-`$ docker-compose -f production.yml up --build`
+`$ sudo docker-compose -f production.yml up --build`
 
 ### Stop
-`$ docker-compose -f production.yml down`
+`$ sudo docker-compose -f production.yml down`
 
 ----
 ### Tail logs
-`$ docker-compose -f production.yml logs -f`
+`$ sudo docker-compose -f production.yml logs -f`
 
 ----
 ### Clean up
-`$ docker-compose -f production.yml down --remove-orphans`
+`$ sudo docker-compose -f production.yml down --remove-orphans`
 
 Add the *-v* flag at the end of the above statement to remove all volumes as well, USE WITH EXTREME CAUTION!
+
+----
+### Automatic running with systemd
+```sh
+sudo cp compose/production/summit-blood-samples.service /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable summit-blood-samples
+sudo systemctl start summit-blood-samples
+```
 
 ----
 ### Local dev setup
