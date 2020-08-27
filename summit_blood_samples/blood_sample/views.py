@@ -328,7 +328,7 @@ class UploadView(LoginRequiredMixin, View):
                 days = [(day - datetime.timedelta(days=x))
                         for x in range(4)]
                 days.reverse()
-        return day, days
+        return make_aware(day), days
 
 
 class DownloadBloodSampleView(LoginRequiredMixin, View):
@@ -566,7 +566,7 @@ class DownloadBloodSampleView(LoginRequiredMixin, View):
             'db_data': data,
             'bs_len': bs_len, 'mr_len': mr_len, 'rr_len': rr_len, 'pr_len': pr_len,
             'settings': settings_options, 'filters': filter_options,
-            'total_records_cnt':len(data)
+            'total_records_cnt': len(data)
         }
 
         return render(request, self.template_name, context)
@@ -812,7 +812,7 @@ class UploadBloodSampleView(LoginRequiredMixin, View):
                 FilePath="CurrentAppointmentBlood/"+filename,
                 OriginalFileName=blood_sample_file.name,
                 CreatedBy=request.user,
-                CreatedAt=make_aware(day),
+                CreatedAt=day,
                 Deleted=False,
                 Reviewed=False,
             )
@@ -944,7 +944,7 @@ class UploadManifestView(LoginRequiredMixin, View):
                 FilePath="Manifests/"+filename,
                 OriginalFileName=manifest_file.name,
                 CreatedBy=request.user,
-                CreatedAt=make_aware(day),
+                CreatedAt=day,
                 Deleted=False
             )
 
@@ -1097,7 +1097,7 @@ class UploadReceiptView(LoginRequiredMixin, View):
                 FilePath="Receipt/"+filename,
                 OriginalFileName=receipt_file.name,
                 CreatedBy=request.user,
-                CreatedAt=make_aware(day),
+                CreatedAt=day,
                 Deleted=False
             )
 
@@ -1269,7 +1269,7 @@ class UploadProcessedView(LoginRequiredMixin, View):
                 FilePath="Processed/"+filename,
                 OriginalFileName=processed_file.name,
                 CreatedBy=request.user,
-                CreatedAt=make_aware(day),
+                CreatedAt=day,
                 Deleted=False
             )
 
@@ -1358,7 +1358,7 @@ class UploadProcessedView(LoginRequiredMixin, View):
                 send_mail(
                     'Blood Samples - Uploaded Processed records which are not processed under 36 hours',
                     msg_html,
-                    settings.EMAIL_HOST_USER,
+                    settings.DEFAULT_FROM_EMAIL,
                     [i.user_id.email for i in UserRoles.objects.filter(role_id__in=[
                         2])],  # This should be list of from users
                     html_message=msg_html,
@@ -1705,13 +1705,12 @@ class ReviewView(LoginRequiredMixin, View):
         if review_type == "processed":
             # When first opening the review popup updating the day to the latest day where records are there.
             # This will avoid user to unnecessary navigation to the day where he last uploaded
-            if request.GET.get('firstOpen', 'False') == "True":
-                if not day < datetime.datetime.today().replace(hour=0, minute=0, second=0, microsecond=0) and ProcessedReport.objects.count():
-                    day = ProcessedReport.objects.all().order_by(
-                        '-ProcessedDateTime').first().ProcessedDateTime
-                    days = [(day - datetime.timedelta(days=x))
-                            for x in range(4)]
-                    days.reverse()
+            if request.GET.get('firstOpen', 'False') == "True" and ProcessedReport.objects.count():
+                day = ProcessedReport.objects.all().order_by(
+                    '-ProcessedDateTime').first().ProcessedDateTime
+                days = [(day - datetime.timedelta(days=x))
+                        for x in range(4)]
+                days.reverse()
 
             # Getting settings options
             settings_options = dict(BS=[request.GET.get('BloodSample', "CohortId,Barcode,CreatedAt,Comments,State")], MR=[request.GET.get('Manifest', "Visit,Site,Room,Barcode")],

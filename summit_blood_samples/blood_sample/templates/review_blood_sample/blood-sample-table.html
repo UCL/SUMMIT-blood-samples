@@ -16,7 +16,11 @@
     <tr>
         <td>{{ item.id }}</td>
         <td>{{ item.CohortId }}</td>
-        <td>{{ item.Barcode }}</td>
+        {% if item.Barcode %}
+            <td>{{ item.Barcode }}</td>
+        {% else %}
+            <td style="background:rgb(255 87 34 / 27%);"><a rel="tooltip" data-html="true" title="<h6>Barcode not found</h6>" ><img style="height: 23px;margin-bottom: 0;" src="{% static 'indigo/images/error.svg' %}" /></a></td>
+        {% endif %}
         <td>{{ item.AppointmentId }}</td>
         <td>{{ item.SiteNurseEmail }}</td>
         <td>{{ item.CreatedAt }}</td>
