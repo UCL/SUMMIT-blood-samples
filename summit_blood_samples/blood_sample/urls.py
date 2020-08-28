@@ -1,5 +1,10 @@
 from django.urls import path
 from .views import *
+from .upload_views import *
+from .review_views import *
+from .review_edit_views import *
+from .download_views import *
+from .report_views import *
 
 app_name = 'Blood Sample'
 

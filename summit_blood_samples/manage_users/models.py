@@ -26,7 +26,7 @@ class UserRoles(models.Model):
         return str(f'{self.role_id.name}')
 
     def save(self, *args, **kwargs):
-        if self.role_id_id == 1 and self.user_id.is_superuser != True and self.user_id.is_staff != True:
+        if self.role_id_id == 1 and self.user_id.is_superuser == False and self.user_id.is_staff == False:
             self.user_id.is_superuser = True
             self.user_id.is_staff = True
             self.user_id.save()

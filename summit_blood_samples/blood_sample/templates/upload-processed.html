@@ -5,6 +5,10 @@
             <div class="form-group">
                 <label for="processedfile">Please select csv file: <abbr style="color:#c71d1d" title="Required">*</abbr></label>
                 <input type="file" required class="form__control form-control-file" id="processedfile" accept=".csv">
+                <label for="siteheld">SiteHeld:</label>
+                <select name="siteheld" id="siteheld" class="form__control ">
+                    <option value="0">UK Biocentre</option>
+                </select>
             </div>
     </form>
     <em class="error"></em>
@@ -37,6 +41,7 @@ $('#uploadProcessed').click(function() {
     $('.modal-loader').show();
     var form_data = new FormData();
     form_data.append('file', file_data);
+    form_data.append('siteheld', $('#siteheld').val());
     $.ajax({
         url: 'upload_processed',
         data: form_data,

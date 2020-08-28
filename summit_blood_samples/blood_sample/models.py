@@ -17,7 +17,8 @@ class BloodSampleImport(models.Model):
 
     class Meta:
         indexes = [
-            models.Index(fields=['CreatedAt'], name='CreatedAt_bs_import_idx'),
+            models.Index(fields=['CreatedAt'], \
+                          name='CreatedAt_bs_import_idx'),
         ]
 
 
@@ -32,14 +33,15 @@ STATECHOICE = [
 
 class BloodSample(models.Model):
     id = models.BigIntegerField(primary_key=True)
-    CohortId = models.CharField(max_length=7, )
+    CohortId = models.CharField(max_length=7,)
     Barcode = models.CharField(max_length=10)
     AppointmentId = models.BigIntegerField()
     SiteNurseEmail = models.CharField(max_length=255)
     ImportId = models.ForeignKey(
-        BloodSampleImport, on_delete=models.CASCADE, related_name='BloodSampleImportImportId')
+        BloodSampleImport, on_delete=models.CASCADE,
+        related_name='BloodSampleImportImportId')
     Comments = models.CharField(max_length=5000)
-    CreatedAt = models.DateTimeField()  # db_index=True,
+    CreatedAt = models.DateTimeField()
     State = models.CharField(
         max_length=1,
         choices=STATECHOICE,
@@ -80,7 +82,8 @@ class ManifestImports(models.Model):
     FilePath = models.CharField(max_length=500)
     OriginalFileName = models.CharField(max_length=500)
     CreatedBy = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name='ManifestRecordCreatedBy')
+        User, on_delete=models.CASCADE,
+        related_name='ManifestRecordCreatedBy')
     CreatedAt = models.DateTimeField()
     Deleted = models.BooleanField()
 
@@ -89,7 +92,8 @@ class ManifestImports(models.Model):
 
     class Meta:
         indexes = [
-            models.Index(fields=['CreatedAt'], name='CreatedAt_mf_import_idx'),
+            models.Index(fields=['CreatedAt'],
+                         name='CreatedAt_mf_import_idx'),
         ]
 
 
@@ -99,7 +103,6 @@ SITECHOICE = [
     (2, 'Mile End Hospital'),
     (3, 'UCLH'),
 ]
-
 
 VISITCHOICE = [
     (0, 'Y0'),
@@ -115,7 +118,8 @@ class ManifestRecords(models.Model):
         choices=VISITCHOICE,
     )
     ImportId = models.ForeignKey(
-        ManifestImports, on_delete=models.CASCADE, related_name='ManifestRecordsImportId')
+        ManifestImports, on_delete=models.CASCADE,
+        related_name='ManifestRecordsImportId')
     Site = models.CharField(
         max_length=1,
         choices=SITECHOICE,
@@ -142,7 +146,8 @@ class ManifestRecords(models.Model):
 
     class Meta:
         indexes = [
-            models.Index(fields=['CollectionDateTime', 'Site', 'Visit', 'Room'],
+            models.Index(
+                fields=['CollectionDateTime', 'Site', 'Visit', 'Room'],
                          name="CDT_S_V_R_mr_idx"),
             models.Index(fields=['CollectionDateTime', 'Visit', 'Room'],
                          name="CDT_V_R_idx"),
@@ -166,7 +171,8 @@ class ReceiptImports(models.Model):
     FilePath = models.CharField(max_length=500)
     OriginalFileName = models.CharField(max_length=500)
     CreatedBy = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name='RecieptRecordsCreatedBy')
+        User, on_delete=models.CASCADE,
+        related_name='RecieptRecordsCreatedBy')
     CreatedAt = models.DateTimeField()
     Deleted = models.BooleanField()
 
@@ -175,7 +181,8 @@ class ReceiptImports(models.Model):
 
     class Meta:
         indexes = [
-            models.Index(fields=['CreatedAt'], name='CreatedAt_rr_import_idx'),
+            models.Index(fields=['CreatedAt'],
+                         name='CreatedAt_rr_import_idx'),
         ]
 
 
@@ -191,7 +198,8 @@ class ReceiptRecords(models.Model):
     Condition = models.CharField(max_length=500)
     Comments = models.CharField(max_length=5000, blank=True)
     ImportId = models.ForeignKey(
-        ReceiptImports, on_delete=models.CASCADE, related_name='RecieptRecordsImportId')
+        ReceiptImports, on_delete=models.CASCADE,
+        related_name='RecieptRecordsImportId')
 
     def __str__(self):
         return str(self.pk)
@@ -225,7 +233,8 @@ class ProcessedImports(models.Model):
     FilePath = models.CharField(max_length=500)
     OriginalFileName = models.CharField(max_length=500)
     CreatedBy = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name='ProcessedImportsCreatedBy')
+        User, on_delete=models.CASCADE,
+        related_name='ProcessedImportsCreatedBy')
     CreatedAt = models.DateTimeField()
     Deleted = models.BooleanField()
 
@@ -234,8 +243,14 @@ class ProcessedImports(models.Model):
 
     class Meta:
         indexes = [
-            models.Index(fields=['CreatedAt'], name='CreatedAt_pr_import_idx'),
+            models.Index(fields=['CreatedAt'],
+                         name='CreatedAt_pr_import_idx'),
         ]
+
+
+SITE_HELD = [
+    (0, 'UK Biocentre'),
+]
 
 
 class ProcessedReport(models.Model):
@@ -248,8 +263,14 @@ class ProcessedReport(models.Model):
     VolumeUnit = models.CharField(max_length=2)
     NumberOfChildren = models.CharField(max_length=500)
     Comments = models.CharField(max_length=5000, blank=True)
+    SiteHeld = models.CharField(
+        max_length=1,
+        choices=SITE_HELD,
+        default=0
+    )
     ImportId = models.ForeignKey(
-        ProcessedImports, on_delete=models.CASCADE, related_name='ProcessedImportsImportId')
+        ProcessedImports, on_delete=models.CASCADE,
+        related_name='ProcessedImportsImportId')
 
     def __str__(self):
         return str(self.pk)
@@ -272,7 +293,8 @@ class ProcessedReportChanges(models.Model):
     Field = models.CharField(max_length=50)
     FromValue = models.CharField(max_length=5000)
     ChangedBy = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name='ProcessedReportChangedBy')
+        User, on_delete=models.CASCADE,
+        related_name='ProcessedReportChangedBy')
     ChangedAt = models.DateTimeField(auto_now=True, editable=False)
 
     def __str__(self):
@@ -307,8 +329,8 @@ class ProcessedAliquots(models.Model):
         choices=PROCESSING_STATUS,
         default=0
     )
-    SampleId = models.CharField(max_length=8)
-    SampleIdFile = models.CharField(max_length=500)
+    ParentID = models.CharField(max_length=8)
+    ProcessedReportSampleId = models.CharField(max_length=500)
 
     def __str__(self):
         return str(self.pk)
@@ -318,7 +340,8 @@ class ProcessedAliquotsChanges(models.Model):
     Field = models.CharField(max_length=50)
     FromValue = models.CharField(max_length=5000)
     ChangedBy = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name='ProcessedAliquotsChangedBy')
+        User, on_delete=models.CASCADE,
+        related_name='ProcessedAliquotsChangedBy')
     ChangedAt = models.DateTimeField(auto_now=True, editable=False)
 
     def __str__(self):

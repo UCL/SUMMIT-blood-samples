@@ -196,6 +196,11 @@
                         {% else %}
                         <li><input type="checkbox" id='Processed-NumberOfChildren' name="Processed" value="NumberOfChildren"> Number of children</input></li>
                         {% endif %}
+                        {% if "SiteHeld" in settings.PR %}
+                        <li><input type="checkbox" id="Processed-SiteHeld" name="Processed" value="SiteHeld" checked> SiteHeld</input></li>
+                        {% else %}
+                        <li><input type="checkbox" id="Processed-SiteHeld" name="Processed" value="SiteHeld"> SiteHeld</input></li>
+                        {% endif %}
                         {% if "Comments" in settings.PR %}
                         <li><input type="checkbox" id="Processed-Comments" name="Processed" value="Comments" checked> Comments</input></li>
                         {% else %}
