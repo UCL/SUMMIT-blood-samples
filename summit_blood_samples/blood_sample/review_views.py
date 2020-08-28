@@ -559,6 +559,7 @@ class ReviewView(LoginRequiredMixin, View):
                 'ParentId': 'Parent id',
                 'ProcessedDateTime': 'Processed Date Time',
                 'NumberOfChildren': 'Number Of Children',
+                'SiteHeld':'Site held',
                 'id': 'Id'
             }
 

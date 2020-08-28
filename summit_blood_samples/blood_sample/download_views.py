@@ -250,6 +250,7 @@ class DownloadBloodSampleView(LoginRequiredMixin, View):
             'ParentId': 'Parent id',
             'ProcessedDateTime': 'Processed Date Time',
             'NumberOfChildren': 'Number Of Children',
+            'SiteHeld':'Site held',
             'id': 'Id',
         }
 
@@ -329,13 +330,13 @@ class DownloadAliquotsView(LoginRequiredMixin, View):
         # retrieve data from db using django ORM
         aliquots_data = ProcessedAliquots.objects.all().values_list(
             'ParentID', 'SampleType', 'Volume', 'VolumeUnit',
-            'PostProcessingStatus').order_by('ParentID', 'SampleType')
+            'PostProcessingStatus', 'ProcessedReportSampleId').order_by('ParentID', 'SampleType')
         aliquots_data = list(aliquots_data)
 
         # updating the enum fields w.r.t values
         for row in range(len(aliquots_data)):
             aliquots_data[row] = list(aliquots_data[row])
-            aliquots_data[row][-1] = processing_status[aliquots_data[row][-1]]
+            aliquots_data[row][4] = processing_status[aliquots_data[row][4]]
             aliquots_data[row][1] = sample_type[aliquots_data[row][1]]
             aliquots_data[row] = tuple(aliquots_data[row])
 
@@ -344,7 +345,7 @@ class DownloadAliquotsView(LoginRequiredMixin, View):
             aliquots_data = 'No Records to Display'
 
         headers = ('Parent id', 'Sample type', 'Volume',
-                   'Volume unit', 'Post processing status')
+                   'Volume unit', 'Post processing status','Sample id')
 
         # if csv download is True it works on download
         if csv and len(aliquots_data) != 0:
