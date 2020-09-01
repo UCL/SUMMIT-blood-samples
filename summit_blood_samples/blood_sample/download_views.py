@@ -330,7 +330,7 @@ class DownloadAliquotsView(LoginRequiredMixin, View):
         # retrieve data from db using django ORM
         aliquots_data = ProcessedAliquots.objects.all().values_list(
             'ParentID', 'SampleType', 'Volume', 'VolumeUnit',
-            'PostProcessingStatus', 'ProcessedReportSampleId').order_by('ParentID', 'SampleType')
+            'PostProcessingStatus', 'AliquotId').order_by('ParentID', 'SampleType')
         aliquots_data = list(aliquots_data)
 
         # updating the enum fields w.r.t values
@@ -345,7 +345,7 @@ class DownloadAliquotsView(LoginRequiredMixin, View):
             aliquots_data = 'No Records to Display'
 
         headers = ('Parent id', 'Sample type', 'Volume',
-                   'Volume unit', 'Post processing status','Sample id')
+                   'Volume unit', 'Post processing status','Aliquot Id')
 
         # if csv download is True it works on download
         if csv and len(aliquots_data) != 0:

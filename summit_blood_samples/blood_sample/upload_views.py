@@ -945,7 +945,7 @@ class UploadProcessedView(LoginRequiredMixin, View):
             # Dropping duplicates in file comparing with
             # ProcessedAliquots table
             processed_aliquots_barcode = ProcessedAliquots.objects.\
-                values_list('ProcessedReportSampleId', flat=True)[
+                values_list('AliquotId', flat=True)[
                 ::1]
             child_df = child_df[~child_df['Sample ID'].isin(
                 processed_aliquots_barcode)]
@@ -961,7 +961,7 @@ class UploadProcessedView(LoginRequiredMixin, View):
                         PostProcessingStatus=0,
                         ParentID=ProcessedReport.objects.filter(
                             Barcode=record['Participant ID']).first().ParentId,
-                        ProcessedReportSampleId=record['Sample ID'],
+                        AliquotId=record['Sample ID'],
                     ) for index, record in child_df.iterrows()
                 ]
                 ProcessedAliquots.objects.bulk_create(model_instances)

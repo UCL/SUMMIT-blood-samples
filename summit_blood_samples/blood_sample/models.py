@@ -330,7 +330,7 @@ class ProcessedAliquots(models.Model):
         default=0
     )
     ParentID = models.CharField(max_length=8)
-    ProcessedReportSampleId = models.CharField(max_length=500)
+    AliquotId = models.CharField(max_length=500)
 
     def __str__(self):
         return str(self.pk)
