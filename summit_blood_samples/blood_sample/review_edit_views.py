@@ -12,9 +12,11 @@ from django.utils.timezone import make_aware
 from manage_users.models import *
 import dateutil.relativedelta
 from .models import *
+from .choices_data import visit_choices, site_choices, state_status
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
+
 
 class EditBloodSampleView(LoginRequiredMixin, View):
     """
@@ -64,16 +66,16 @@ class EditBloodSampleView(LoginRequiredMixin, View):
                     ChangedBy=request.user,
                 )
         except Exception as e:
-                logger.error(f'Something went wrong in creating Blood Sample \
+            logger.error(f'Something went wrong in creating Blood Sample \
                     changes data - {e}')
-                return None
+            return None
 
         try:
             bs_object.save()
         except Exception as e:
-                logger.error(f'Something went wrong in updating Blood Sample \
+            logger.error(f'Something went wrong in updating Blood Sample \
                     details - {e}')
-                return None
+            return None
 
         return JsonResponse({
             'status': 200,
@@ -97,9 +99,9 @@ class EditProcessedBsView(LoginRequiredMixin, View):
         """
         return render(request, self.blood_sample_review_template, {
             "object": BloodSample.objects.get(id=int(request.GET.get('id'))),
-            "processed_object": \
-                ProcessedReport.objects.get(id=\
-                    int(request.GET.get('processed_id'))),
+            "processed_object":
+            ProcessedReport.objects.get(
+                id=int(request.GET.get('processed_id'))),
             "STATECHOICE": dict(STATECHOICE)
         })
 
@@ -140,15 +142,15 @@ class EditProcessedBsView(LoginRequiredMixin, View):
                     ChangedBy=request.user,
                 )
         except Exception as e:
-                logger.error(f'Something went wrong in creating Blood Sample \
+            logger.error(f'Something went wrong in creating Blood Sample \
                     changes data - {e}')
-                return None
+            return None
         try:
             bs_object.save()
         except Exception as e:
-                logger.error(f'Something went wrong in updating Blood Sample \
+            logger.error(f'Something went wrong in updating Blood Sample \
                     details - {e}')
-                return None
+            return None
 
         return JsonResponse({
             'status': 200,
@@ -171,9 +173,10 @@ class EditManifestView(LoginRequiredMixin, View):
         Rooms = ManifestRecords.objects.all().values_list(
             'Room', flat=True).distinct()[::1]
         return render(request, self.manifest_edit_template, {
-            "object": ManifestRecords.objects.get(id=\
-                int(request.GET.get('id'))),
+            "object": ManifestRecords.objects.get(id=int(request.GET.get('id'))),
             "rooms": sorted(Rooms, key=lambda L: (L.lower(), L)),
+            "visit_choices": visit_choices,
+            "site_choices": site_choices,
         })
 
     def post(self, request, *args, **kwargs):
@@ -182,8 +185,7 @@ class EditManifestView(LoginRequiredMixin, View):
         :param request: request object
         :return: HttpResponse object
         """
-        mf_object = ManifestRecords.objects.get(id=\
-            int(request.GET.get('id')))
+        mf_object = ManifestRecords.objects.get(id=int(request.GET.get('id')))
 
         editable_fields = ['CohortId', 'Barcode',
                            'Room', 'Visit', 'Site', 'Comments']
@@ -215,16 +217,16 @@ class EditManifestView(LoginRequiredMixin, View):
                     ChangedBy=request.user,
                 )
         except Exception as e:
-                logger.error(f'Something went wrong in creating Manifest \
+            logger.error(f'Something went wrong in creating Manifest \
                     changes data - {e}')
-                return None
+            return None
 
         try:
             mf_object.save()
         except Exception as e:
-                logger.error(f'Something went wrong in updating Manifest \
+            logger.error(f'Something went wrong in updating Manifest \
                     details - {e}')
-                return None
+            return None
 
         return JsonResponse({
             'status': 200,
@@ -246,15 +248,12 @@ class EditReceiptView(LoginRequiredMixin, View):
         """
         if request.GET.get('manifest', 'False') == 'True':
             return render(request, self.receipt_edit_template, {
-                "object": ReceiptRecords.objects.get(id=\
-                    int(request.GET.get('id'))),
-                "manifest_object": ManifestRecords.objects.get(id=\
-                    int(request.GET.get('manifestid'))),
+                "object": ReceiptRecords.objects.get(id=int(request.GET.get('id'))),
+                "manifest_object": ManifestRecords.objects.get(id=int(request.GET.get('manifestid'))),
             })
         else:
             return render(request, self.receipt_edit_template, {
-                "object": ReceiptRecords.objects.get(id=\
-                    int(request.GET.get('id'))),
+                "object": ReceiptRecords.objects.get(id=int(request.GET.get('id'))),
                 "manifest_object": None
             })
 
@@ -275,7 +274,7 @@ class EditReceiptView(LoginRequiredMixin, View):
                      for key in editable_fields}
 
         data_edit['DateTimeTaken'] = \
-            make_aware(datetime.datetime.strptime(\
+            make_aware(datetime.datetime.strptime(
                 data_edit['DateTimeTaken'], "%Y-%m-%dT%H:%M"))
 
         data_object = rr_object.__dict__
@@ -299,16 +298,16 @@ class EditReceiptView(LoginRequiredMixin, View):
                     ChangedBy=request.user,
                 )
         except Exception as e:
-                logger.error(f'Something went wrong in creating Receipt \
+            logger.error(f'Something went wrong in creating Receipt \
                     changes data - {e}')
-                return None
+            return None
 
         try:
             rr_object.save()
         except Exception as e:
-                logger.error(f'Something went wrong in updating Receipt \
+            logger.error(f'Something went wrong in updating Receipt \
                     details - {e}')
-                return None
+            return None
 
         return JsonResponse({
             'status': 200,
@@ -330,7 +329,7 @@ class EditProcessedView(LoginRequiredMixin, View):
         """
 
         return render(request, self.processed_edit_template, {
-            "object": ProcessedReport.objects.get(\
+            "object": ProcessedReport.objects.get(
                 id=int(request.GET.get('id'))),
         })
 
@@ -340,8 +339,7 @@ class EditProcessedView(LoginRequiredMixin, View):
         :param request: request object
         :return: HttpResponse object
         """
-        pr_object = ProcessedReport.objects.get(id=\
-            int(request.GET.get('id')))
+        pr_object = ProcessedReport.objects.get(id=int(request.GET.get('id')))
 
         editable_fields = ['ParentId', 'Comments']
 
@@ -372,16 +370,16 @@ class EditProcessedView(LoginRequiredMixin, View):
                     ChangedBy=request.user,
                 )
         except Exception as e:
-                logger.error(f'Something went wrong in creating Processed \
+            logger.error(f'Something went wrong in creating Processed \
                     changes data - {e}')
-                return None
+            return None
 
         try:
             pr_object.save()
         except Exception as e:
-                logger.error(f'Something went wrong in updating Processed \
+            logger.error(f'Something went wrong in updating Processed \
                     details - {e}')
-                return None
+            return None
 
         return JsonResponse({
             'status': 200,
@@ -405,4 +403,7 @@ class GetManifestFiltersView(LoginRequiredMixin, View):
         return JsonResponse({
             'status': 200,
             'rooms': sorted(Rooms, key=lambda L: (L.lower(), L)),
+            'visit_choices': visit_choices,
+            'site_choices': site_choices,
+            'state_status': state_status,
         })

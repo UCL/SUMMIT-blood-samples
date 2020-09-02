@@ -17,8 +17,7 @@ class BloodSampleImport(models.Model):
 
     class Meta:
         indexes = [
-            models.Index(fields=['CreatedAt'], \
-                          name='CreatedAt_bs_import_idx'),
+            models.Index(fields=['CreatedAt'], name='CreatedAt_bs_import_idx'),
         ]
 
 

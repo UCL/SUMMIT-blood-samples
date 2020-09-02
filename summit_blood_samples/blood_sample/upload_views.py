@@ -17,7 +17,7 @@ from django.views import View
 
 from manage_users.models import *
 from .models import *
-from .choices_data import site_choices, sample_type
+from .choices_data import site_choices, sample_type, site_held_choices, visit_choices
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
@@ -338,7 +338,7 @@ class UploadManifestView(LoginRequiredMixin, View):
         :param request: request object
         :return: HttpResponse object
         """
-        return render(request, self.template_name)
+        return render(request, self.template_name,{'visit_choices':visit_choices})
 
     def post(self, request, *args, **kwargs):
         """
@@ -723,7 +723,7 @@ class UploadProcessedView(LoginRequiredMixin, View):
         :param request: request object
         :return: HttpResponse object
         """
-        return render(request, self.template_name)
+        return render(request, self.template_name, {'site_held_choices':site_held_choices})
 
     def post(self, request, *args, **kwargs):
         """

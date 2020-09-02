@@ -7,7 +7,9 @@
                 <input type="file" required class="form__control form-control-file" id="processedfile" accept=".csv">
                 <label for="siteheld">Site held:</label>
                 <select name="siteheld" id="siteheld" class="form__control ">
-                    <option value="0">UK Biocentre</option>
+                    {% for key, values in site_held_choices.items %}
+                        <option value={{key}}>{{values}}</option>
+                    {% endfor  %}
                 </select>
             </div>
     </form>
