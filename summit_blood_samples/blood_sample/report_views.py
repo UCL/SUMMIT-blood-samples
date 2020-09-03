@@ -154,7 +154,7 @@ class UnresolvedChartView(LoginRequiredMixin, View):
                         WHEN mr."Site"='2' THEN 1
                     ELSE 0
                     END
-                ) AS "Mile End Hospital",
+                ) AS "MEH",
                 SUM (CASE
                         WHEN mr."Site"='3' THEN 1
                     ELSE 0
@@ -185,8 +185,8 @@ class UnresolvedChartView(LoginRequiredMixin, View):
             "name": 'KGH',
             "data": [i['KGH'] for i in site_data]
         }, {
-            "name": 'Mile End Hospital',
-            "data": [i['Mile End Hospital'] for i in site_data]
+            "name": 'MEH',
+            "data": [i['MEH'] for i in site_data]
         }, {
             "name": 'UCLH',
             "data": [i['UCLH'] for i in site_data]

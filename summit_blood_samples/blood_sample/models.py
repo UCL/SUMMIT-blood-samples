@@ -99,7 +99,7 @@ class ManifestImports(models.Model):
 SITECHOICE = [
     (0, 'FMH'),
     (1, 'KGH'),
-    (2, 'Mile End Hospital'),
+    (2, 'MEH'),
     (3, 'UCLH'),
 ]
 

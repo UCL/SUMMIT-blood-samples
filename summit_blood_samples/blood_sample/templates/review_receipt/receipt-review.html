@@ -100,13 +100,13 @@
                 $.each(data.visit_choices, function(key, value) {
                     $('#FilterReceiptVisit')
                         .append($("<option></option>")
-                                    .attr("value", value)
+                                    .attr("value", key)
                                     .text(value));
                 });
                 $.each(data.site_choices, function(key, value) {
                     $('#FilterReceiptSite')
                         .append($("<option></option>")
-                                    .attr("value", value)
+                                    .attr("value", key)
                                     .text(value));
                 });
             }

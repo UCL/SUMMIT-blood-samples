@@ -371,7 +371,7 @@ class UploadManifestView(LoginRequiredMixin, View):
 
         # Getting site value from file and validating it
         site = df.iloc[2, 2]
-        if site not in ['FMH', 'KGH', 'Mile End Hospital', 'UCLH']:
+        if site not in ['FMH', 'KGH', 'Mile End Hospital', 'MEH', 'UCLH']:
             return JsonResponse({'status': 412, 'message': 'Invalid Site'})
 
         # Dropping rows where all the columns are empty if any exists
@@ -576,7 +576,7 @@ class UploadReceiptView(LoginRequiredMixin, View):
         clinic_mapping = {
             'uk biocentre signature': 'Manifest Signature',
             'uch - university college london hospital': 'UCLH',
-            'mile end hospital': 'Mile End Hospital',
+            'mile end hospital': 'MEH',
             'finchley memorial': 'FMH',
             'king george hospital ilford': 'KGH',
         }

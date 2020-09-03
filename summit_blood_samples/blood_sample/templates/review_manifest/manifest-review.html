@@ -97,13 +97,13 @@
                 $.each(data.visit_choices, function(key, value) {
                     $('#FilterVisit')
                         .append($("<option></option>")
-                                    .attr("value", value)
+                                    .attr("value", key)
                                     .text(value));
                 });
                 $.each(data.site_choices, function(key, value) {
                     $('#FilterSite')
                         .append($("<option></option>")
-                                    .attr("value", value)
+                                    .attr("value", key)
                                     .text(value));
                 });
             }
