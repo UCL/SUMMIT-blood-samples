@@ -312,7 +312,6 @@ SAMPLE_TYPE = [
     (0, 'RBC'),
     (1, 'Plasma'),
     (2, 'BuffyCoat'),
-    (3, 'Plasma'),
 ]
 
 
