@@ -27,11 +27,9 @@
                 <div class="col">
                     <label for="Visit">Visit:</label>
                     <select name="Visit" id="Visit" class="form__control ">
-                        <option>Please select</option>
-                        <option value="0" {% if object.Visit == "0"  %} selected="selected" {% endif %}>Y0</option>
-                        <option value="1" {% if object.Visit == "1"  %} selected="selected" {% endif %}>Y0+3M</option>
-                        <option value="2" {% if object.Visit == "2"  %} selected="selected" {% endif %}>Y1</option>
-                        <option value="3" {% if object.Visit == "3"  %} selected="selected" {% endif %}>Y2</option>
+                        {% for key, values in visit_choices.items %}
+                            <option value={{key}} {% if object.Visit == key %} selected="selected" {% endif %}>{{values}}</option>
+                        {% endfor %}
                     </select>
                 </div>
 
@@ -40,11 +38,9 @@
                 <div class="col">
                     <label for="Site">Site:</label>
                     <select name="Site" id="Site" class="form__control ">
-                        <option>Please select</option>
-                        <option value="0" {% if object.Site == "0"  %} selected="selected" {% endif %}>FMH</option>
-                        <option value="1" {% if object.Site == "1"  %} selected="selected" {% endif %}>KGH</option>
-                        <option value="2" {% if object.Site == "2"  %} selected="selected" {% endif %}>Mile End Hospital</option>
-                        <option value="3" {% if object.Site == "3"  %} selected="selected" {% endif %}>UCLH</option>
+                        {% for key, values in site_choices.items %}
+                            <option value={{key}} {% if object.Site == key %} selected="selected" {% endif %}>{{values}}</option>
+                        {% endfor %}
                     </select>
                 </div>
             </div>

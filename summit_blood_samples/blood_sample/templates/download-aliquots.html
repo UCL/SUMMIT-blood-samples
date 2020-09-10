@@ -12,6 +12,7 @@
     <a class="pull-left btn custom-btn dwncsvaliquots" type = "button" style="color:white ;" id="downloadcsvaliquots">Download Aliquots</a>
     {% endif %}
     </div>
+    <div class="snackbar" id="download-msg">Started Downloading...</div>
 </div>
 <script>
     $(document).ready(function(){
@@ -19,6 +20,10 @@
           '/download_aliquots?table=True&page=');
     $('.dwncsvaliquots').click(function() {
       this.setAttribute("href", '/download_aliquots?csv=true');
+      $("#download-msg").addClass("show").delay(3000).queue(function(next){
+        $(this).removeClass("show");
+        next();
+      });
     });
         });
 </script>

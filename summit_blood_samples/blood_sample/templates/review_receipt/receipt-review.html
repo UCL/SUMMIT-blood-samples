@@ -28,18 +28,10 @@
                                 <label for="FilterReceiptVisit">Visit:</label>
                                 <select name="Visit" id="FilterReceiptVisit" class="form__control ">
                                     <option value="">Please select</option>
-                                    <option value="0">Y0</option>
-                                    <option value="1">Y0+3M</option>
-                                    <option value="2">Y1</option>
-                                    <option value="3">Y2</option>
                                 </select>
                                 <label for="FilterReceiptSite">Site:</label>
                                 <select name="Site" id="FilterReceiptSite" class="form__control ">
                                     <option value="">Please select</option>
-                                    <option value="0">FMH</option>
-                                    <option value="1">KGH</option>
-                                    <option value="2">Mile End Hospital</option>
-                                    <option value="3">UCLH</option>
                                 </select>
                                 <label for="FilterReceiptRoom">Room:</label>
                                 <select name="Room" id="FilterReceiptRoom" class="form__control ">
@@ -103,6 +95,18 @@
                     $('#FilterReceiptRoom')
                         .append($("<option></option>")
                                     .attr("value", value)
+                                    .text(value));
+                });
+                $.each(data.visit_choices, function(key, value) {
+                    $('#FilterReceiptVisit')
+                        .append($("<option></option>")
+                                    .attr("value", key)
+                                    .text(value));
+                });
+                $.each(data.site_choices, function(key, value) {
+                    $('#FilterReceiptSite')
+                        .append($("<option></option>")
+                                    .attr("value", key)
                                     .text(value));
                 });
             }

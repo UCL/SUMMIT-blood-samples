@@ -27,18 +27,10 @@
                                 <label for="FilterVisit">Visit:</label>
                                 <select name="Visit" id="FilterVisit" class="form__control ">
                                     <option value="">Please select</option>
-                                    <option value="0">Y0</option>
-                                    <option value="1">Y0+3M</option>
-                                    <option value="2">Y1</option>
-                                    <option value="3">Y2</option>
                                 </select>
                                 <label for="FilterSite">Site:</label>
                                 <select name="Site" id="FilterSite" class="form__control ">
                                     <option value="">Please select</option>
-                                    <option value="0">FMH</option>
-                                    <option value="1">KGH</option>
-                                    <option value="2">Mile End Hospital</option>
-                                    <option value="3">UCLH</option>
                                 </select>
                                 <label for="FilterRoom">Room:</label>
                                 <select name="Room" id="FilterRoom" class="form__control ">
@@ -71,9 +63,6 @@
         </div>
     </div>
     <em class="error"></em>
-    {% comment %} <div class="text-right bottom-buttons">
-        <button type="button" class="btn btn-cancel" data-dismiss="modal">Cancel</button>
-    </div> {% endcomment %}
 </div>
 <div class="site-content__main custom-modal-content edit-manifest-div"></div>
 <script type="text/javascript">
@@ -103,6 +92,18 @@
                     $('#FilterRoom')
                         .append($("<option></option>")
                                     .attr("value", value)
+                                    .text(value));
+                });
+                $.each(data.visit_choices, function(key, value) {
+                    $('#FilterVisit')
+                        .append($("<option></option>")
+                                    .attr("value", key)
+                                    .text(value));
+                });
+                $.each(data.site_choices, function(key, value) {
+                    $('#FilterSite')
+                        .append($("<option></option>")
+                                    .attr("value", key)
                                     .text(value));
                 });
             }

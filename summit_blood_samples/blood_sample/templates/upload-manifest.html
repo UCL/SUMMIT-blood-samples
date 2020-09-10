@@ -7,10 +7,9 @@
                 <input type="file" class="form__control form-control-file" id="manifestfile" accept=".xlsx, .xls">
                 <label for="visit">Visit:</label>
                 <select name="visit" id="visit" class="form__control ">
-                    <option value="0">Y0</option>
-                    <option value="1">Y0+3M</option>
-                    <option value="2">Y1</option>
-                    <option value="3">Y2</option>
+                    {% for key, values in visit_choices.items %}
+                        <option value={{key}}>{{values}}</option>
+                    {% endfor  %}
                 </select>
             </div>
     </form>
