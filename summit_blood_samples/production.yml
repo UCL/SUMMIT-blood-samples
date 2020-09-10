@@ -5,6 +5,7 @@ volumes:
   production_postgres_data_backups:
   staticfiles:
   uploads:
+  pgadmin_data:
 
 services:
   django:
@@ -50,6 +51,10 @@ services:
     image: summit_blood_samples_production_pgadmin
     expose:
       - 80
+    volumes:
+      - type: volume
+        source: pgadmin_data
+        target: /var/lib/pgadmin
     env_file:
       - ./.envs/.production/.pgadmin
     depends_on:
