@@ -97,6 +97,12 @@ class UploadView(LoginRequiredMixin, View):
             ImportId__in=receipt_imported.values_list('id', flat=True)[::1])\
             .count()
 
+        # Getting Receipt records count in a given day by DateTimeTaken field
+        processed_loaded = ProcessedReport.objects.filter(
+            ProcessedDateTime__range=(day.replace(hour=0, minute=0, second=0,
+                                              microsecond=0), day.replace(
+                hour=23, minute=59, second=59, microsecond=0)))
+
         # Getting Processed records count in a given day by Files imported
         processed_imported = ProcessedImports.objects.filter(
             CreatedAt__range=(day.replace(hour=0, minute=0, second=0,
@@ -115,6 +121,7 @@ class UploadView(LoginRequiredMixin, View):
             'receipt_imported': receipt_imported_cnt,
             "receipt_loaded_cnt": receipt_loaded.count(),
             'processed_imported': processed_imported_cnt,
+            'processed_loaded':processed_loaded.count(),
             'active': day,
             'shownextday': shownextday,
             'reviewed': reviewed,
