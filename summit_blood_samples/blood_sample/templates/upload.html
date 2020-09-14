@@ -54,7 +54,7 @@
 		<div class="step-content">
 			<button type="button" id="processed" style="margin: 0px 43px;" class="btn custom-btn" {% if receipt_loaded_cnt != 0 and active|date:"d b" != todays_date %}enabled{% elif receipt_imported == 0 or not reviewed %}disabled{% endif %}>Processed</button>
 			<span>{{ processed_loaded|intcomma }} number of blood samples are processed</span>
-			<button type="button" style="margin: 0px 43px;" class="btn custom-btn reviewBtn" data-review="processed" {% if processed_imported != 0 and active|date:"d b" != todays_date %}enabled{% elif processed_imported == 0 or not reviewed %}disabled{% endif %}>Review</button>
+			<button type="button" style="margin: 0px 43px;" class="btn custom-btn reviewBtn" data-review="processed" {% if processed_loaded != 0 %}enabled{% elif processed_imported != 0 and active|date:"d b" != todays_date %}enabled{% elif processed_imported == 0 or not reviewed %}disabled{% endif %}>Review</button>
 		</div>
 	</div>
 	</div>
