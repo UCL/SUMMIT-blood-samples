@@ -147,7 +147,7 @@ class ManifestRecords(models.Model):
         indexes = [
             models.Index(
                 fields=['CollectionDateTime', 'Site', 'Visit', 'Room'],
-                         name="CDT_S_V_R_mr_idx"),
+                name="CDT_S_V_R_mr_idx"),
             models.Index(fields=['CollectionDateTime', 'Visit', 'Room'],
                          name="CDT_V_R_idx"),
             models.Index(fields=['CohortId'], name='CohortId_mr_idx'),
@@ -187,7 +187,10 @@ class ReceiptImports(models.Model):
 
 class ReceiptRecords(models.Model):
     Barcode = models.CharField(max_length=10)
-    Clinic = models.CharField(max_length=50)
+    Clinic = models.CharField(
+        max_length=1,
+        choices=SITECHOICE,
+    )
     DateTimeTaken = models.DateTimeField()
     SampleId = models.CharField(max_length=8)
     TissueSubType = models.CharField(max_length=4)

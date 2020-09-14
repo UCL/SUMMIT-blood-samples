@@ -55,9 +55,8 @@ class ReviewView(LoginRequiredMixin, View):
         if review_type == "blood_sample":
             # Getting imported sample files in given day
             blood_samples_imported = BloodSampleImport.objects.filter(
-                CreatedAt__range=\
-                    (day.replace(hour=0, minute=0, second=0, microsecond=0), \
-                      day.replace(
+                CreatedAt__range=(day.replace(hour=0, minute=0, second=0, microsecond=0),
+                                  day.replace(
                     hour=23, minute=59, second=59, microsecond=0)))
 
             # Checking latest uploaded sample file is reviewed or not
@@ -73,7 +72,7 @@ class ReviewView(LoginRequiredMixin, View):
             # This will avoid user to unnecessary navigation to the day
             # where he last uploaded
             if request.GET.get('firstOpen', 'False') == "True" and \
-                BloodSample.objects.count():
+                    BloodSample.objects.count():
                 day = BloodSample.objects.all().order_by('-CreatedAt')\
                     .first().CreatedAt
                 days = [(day - datetime.timedelta(days=x))
@@ -82,10 +81,10 @@ class ReviewView(LoginRequiredMixin, View):
 
             # Getting the BloodSample records
             query_results = BloodSample.objects.filter(
-                CreatedAt__range=(day.replace(hour=0, minute=0, second=0, \
-                     microsecond=0), day.replace(
+                CreatedAt__range=(day.replace(hour=0, minute=0, second=0,
+                                              microsecond=0), day.replace(
                     hour=23, minute=59, second=59, microsecond=0)))\
-                        .order_by('CreatedAt', 'CohortId', 'Barcode')
+                .order_by('CreatedAt', 'CohortId', 'Barcode')
 
             # Getting results based on pagination
             paginator = Paginator(query_results, settings.ITEMS_PER_PAGE)
@@ -99,11 +98,11 @@ class ReviewView(LoginRequiredMixin, View):
                     results = paginator.page(paginator.num_pages)
                 return render(request,
                               self.blood_sample_review_table_template, {
-                    "objects": results.object_list,
-                    "current_page": page,
-                    "class": 'reviewBloodDay',
-                    "total_pages": paginator.num_pages
-                })
+                                  "objects": results.object_list,
+                                  "current_page": page,
+                                  "class": 'reviewBloodDay',
+                                  "total_pages": paginator.num_pages
+                              })
 
             # Disabling the feature dates
             shownextday = datetime.datetime.today().strftime(
@@ -124,7 +123,7 @@ class ReviewView(LoginRequiredMixin, View):
             # This will avoid user to unnecessary navigation to the day
             # where he last uploaded
             if request.GET.get('firstOpen', 'False') == "True" and \
-                ManifestRecords.objects.count():
+                    ManifestRecords.objects.count():
                 day = ManifestRecords.objects.all().order_by(
                     '-CollectionDateTime').first().CollectionDateTime
                 days = [(day - datetime.timedelta(days=x))
@@ -163,11 +162,11 @@ class ReviewView(LoginRequiredMixin, View):
                     ( mr."CohortId" = bs."CohortId")
                 WHERE mr."CollectionDateTime" BETWEEN '{}' AND '{}'{}
                 order by bs."CohortId";
-                '''.format(day.replace(hour=0, minute=0, second=0, \
-                    microsecond=0).strftime("%Y-%m-%d %H:%M:%S"), \
-                           day.replace(hour=23, minute=59, second=59, \
-                               microsecond=0).strftime("%Y-%m-%d %H:%M:%S"), \
-                                    qry)
+                '''.format(day.replace(hour=0, minute=0, second=0,
+                                       microsecond=0).strftime("%Y-%m-%d %H:%M:%S"),
+                           day.replace(hour=23, minute=59, second=59,
+                                       microsecond=0).strftime("%Y-%m-%d %H:%M:%S"),
+                           qry)
 
             with connection.cursor() as cursor:
                 cursor.execute(query)
@@ -221,7 +220,7 @@ class ReviewView(LoginRequiredMixin, View):
                     bs."CohortId" = mr."CohortId"
                 WHERE mr."id" is null AND bs."CreatedAt" BETWEEN '{}' AND '{}'
             '''.format(
-                day.replace(hour=0, minute=0, second=0, microsecond=0), \
+                day.replace(hour=0, minute=0, second=0, microsecond=0),
                     day.replace(
                     hour=23, minute=59, second=59, microsecond=0))
             with connection.cursor() as cursor:
@@ -240,8 +239,8 @@ class ReviewView(LoginRequiredMixin, View):
                 WHERE mr."id" is null AND mr."CollectionDateTime" \
                     BETWEEN '{}' AND '{}'
             '''.format(
-                day.replace(hour=0, minute=0, second=0, microsecond=0), \
-                     day.replace(
+                day.replace(hour=0, minute=0, second=0, microsecond=0),
+                day.replace(
                     hour=23, minute=59, second=59, microsecond=0))
             with connection.cursor() as cursor:
                 cursor.execute(query)
@@ -252,10 +251,10 @@ class ReviewView(LoginRequiredMixin, View):
             return render(request, self.manifest_review_template, {
                 "current_page": 1 if page == 0 else page,
                 "total_pages": 1 if total_pages == 0 else total_pages,
-                "bs_total_pages": 1 if bs_unmatched_total_pages == 0 \
-                    else bs_unmatched_total_pages,
-                "mf_total_pages": 1 if mf_unmatched_total_pages == 0 \
-                    else mf_unmatched_total_pages,
+                "bs_total_pages": 1 if bs_unmatched_total_pages == 0
+                else bs_unmatched_total_pages,
+                "mf_total_pages": 1 if mf_unmatched_total_pages == 0
+                else mf_unmatched_total_pages,
                 "days": days,
                 "active": day,
                 "shownextday": shownextday,
@@ -268,7 +267,7 @@ class ReviewView(LoginRequiredMixin, View):
             # This will avoid user to unnecessary navigation to the day
             # where he last uploaded
             if request.GET.get('firstOpen', 'False') == "True" and \
-                ReceiptRecords.objects.count():
+                    ReceiptRecords.objects.count():
                 day = ReceiptRecords.objects.all().order_by(
                     '-DateTimeTaken').first().DateTimeTaken
                 days = [(day - datetime.timedelta(days=x))
@@ -318,11 +317,11 @@ class ReviewView(LoginRequiredMixin, View):
                     on (bs."CohortId"=mr."CohortId")
                 WHERE rr."DateTimeTaken" BETWEEN '{}' AND '{}' {}
                 order by bs."CohortId";
-                '''.format(day.replace(hour=0, minute=0, second=0, \
-                    microsecond=0).strftime("%Y-%m-%d %H:%M:%S"),
-                           day.replace(hour=23, minute=59, second=59, \
-                               microsecond=0).strftime("%Y-%m-%d %H:%M:%S"), \
-                                    qry)
+                '''.format(day.replace(hour=0, minute=0, second=0,
+                                       microsecond=0).strftime("%Y-%m-%d %H:%M:%S"),
+                           day.replace(hour=23, minute=59, second=59,
+                                       microsecond=0).strftime("%Y-%m-%d %H:%M:%S"),
+                           qry)
 
             with connection.cursor() as cursor:
                 cursor.execute(query)
@@ -356,6 +355,7 @@ class ReviewView(LoginRequiredMixin, View):
                     data[row]['State'] = state_status[data[row]['State']]
                     data[row]['Visit'] = visit_choices[data[row]['Visit']]
                     data[row]['Site'] = site_choices[data[row]['Site']]
+                    data[row]['Clinic'] = site_choices[data[row]['Clinic']]
 
                 return render(request, self.receipt_review_table_template, {
                     "objects": data,
@@ -380,10 +380,10 @@ class ReviewView(LoginRequiredMixin, View):
             return render(request, self.receipt_review_template, {
                 "current_page": 1 if page == 0 else page,
                 "total_pages": 1 if total_pages == 0 else total_pages,
-                "bsr_total_pages": 1 if bs_total_pages == 0 \
-                    else bs_total_pages,
-                "rr_total_pages": 1 if rr_total_pages == 0 \
-                    else rr_total_pages,
+                "bsr_total_pages": 1 if bs_total_pages == 0
+                else bs_total_pages,
+                "rr_total_pages": 1 if rr_total_pages == 0
+                else rr_total_pages,
                 "days": days,
                 "active": day,
                 "shownextday": shownextday,
@@ -396,7 +396,7 @@ class ReviewView(LoginRequiredMixin, View):
             # This will avoid user to unnecessary navigation to
             # the day where he last uploaded
             if request.GET.get('firstOpen', 'False') == "True" and \
-                ProcessedReport.objects.count():
+                    ProcessedReport.objects.count():
                 day = ProcessedReport.objects.all().order_by(
                     '-ProcessedDateTime').first().ProcessedDateTime
                 days = [(day - datetime.timedelta(days=x))
@@ -405,13 +405,13 @@ class ReviewView(LoginRequiredMixin, View):
 
             # Getting settings options
             settings_options = dict(
-                BS=[request.GET.get('BloodSample', \
-                        "CohortId,Barcode,CreatedAt,Comments,State")],
+                BS=[request.GET.get('BloodSample',
+                                    "CohortId,Barcode,CreatedAt,Comments,State")],
                 MR=[request.GET.get('Manifest', "Visit,Site,Room,Barcode")],
                 RR=[request.GET.get('Receipt', "SampleId,Clinic")],
-                PR=[request.GET.get('Processed', \
-                    "ParentId,TissueSubType,ProcessedDateTime" + \
-                    ",ReceivedDateTime,Volume,NumberOfChildren,Comments")])
+                PR=[request.GET.get('Processed',
+                                    "ParentId,TissueSubType,ProcessedDateTime" +
+                                    ",ReceivedDateTime,Volume,NumberOfChildren,Comments")])
             for table, columns in settings_options.items():
                 for column in columns:
                     settings_options[table] = column.split(',')
@@ -498,7 +498,7 @@ class ReviewView(LoginRequiredMixin, View):
 
             extra += """ pr.\"ProcessedDateTime\" BETWEEN '{}' AND '{}' AND """\
                 .format(day.replace(hour=0, minute=0, second=0, microsecond=0),
-                                                                                       day.replace(hour=23, minute=59, second=59, microsecond=0))
+                        day.replace(hour=23, minute=59, second=59, microsecond=0))
 
             extra = extra[0:-4]
             if extra != ' WH':
@@ -536,6 +536,14 @@ class ReviewView(LoginRequiredMixin, View):
                         data[row][ind] = visit_choices[data[row][ind]]
                         data[row] = tuple(data[row])
 
+            if 'Clinic' in settings_options['RR']:
+                ind = headers.index('Clinic')
+                for row in range(len(data)):
+                    if data[row][ind] is not None:
+                        data[row] = list(data[row])
+                        data[row][ind] = site_choices[data[row][ind]]
+                        data[row] = tuple(data[row])
+
             if 'SiteHeld' in settings_options['PR']:
                 ind = headers.index('SiteHeld')
                 for row in range(len(data)):
@@ -559,7 +567,7 @@ class ReviewView(LoginRequiredMixin, View):
                 'ParentId': 'Parent id',
                 'ProcessedDateTime': 'Processed Date Time',
                 'NumberOfChildren': 'Number Of Children',
-                'SiteHeld':'Site held',
+                'SiteHeld': 'Site held',
                 'id': 'Id'
             }
 
@@ -639,10 +647,10 @@ class ReviewView(LoginRequiredMixin, View):
                 "days": days,
                 "active": day,
                 "shownextday": shownextday,
-                "pr_total_pages": 1 if pr_total_pages == 0 \
-                    else pr_total_pages,
-                "rr_total_pages": 1 if rr_total_pages == 0 \
-                    else rr_total_pages,
+                "pr_total_pages": 1 if pr_total_pages == 0
+                else pr_total_pages,
+                "rr_total_pages": 1 if rr_total_pages == 0
+                else rr_total_pages,
             }
             return render(request, self.processed_review_template, context)
 
@@ -668,24 +676,24 @@ class UnmachedManifestView(LoginRequiredMixin, View):
             # Getting Unmatched records comparing Blood sample with
             # Manifest records
             mf_cohort_ids = ManifestRecords.objects.filter(
-                CollectionDateTime__range=(day.replace(hour=0, \
-                    minute=0, second=0, microsecond=0), day.replace(
+                CollectionDateTime__range=(day.replace(hour=0,
+                                                       minute=0, second=0, microsecond=0), day.replace(
                     hour=23, minute=59, second=59, microsecond=0))).\
-                        values_list('CohortId', flat=True)[::1]
+                values_list('CohortId', flat=True)[::1]
 
             if mf_cohort_ids:
                 query_results = BloodSample.objects.filter(
-                    CreatedAt__range=(day.replace(hour=0, minute=0, \
-                        second=0, microsecond=0), day.replace(
+                    CreatedAt__range=(day.replace(hour=0, minute=0,
+                                                  second=0, microsecond=0), day.replace(
                         hour=23, minute=59, second=59, microsecond=0))
-                ).exclude(CohortId__iregex=r'(' + '|'.join(mf_cohort_ids)\
-                     +')').order_by('CohortId')
+                ).exclude(CohortId__iregex=r'(' + '|'.join(mf_cohort_ids)
+                          + ')').exclude(State=1).order_by('CohortId')
             else:
                 query_results = BloodSample.objects.filter(
-                    CreatedAt__range=(day.replace(hour=0, minute=0, \
-                         second=0, microsecond=0), day.replace(
+                    CreatedAt__range=(day.replace(hour=0, minute=0,
+                                                  second=0, microsecond=0), day.replace(
                         hour=23, minute=59, second=59, microsecond=0))
-                ).order_by('CohortId')
+                ).exclude(State=1).order_by('CohortId')
 
             paginator = Paginator(query_results, settings.ITEMS_PER_PAGE)
 
@@ -715,22 +723,22 @@ class UnmachedManifestView(LoginRequiredMixin, View):
             # Getting Unmatched records comparing Manifest records
             # with Blood sample
             bs_cohort_ids = BloodSample.objects.filter(
-                CreatedAt__range=(day.replace(hour=0, minute=0, second=0, \
-                     microsecond=0), day.replace(
+                CreatedAt__range=(day.replace(hour=0, minute=0, second=0,
+                                              microsecond=0), day.replace(
                     hour=23, minute=59, second=59, microsecond=0))).\
-                        values_list('CohortId', flat=True)[::1]
+                values_list('CohortId', flat=True)[::1]
 
             if bs_cohort_ids:
                 query_results = ManifestRecords.objects.filter(
-                    CollectionDateTime__range=(day.replace(hour=0, minute=0, \
-                         second=0, microsecond=0), day.replace(
+                    CollectionDateTime__range=(day.replace(hour=0, minute=0,
+                                                           second=0, microsecond=0), day.replace(
                         hour=23, minute=59, second=59, microsecond=0))
-                ).exclude(CohortId__iregex=r'(' + '|'.join(bs_cohort_ids) + \
-                     ')').order_by('CohortId')
+                ).exclude(CohortId__iregex=r'(' + '|'.join(bs_cohort_ids) +
+                          ')').order_by('CohortId')
             else:
                 query_results = ManifestRecords.objects.filter(
-                    CollectionDateTime__range=(day.replace(hour=0, minute=0, \
-                         second=0, microsecond=0), day.replace(
+                    CollectionDateTime__range=(day.replace(hour=0, minute=0,
+                                                           second=0, microsecond=0), day.replace(
                         hour=23, minute=59, second=59, microsecond=0))
                 ).order_by('CohortId')
 
@@ -856,6 +864,10 @@ class UnmachedReceiptView(LoginRequiredMixin, View):
             record_end = page * items_per_page
             data = data[record_start:record_end]
 
+            # Converting Clinic choices to field names
+            for row in range(len(data)):
+                data[row]['Clinic'] = site_choices[data[row]['Clinic']]
+
             return render(request, self.rr_review_table_template, {
                 "objects": data,
                 "current_page": 1 if page == 0 else page,
@@ -889,10 +901,10 @@ class UnmachedReceiptView(LoginRequiredMixin, View):
                 (select "Barcode" from blood_sample_receiptrecords)
                     AND mr."CollectionDateTime" BETWEEN '{}' AND '{}'{}
             order by bs."CohortId";
-            '''.format(day.replace(hour=0, minute=0, second=0, microsecond=0)\
-                .strftime("%Y-%m-%d %H:%M:%S"),
-                       day.replace(hour=23, minute=59, second=59, \
-                           microsecond=0).strftime("%Y-%m-%d %H:%M:%S"), qry)
+            '''.format(day.replace(hour=0, minute=0, second=0, microsecond=0)
+                       .strftime("%Y-%m-%d %H:%M:%S"),
+                       day.replace(hour=23, minute=59, second=59,
+                                   microsecond=0).strftime("%Y-%m-%d %H:%M:%S"), qry)
 
         with connection.cursor() as cursor:
             cursor.execute(query)
@@ -929,10 +941,10 @@ class UnmachedReceiptView(LoginRequiredMixin, View):
                 )
                 AND rr."DateTimeTaken" BETWEEN '{}' AND '{}'{}
             order by rr."Barcode";
-            '''.format(day.replace(hour=0, minute=0, second=0, \
-                microsecond=0).strftime("%Y-%m-%d %H:%M:%S"),
-                       day.replace(hour=23, minute=59, second=59, \
-                           microsecond=0).strftime("%Y-%m-%d %H:%M:%S"), qry)
+            '''.format(day.replace(hour=0, minute=0, second=0,
+                                   microsecond=0).strftime("%Y-%m-%d %H:%M:%S"),
+                       day.replace(hour=23, minute=59, second=59,
+                                   microsecond=0).strftime("%Y-%m-%d %H:%M:%S"), qry)
 
         with connection.cursor() as cursor:
             cursor.execute(query)
@@ -998,11 +1010,12 @@ class UnmachedProcessedView(LoginRequiredMixin, View):
             record_end = page * items_per_page
             data = data[record_start:record_end]
 
-            # Converting State, Visit and Site choices to field names
+            # Converting State, Visit, Clinic and Site choices to field names
             for row in range(len(data)):
                 data[row]['State'] = state_status[data[row]['State']]
                 data[row]['Visit'] = visit_choices[data[row]['Visit']]
                 data[row]['Site'] = site_choices[data[row]['Site']]
+                data[row]['Clinic'] = site_choices[data[row]['Clinic']]
 
             return render(request, self.rr_review_table_template, {
                 "objects": data,
@@ -1066,10 +1079,10 @@ class UnmachedProcessedView(LoginRequiredMixin, View):
                         bs."CohortId" = mr."CohortId"
                 ) AND pr."ProcessedDateTime" BETWEEN '{}' AND  '{}'{}
             order by pr."ParentId";
-            '''.format(day.replace(hour=0, minute=0, second=0, \
-                microsecond=0).strftime("%Y-%m-%d %H:%M:%S"),
-                       day.replace(hour=23, minute=59, second=59, \
-                           microsecond=0).strftime("%Y-%m-%d %H:%M:%S"), qry)
+            '''.format(day.replace(hour=0, minute=0, second=0,
+                                   microsecond=0).strftime("%Y-%m-%d %H:%M:%S"),
+                       day.replace(hour=23, minute=59, second=59,
+                                   microsecond=0).strftime("%Y-%m-%d %H:%M:%S"), qry)
 
         with connection.cursor() as cursor:
             cursor.execute(query)
@@ -1130,10 +1143,10 @@ class UnmachedProcessedView(LoginRequiredMixin, View):
             )
             AND rr."ReceivedDateTime" BETWEEN '{}' AND '{}'{}
             order by bs."CohortId";
-            '''.format(day.replace(hour=0, minute=0, second=0, \
-                microsecond=0).strftime("%Y-%m-%d %H:%M:%S"),
-                       day.replace(hour=23, minute=59, second=59, \
-                           microsecond=0).strftime("%Y-%m-%d %H:%M:%S"), qry)
+            '''.format(day.replace(hour=0, minute=0, second=0,
+                                   microsecond=0).strftime("%Y-%m-%d %H:%M:%S"),
+                       day.replace(hour=23, minute=59, second=59,
+                                   microsecond=0).strftime("%Y-%m-%d %H:%M:%S"), qry)
 
         with connection.cursor() as cursor:
             cursor.execute(query)
@@ -1143,4 +1156,3 @@ class UnmachedProcessedView(LoginRequiredMixin, View):
                 for row in cursor.fetchall()
             ]
         return data
-

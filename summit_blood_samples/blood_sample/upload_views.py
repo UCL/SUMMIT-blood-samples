@@ -22,6 +22,7 @@ from .choices_data import site_choices, sample_type, site_held_choices, visit_ch
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
 
+
 class UploadView(LoginRequiredMixin, View):
     """
     Class for upload functionality
@@ -45,17 +46,17 @@ class UploadView(LoginRequiredMixin, View):
         # Getting Blood Samples records count in a given day by
         # CreatedAt field
         blood_samples_loaded = BloodSample.objects.filter(
-            CreatedAt__range=(day.replace(hour=0, minute=0, \
-                second=0, microsecond=0), day.replace(
+            CreatedAt__range=(day.replace(hour=0, minute=0,
+                                          second=0, microsecond=0), day.replace(
                 hour=23, minute=59, second=59, microsecond=0)))
 
         # Getting Blood Samples records count in a given day by Files imported
         blood_samples_imported = BloodSampleImport.objects.filter(
-            CreatedAt__range=(day.replace(hour=0, minute=0, \
-                second=0, microsecond=0), day.replace(
+            CreatedAt__range=(day.replace(hour=0, minute=0,
+                                          second=0, microsecond=0), day.replace(
                 hour=23, minute=59, second=59, microsecond=0)))
         blood_samples_imported_cnt = BloodSample.objects.filter(
-            ImportId__in=blood_samples_imported.\
+            ImportId__in=blood_samples_imported.
             values_list('id', flat=True)[::1]).count()
 
         # Checking if Last uploaded blood sample file is reviewed or not
@@ -67,43 +68,43 @@ class UploadView(LoginRequiredMixin, View):
         # Getting Manifest records count in a given day by
         # CollectionDateTime field
         manifest_loaded = ManifestRecords.objects.filter(
-            CollectionDateTime__range=(day.replace(hour=0, minute=0, \
-                second=0, microsecond=0), day.replace(
+            CollectionDateTime__range=(day.replace(hour=0, minute=0,
+                                                   second=0, microsecond=0), day.replace(
                 hour=23, minute=59, second=59, microsecond=0)))
 
         # Getting Manifest records count in a given day by Files imported
         manifest_imported = ManifestImports.objects.filter(
-            CreatedAt__range=(day.replace(hour=0, minute=0, second=0, \
-                microsecond=0), day.replace(
+            CreatedAt__range=(day.replace(hour=0, minute=0, second=0,
+                                          microsecond=0), day.replace(
                 hour=23, minute=59, second=59, microsecond=0)))
         no_of_files_uploaded = manifest_imported.count()
         manifest_imported_cnt = ManifestRecords.objects.filter(
             ImportId__in=manifest_imported.values_list('id', flat=True)[::1])\
-                .count()
+            .count()
 
         # Getting Receipt records count in a given day by DateTimeTaken field
         receipt_loaded = ReceiptRecords.objects.filter(
-            DateTimeTaken__range=(day.replace(hour=0, minute=0, second=0, \
-                microsecond=0), day.replace(
+            DateTimeTaken__range=(day.replace(hour=0, minute=0, second=0,
+                                              microsecond=0), day.replace(
                 hour=23, minute=59, second=59, microsecond=0)))
 
         # Getting Receipt records count in a given day by Files imported
         receipt_imported = ReceiptImports.objects.filter(
-            CreatedAt__range=(day.replace(hour=0, minute=0, second=0, \
-                microsecond=0), day.replace(
+            CreatedAt__range=(day.replace(hour=0, minute=0, second=0,
+                                          microsecond=0), day.replace(
                 hour=23, minute=59, second=59, microsecond=0)))
         receipt_imported_cnt = ReceiptRecords.objects.filter(
             ImportId__in=receipt_imported.values_list('id', flat=True)[::1])\
-                .count()
+            .count()
 
         # Getting Processed records count in a given day by Files imported
         processed_imported = ProcessedImports.objects.filter(
-            CreatedAt__range=(day.replace(hour=0, minute=0, second=0, \
-                microsecond=0), day.replace(
+            CreatedAt__range=(day.replace(hour=0, minute=0, second=0,
+                                          microsecond=0), day.replace(
                 hour=23, minute=59, second=59, microsecond=0)))
         processed_imported_cnt = ProcessedReport.objects.filter(
             ImportId__in=processed_imported.values_list('id', flat=True)[::1])\
-                .count()
+            .count()
 
         return render(request, self.template_name, {
             "days": days,
@@ -132,8 +133,8 @@ class UploadView(LoginRequiredMixin, View):
             day = request.GET.get('day')
             day = day.split('-')[1].split(',')
             day = datetime.datetime.strptime(
-                day[0].split(' ')[0][:3] + ' ' + day[0].split(' ')[1] + \
-                     ',' + day[1], '%b %d, %Y')
+                day[0].split(' ')[0][:3] + ' ' + day[0].split(' ')[1] +
+                ',' + day[1], '%b %d, %Y')
             days = [(day - datetime.timedelta(days=x))
                     for x in range(4)]
             days.reverse()
@@ -141,17 +142,17 @@ class UploadView(LoginRequiredMixin, View):
             day = request.GET.get('day')
             day = day.split('-')[1].split(',')
             day = datetime.datetime.strptime(
-                day[0].split(' ')[0][:3] + ' ' + day[0].split(' ')[1] + \
-                     ',' + day[1], '%b %d, %Y')
+                day[0].split(' ')[0][:3] + ' ' + day[0].split(' ')[1] +
+                ',' + day[1], '%b %d, %Y')
             days = [(day + datetime.timedelta(days=x))
                     for x in range(4)]
 
             # Updating the days if future days are present
             try:
-                if days.index(datetime.datetime.today().replace(hour=0, \
-                    minute=0, second=0, microsecond=0)) in [0, 1, 2]:
-                    days = [(datetime.datetime.today() - \
-                        datetime.timedelta(days=x))
+                if days.index(datetime.datetime.today().replace(hour=0,
+                                                                minute=0, second=0, microsecond=0)) in [0, 1, 2]:
+                    days = [(datetime.datetime.today() -
+                             datetime.timedelta(days=x))
                             for x in range(4)]
                     days.reverse()
             except:
@@ -167,7 +168,7 @@ class UploadView(LoginRequiredMixin, View):
                 firstday = day.split('-')[1]
                 firstday = firstday.split(',')
                 firstday = datetime.datetime.strptime(
-                    firstday[0].split(' ')[0][:3] + ' ' + \
+                    firstday[0].split(' ')[0][:3] + ' ' +
                     firstday[0].split(' ')[1] + ',' + firstday[1], '%b %d, %Y')
                 days = [(firstday - datetime.timedelta(days=x))
                         for x in range(4)]
@@ -175,14 +176,14 @@ class UploadView(LoginRequiredMixin, View):
                 current_day = day.split('-')[2]
                 current_day = current_day.split(',')
                 day = datetime.datetime.strptime(
-                    current_day[0].split(' ')[0][:3] + ' ' + \
-                        current_day[0].split(' ')[1] + ',' + \
-                            current_day[1], '%b %d, %Y')
+                    current_day[0].split(' ')[0][:3] + ' ' +
+                    current_day[0].split(' ')[1] + ',' +
+                    current_day[1], '%b %d, %Y')
             else:
                 day = day.split(',')
                 day = datetime.datetime.strptime(
-                    day[0].split(' ')[0][:3] + ' ' + day[0].split(' ')[1] + \
-                         ',' + day[1], '%b %d, %Y')
+                    day[0].split(' ')[0][:3] + ' ' + day[0].split(' ')[1] +
+                    ',' + day[1], '%b %d, %Y')
                 days = [(day - datetime.timedelta(days=x))
                         for x in range(4)]
                 days.reverse()
@@ -223,7 +224,7 @@ class UploadBloodSampleView(LoginRequiredMixin, View):
         # Columns validation
         if not set(
             ['Id', 'CohortId', 'AppointmentId', 'Barcode', 'User', 'CreatedAt']
-            ).issubset(df.columns):
+        ).issubset(df.columns):
             return JsonResponse({
                 'status': 412,
                 'message': 'Column names not matching'
@@ -240,9 +241,9 @@ class UploadBloodSampleView(LoginRequiredMixin, View):
 
         # CreatedAt column validation
         try:
-            df['CreatedAt'] = df['CreatedAt'].apply(lambda x: \
-                datetime.datetime.strptime(
-                x, "%Y-%m-%dT%H:%M:%SZ"))
+            df['CreatedAt'] = df['CreatedAt'].apply(lambda x:
+                                                    datetime.datetime.strptime(
+                                                        x, "%Y-%m-%dT%H:%M:%SZ"))
         except:
             return JsonResponse({
                 'status': 412,
@@ -265,8 +266,8 @@ class UploadBloodSampleView(LoginRequiredMixin, View):
 
             try:
                 filename = fs.save(blood_sample_file.name.split(
-                    '.')[0] + time.strftime("%d%m%Y-%H%M%S") + '.' + \
-                        blood_sample_file.name.split('.')[1], blood_sample_file)
+                    '.')[0] + time.strftime("%d%m%Y-%H%M%S") + '.' +
+                    blood_sample_file.name.split('.')[1], blood_sample_file)
             except Exception as e:
                 logger.error(f'Something went wrong in storing Blood Sample \
                     file in Uploads folder - {e}')
@@ -299,8 +300,8 @@ class UploadBloodSampleView(LoginRequiredMixin, View):
                         Barcode=record['Barcode'] if re.match(
                             r"^(E[0-9]{6})+$", record['Barcode']) else "",
                         Comments="" if re.match(
-                            r"^(E[0-9]{6})+$", record['Barcode']) \
-                                else record['Barcode'],
+                            r"^(E[0-9]{6})+$", record['Barcode'])
+                        else record['Barcode'],
                         AppointmentId=record['AppointmentId'],
                         SiteNurseEmail=record['User'],
                         ImportId=ImportId,
@@ -338,7 +339,7 @@ class UploadManifestView(LoginRequiredMixin, View):
         :param request: request object
         :return: HttpResponse object
         """
-        return render(request, self.template_name,{'visit_choices':visit_choices})
+        return render(request, self.template_name, {'visit_choices': visit_choices})
 
     def post(self, request, *args, **kwargs):
         """
@@ -357,7 +358,7 @@ class UploadManifestView(LoginRequiredMixin, View):
         if not 'Room' in df.iloc[2, 3] and df.iloc[2, 1] != 'Site' and \
             df.iloc[4, 1] != 'Barcode ID' and \
                 df.iloc[4, 2] != 'Collection Date & Time' and \
-                    df.iloc[4, 3] != 'Cohort ID':
+            df.iloc[4, 3] != 'Cohort ID':
             return JsonResponse({
                 'status': 412,
                 'message': 'Column names not matching'
@@ -383,8 +384,8 @@ class UploadManifestView(LoginRequiredMixin, View):
         df.columns = ['Barcode', 'CollectionDateTime', 'CohortId']
 
         # Validating CollectionDateTime column
-        if True in (df['CollectionDateTime'].map(type) != \
-            datetime.datetime).tolist():
+        if True in (df['CollectionDateTime'].map(type) !=
+                    datetime.datetime).tolist():
             return JsonResponse({
                 'status': 412,
                 'message': 'CollectionDateTime column values are not \
@@ -403,8 +404,8 @@ class UploadManifestView(LoginRequiredMixin, View):
 
         # Getting stats of uploaded file
         manifest_db_df = pd.DataFrame(
-            list(ManifestRecords.objects.\
-                values('Barcode', 'CollectionDateTime', 'CohortId')))
+            list(ManifestRecords.objects.
+                 values('Barcode', 'CollectionDateTime', 'CohortId')))
 
         blood_sample_cohort = BloodSample.objects.\
             values_list('CohortId', flat=True)[::1]
@@ -423,10 +424,10 @@ class UploadManifestView(LoginRequiredMixin, View):
         if not manifest_db_df.shape == (0, 0):
             # Dropping duplicates in the file comparing with the
             # manifest table records
-            unique_df = df[~df.Barcode.isin(manifest_db_df.Barcode.values) & \
-                ~df.CohortId.isin(
-                manifest_db_df.CohortId.values) & ~df.CollectionDateTime.\
-                    isin(manifest_db_df.CollectionDateTime.values)]
+            unique_df = df[~df.Barcode.isin(manifest_db_df.Barcode.values) &
+                           ~df.CohortId.isin(
+                manifest_db_df.CohortId.values) & ~df.CollectionDateTime.
+                isin(manifest_db_df.CollectionDateTime.values)]
             # Getting duplicated count comparing with the database
             duplicates_cnt = df.shape[0] - unique_df.shape[0]
 
@@ -437,8 +438,8 @@ class UploadManifestView(LoginRequiredMixin, View):
 
             try:
                 filename = fs.save(manifest_file.name.split(
-                    '.')[0] + time.strftime("%d%m%Y-%H%M%S") + '.' + \
-                        manifest_file.name.split('.')[1], manifest_file)
+                    '.')[0] + time.strftime("%d%m%Y-%H%M%S") + '.' +
+                    manifest_file.name.split('.')[1], manifest_file)
             except Exception as e:
                 logger.error(f'Something went wrong in storing Manifest \
                     file in Uploads folder - {e}')
@@ -467,7 +468,7 @@ class UploadManifestView(LoginRequiredMixin, View):
                         Visit=visit,
                         ImportId=ImportId,
                         Site=dict((v, k)
-                                for k, v in site_choices.items()).get(site),
+                                  for k, v in site_choices.items()).get(site),
                         Room=room,
                         CohortId=record[2].strip(),
                         Barcode=record[0],
@@ -540,7 +541,7 @@ class UploadReceiptView(LoginRequiredMixin, View):
         try:
             df['DateTime Taken'] = df['DateTime Taken'].\
                 apply(lambda x: datetime.datetime.strptime(
-                x, "%d/%m/%Y %H:%M"))
+                    x, "%d/%m/%Y %H:%M"))
         except:
             return JsonResponse({
                 'status': 412,
@@ -551,7 +552,7 @@ class UploadReceiptView(LoginRequiredMixin, View):
         try:
             df['Received DateTime'] = df['Received DateTime'].\
                 apply(lambda x: datetime.datetime.strptime(
-                x, "%d/%m/%Y %H:%M"))
+                    x, "%d/%m/%Y %H:%M"))
         except:
             return JsonResponse({
                 'status': 412,
@@ -574,11 +575,11 @@ class UploadReceiptView(LoginRequiredMixin, View):
 
         # Validating and converting Clinic column
         clinic_mapping = {
-            'uk biocentre signature': 'Manifest Signature',
-            'uch - university college london hospital': 'UCLH',
-            'mile end hospital': 'MEH',
-            'finchley memorial': 'FMH',
-            'king george hospital ilford': 'KGH',
+            'finchley memorial': 0,
+            'king george hospital ilford': 1,
+            'mile end hospital': 2,
+            'uch - university college london hospital': 3,
+            'uk biocentre signature': 4
         }
         try:
             df['Clinic'] = df['Clinic'].apply(
@@ -597,16 +598,16 @@ class UploadReceiptView(LoginRequiredMixin, View):
         manifest_db_df['CollectionDateTime'] = \
             manifest_db_df['CollectionDateTime'].apply(
             lambda x: x.strftime('%d/%m/%Y %H:%M'))
-        manifest_db_filtered = manifest_db_df[manifest_db_df['CohortId'].\
-            isin(BloodSample.objects.values_list(
-            'CohortId', flat=True)[::1])]
+        manifest_db_filtered = manifest_db_df[manifest_db_df['CohortId'].
+                                              isin(BloodSample.objects.values_list(
+                                                  'CohortId', flat=True)[::1])]
 
         # Getting records already present in the database
         manifest_match = df[df['Participant ID'].isin(
             manifest_db_filtered.Barcode.values) & df['Clinic'].isin(
-            manifest_db_filtered.Site.values) & \
-                df['DateTime Taken compare'].isin(
-                    manifest_db_filtered.CollectionDateTime.values)]
+            manifest_db_filtered.Site.values) &
+            df['DateTime Taken compare'].isin(
+            manifest_db_filtered.CollectionDateTime.values)]
         record_found_cnt = manifest_match.shape[0]
 
         # Getting records where there is mismatch on manifest site
@@ -619,8 +620,8 @@ class UploadReceiptView(LoginRequiredMixin, View):
         # Getting records where there is mismatch on Receipt
         # DateTime Taken with Manifest CollectionDateTime
         mismatch_blood_draw = df[df['Participant ID'].isin(
-            manifest_db_df.Barcode.values) & \
-                ~df['DateTime Taken compare'].isin(
+            manifest_db_df.Barcode.values) &
+            ~df['DateTime Taken compare'].isin(
             manifest_db_df.CollectionDateTime.values)]
         mismatch_blood_draw_found_cnt = mismatch_blood_draw.shape[0]
 
@@ -641,8 +642,8 @@ class UploadReceiptView(LoginRequiredMixin, View):
 
             try:
                 filename = fs.save(receipt_file.name.split(
-                    '.')[0] + time.strftime("%d%m%Y-%H%M%S") + '.' + \
-                        receipt_file.name.split('.')[1], receipt_file)
+                    '.')[0] + time.strftime("%d%m%Y-%H%M%S") + '.' +
+                    receipt_file.name.split('.')[1], receipt_file)
             except Exception as e:
                 logger.error(f'Something went wrong in storing Receipt \
                     file in Uploads folder - {e}')
@@ -668,7 +669,7 @@ class UploadReceiptView(LoginRequiredMixin, View):
             # Dropping duplicates in file comparing with ReceiptRecords table
             receipt_barcode = ReceiptRecords.objects.\
                 values_list('Barcode', flat=True)[
-                ::1]
+                    ::1]
             df = df[~df['Participant ID'].isin(receipt_barcode)]
 
             # Bulk uploading to ReceiptRecords table
@@ -680,7 +681,8 @@ class UploadReceiptView(LoginRequiredMixin, View):
                         DateTimeTaken=make_aware(record['DateTime Taken']),
                         SampleId=record['Sample ID'],
                         TissueSubType=record['Tissue sub-type'],
-                        ReceivedDateTime=make_aware(record['Received DateTime']),
+                        ReceivedDateTime=make_aware(
+                            record['Received DateTime']),
                         Volume=record['Volume'],
                         VolumeUnit=record['Volume Unit'],
                         Condition=record['Condition'],
@@ -723,7 +725,7 @@ class UploadProcessedView(LoginRequiredMixin, View):
         :param request: request object
         :return: HttpResponse object
         """
-        return render(request, self.template_name, {'site_held_choices':site_held_choices})
+        return render(request, self.template_name, {'site_held_choices': site_held_choices})
 
     def post(self, request, *args, **kwargs):
         """
@@ -755,7 +757,7 @@ class UploadProcessedView(LoginRequiredMixin, View):
 
         # Validating Sample Type column
         if set(df['Sample Type'].unique().tolist()) != \
-            set(['RBC', 'Plasma', 'BuffyCoat', 'Whole Blood']):
+                set(['RBC', 'Plasma', 'BuffyCoat', 'Whole Blood']):
             return JsonResponse({
                 'status': 412,
                 'message': 'Sample Type column values are not having \
@@ -769,7 +771,7 @@ class UploadProcessedView(LoginRequiredMixin, View):
         try:
             parent_df['Processed Date Time'].apply(
                 lambda x: datetime.datetime.strptime(
-                x, "%d/%m/%Y %H:%M"))
+                    x, "%d/%m/%Y %H:%M"))
         except:
             return JsonResponse({
                 'status': 412,
@@ -780,7 +782,7 @@ class UploadProcessedView(LoginRequiredMixin, View):
         try:
             parent_df['Received DateTime'].apply(
                 lambda x: datetime.datetime.strptime(
-                x, "%d/%m/%Y %H:%M"))
+                    x, "%d/%m/%Y %H:%M"))
         except:
             return JsonResponse({
                 'status': 412,
@@ -794,8 +796,8 @@ class UploadProcessedView(LoginRequiredMixin, View):
                 'message': 'Volume Unit column with Parent ID, \
                     values are not an uL'})
 
-        if True in (df[df['Parent ID'] != \
-            'No Parent']['Volume Unit'] != 'ul').tolist():
+        if True in (df[df['Parent ID'] !=
+                       'No Parent']['Volume Unit'] != 'ul').tolist():
             return JsonResponse({
                 'status': 412,
                 'message': 'Volume Unit column with no Parent ID, \
@@ -809,8 +811,8 @@ class UploadProcessedView(LoginRequiredMixin, View):
                     values are not an Whole Blood'})
 
         if set(df[df['Parent ID'] != 'No Parent']
-                ['Sample Type'].unique().tolist()) != \
-                    set(['RBC', 'Plasma', 'BuffyCoat']):
+               ['Sample Type'].unique().tolist()) != \
+                set(['RBC', 'Plasma', 'BuffyCoat']):
             return JsonResponse({
                 'status': 412,
                 'message': 'Sample Type column with no Parent ID, \
@@ -855,23 +857,23 @@ class UploadProcessedView(LoginRequiredMixin, View):
         manifest_db_df['Processed Date Time'] = \
             manifest_db_df['Processed Date Time'].apply(
                 lambda x: datetime.datetime.strptime(
-            x, "%d/%m/%Y %H:%M"))
+                    x, "%d/%m/%Y %H:%M"))
         manifest_db_df['CollectionDateTime'] = \
             manifest_db_df['CollectionDateTime'].apply(
                 lambda x: datetime.datetime.strftime(
-            x, "%d/%m/%Y %H:%M"))
+                    x, "%d/%m/%Y %H:%M"))
         manifest_db_df['CollectionDateTime'] = \
             manifest_db_df['CollectionDateTime'].apply(
                 lambda x: datetime.datetime.strptime(
-            x, "%d/%m/%Y %H:%M"))
+                    x, "%d/%m/%Y %H:%M"))
 
         manifest_db_df['greaterthan_36hrs'] = ''
         for index, row in manifest_db_df.iterrows():
             manifest_db_df.at[index, 'greaterthan_36hrs'] = True if (
-                manifest_db_df['Processed Date Time'].iloc[index] - \
-                    manifest_db_df['CollectionDateTime'].iloc[index]).\
-                        total_seconds() // (settings.PROCESSING_HOURS * 100) \
-                            > settings.PROCESSING_HOURS else False
+                manifest_db_df['Processed Date Time'].iloc[index] -
+                manifest_db_df['CollectionDateTime'].iloc[index]).\
+                total_seconds() // (settings.PROCESSING_HOURS * 100) \
+                > settings.PROCESSING_HOURS else False
 
         if request.GET.get('confirm', '') == 'True':
             # storing file
@@ -880,8 +882,8 @@ class UploadProcessedView(LoginRequiredMixin, View):
 
             try:
                 filename = fs.save(processed_file.name.split(
-                    '.')[0] + time.strftime("%d%m%Y-%H%M%S") + '.' + \
-                        processed_file.name.split('.')[1], processed_file)
+                    '.')[0] + time.strftime("%d%m%Y-%H%M%S") + '.' +
+                    processed_file.name.split('.')[1], processed_file)
             except Exception as e:
                 logger.error(f'Something went wrong in storing Processed \
                     file in Uploads folder - {e}')
@@ -907,7 +909,7 @@ class UploadProcessedView(LoginRequiredMixin, View):
             # Dropping duplicates in file comparing with ProcessedReport table
             processed_barcode = ProcessedReport.objects.\
                 values_list('Barcode', flat=True)[
-                ::1]
+                    ::1]
             parent_df = parent_df[~parent_df['Participant ID'].isin(
                 processed_barcode)]
 
@@ -926,7 +928,8 @@ class UploadProcessedView(LoginRequiredMixin, View):
                         ParentId=ReceiptRecords.objects.filter(
                             Barcode=record['Participant ID']).first().SampleId,
                         TissueSubType=record['Tissue Sub-Type'],
-                        ReceivedDateTime=make_aware(record['Received DateTime']),
+                        ReceivedDateTime=make_aware(
+                            record['Received DateTime']),
                         ProcessedDateTime=make_aware(
                             record['Processed Date Time']),
                         Volume=record['Volume'],
@@ -946,7 +949,7 @@ class UploadProcessedView(LoginRequiredMixin, View):
             # ProcessedAliquots table
             processed_aliquots_barcode = ProcessedAliquots.objects.\
                 values_list('AliquotId', flat=True)[
-                ::1]
+                    ::1]
             child_df = child_df[~child_df['Sample ID'].isin(
                 processed_aliquots_barcode)]
 
@@ -954,8 +957,8 @@ class UploadProcessedView(LoginRequiredMixin, View):
             try:
                 model_instances = [
                     ProcessedAliquots(
-                        SampleType=dict((v, k) for k, v in sample_type.items()).\
-                            get(record["Sample Type"]),
+                        SampleType=dict((v, k) for k, v in sample_type.items()).
+                        get(record["Sample Type"]),
                         Volume=record['Volume'],
                         VolumeUnit=record['Volume Unit'],
                         PostProcessingStatus=0,
@@ -972,7 +975,7 @@ class UploadProcessedView(LoginRequiredMixin, View):
 
             manifest_db_df = \
                 manifest_db_df[manifest_db_df['Participant ID'].isin(
-                parent_df['Participant ID'].tolist())]
+                    parent_df['Participant ID'].tolist())]
 
             # Updating the Bloodsamples State based on processing time to
             # PROCESSED_ON_TIME or PROCESSED_NOT_ON_TIME
@@ -993,7 +996,7 @@ class UploadProcessedView(LoginRequiredMixin, View):
             # UNABLE_TO_PROCESS
             try:
                 for index, row in parent_df[parent_df['No. of Children'] < 6].\
-                    iterrows():
+                        iterrows():
                     blood_samples = BloodSample.objects.filter(
                         Barcode=row['Participant ID'])
                     for sample in blood_samples:
@@ -1050,4 +1053,3 @@ class UploadProcessedView(LoginRequiredMixin, View):
                 parent_df['No. of Children'] < 6].count(),
             "barcode_existance": receipt_barcode_existance,
         })
-

@@ -135,7 +135,7 @@ $(document).ready(function(){
 
 
 		$.ajax({
-            url: '/review?firstOpen=True&type='+$(this).data('review')+'&day='+$('.activeDay').data('activeday'),
+            url: '/review?firstOpen=False&type='+$(this).data('review')+'&day='+$('.activeDay').data('activeday'),
             type: 'get',
             success: function(data){
                 $('.modal-body').html(data);

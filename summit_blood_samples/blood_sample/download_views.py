@@ -133,7 +133,7 @@ class DownloadBloodSampleView(LoginRequiredMixin, View):
         if date_start == '':
             last_month = datetime.datetime.strptime(
                 date_end, "%Y-%m-%d") - \
-                    dateutil.relativedelta.relativedelta(months=1)
+                dateutil.relativedelta.relativedelta(months=1)
             date_start = last_month.strftime("%Y-%m-%d")
             filter_options['DF'][0] = date_start
 
@@ -197,7 +197,8 @@ class DownloadBloodSampleView(LoginRequiredMixin, View):
         if 'State' in settings_options['BS'] or \
             'Site' in settings_options['MR'] or \
                 'Visit' in settings_options['MR'] or \
-                    'SiteHeld' in settings_options['PR']:
+            'Clinic' in settings_options['RR'] or \
+                'SiteHeld' in settings_options['PR']:
             try:
                 ind_state = headers.index('State')
                 state_status_choice = True
@@ -213,6 +214,11 @@ class DownloadBloodSampleView(LoginRequiredMixin, View):
                 visit_status = True
             except:
                 visit_status = False
+            try:
+                ind_clinic = headers.index('Clinic')
+                clinic_status = True
+            except:
+                clinic_status = False
             try:
                 ind_site_held = headers.index('SiteHeld')
                 site_held_status = True
@@ -231,8 +237,11 @@ class DownloadBloodSampleView(LoginRequiredMixin, View):
                     data[row][ind_site] = site_choices[data[row][ind_site]]
                 if visit_status and data[row][ind_visit] is not None:
                     data[row][ind_visit] = visit_choices[data[row][ind_visit]]
+                if clinic_status and data[row][ind_clinic] is not None:
+                    data[row][ind_clinic] = site_choices[data[row][ind_clinic]]
                 if site_held_status and data[row][ind_site_held] is not None:
-                    data[row][ind_site_held] = site_held_choices[data[row][ind_site_held]]
+                    data[row][ind_site_held] = site_held_choices[data[row]
+                                                                 [ind_site_held]]
                 data[row] = tuple(data[row])
 
         # display names of columns that display in download tab as headers
@@ -250,7 +259,7 @@ class DownloadBloodSampleView(LoginRequiredMixin, View):
             'ParentId': 'Parent id',
             'ProcessedDateTime': 'Processed Date Time',
             'NumberOfChildren': 'Number Of Children',
-            'SiteHeld':'Site held',
+            'SiteHeld': 'Site held',
             'id': 'Id',
         }
 
@@ -345,7 +354,7 @@ class DownloadAliquotsView(LoginRequiredMixin, View):
             aliquots_data = 'No Records to Display'
 
         headers = ('Parent id', 'Sample type', 'Volume',
-                   'Volume unit', 'Post processing status','Aliquot Id')
+                   'Volume unit', 'Post processing status', 'Aliquot Id')
 
         # if csv download is True it works on download
         if csv and len(aliquots_data) != 0:
@@ -478,4 +487,3 @@ class FilterOptionsView(LoginRequiredMixin, View):
             'to': date_to
         }
         return render(request, self.template_name, context)
-
