@@ -1,6 +1,6 @@
 <h4 class="ml-5">Unresolved Days</h4>
     <ul class="list-group">
-        {% for records in unmatched_manifest %}
+        {% comment %} {% for records in unmatched_manifest %}
         <li class="list-group-item d-flex justify-content-between align-items-center">Day - {{records}} Unmatched records with blood samples and manifest<a data-activeday="{{records}}" style="cursor:pointer;" class="btn btn-sm btn-go edit-sample">GO</a>
         {% endfor %}
         {% for records in un_manifest_dates %}
@@ -14,6 +14,9 @@
         {% endfor %}
         {% for records in un_processed_dates %}
         <li class="list-group-item d-flex justify-content-between align-items-center">Day - {{records}} Unmatched records with receipt and processed<a data-activeday="{{records}}" style="cursor:pointer;" class="btn btn-sm btn-go edit-receipt">GO</a>
+        {% endfor %} {% endcomment %}
+        {% for records in bloodsample_active_dates %}
+        <li class="list-group-item d-flex justify-content-between align-items-center">Day - {{records}} Unresolved blood sample records<a data-activeday="{{records}}" style="cursor:pointer;" class="btn btn-sm btn-go upload-home">GO</a>
         {% endfor %}
         </li>
     </ul>
@@ -21,6 +24,17 @@
 <script>
   $(document).ready(function(){
     $("[rel='tooltip']").tooltip();
+    $('.upload-home').click(function() {
+        $('#nav-upload-tab').click();
+        $.ajax({
+            url: '/upload?day='+$(this).data('activeday'),
+            type: 'get',
+            success: function(data){
+                $('#upload-container').html(data);
+                $('.modal-loader').hide();
+            }
+        });
+    });
     $('.edit-sample').click(function() {
         $('.modal-loader').show();
         $.ajax({
