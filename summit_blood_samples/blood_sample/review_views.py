@@ -218,7 +218,7 @@ class ReviewView(LoginRequiredMixin, View):
                 FROM blood_sample_bloodsample as bs
                 left join blood_sample_manifestrecords as mr on \
                     bs."Barcode" = mr."Barcode"
-                WHERE mr."id" is null AND bs."CreatedAt" BETWEEN '{}' AND '{}'
+                WHERE mr."id" is null AND bs."State"='0' AND bs."CreatedAt" BETWEEN '{}' AND '{}'
             '''.format(
                 day.replace(hour=0, minute=0, second=0, microsecond=0),
                     day.replace(
@@ -685,15 +685,15 @@ class UnmachedManifestView(LoginRequiredMixin, View):
                 query_results = BloodSample.objects.filter(
                     CreatedAt__range=(day.replace(hour=0, minute=0,
                                                   second=0, microsecond=0), day.replace(
-                        hour=23, minute=59, second=59, microsecond=0))
+                        hour=23, minute=59, second=59, microsecond=0)), State=0
                 ).exclude(Barcode__iregex=r'(' + '|'.join(mf_barcodes)
-                          + ')').exclude(State=1).order_by('Barcode')
+                          + ')').order_by('Barcode')
             else:
                 query_results = BloodSample.objects.filter(
                     CreatedAt__range=(day.replace(hour=0, minute=0,
                                                   second=0, microsecond=0), day.replace(
-                        hour=23, minute=59, second=59, microsecond=0))
-                ).exclude(State=1).order_by('Barcode')
+                        hour=23, minute=59, second=59, microsecond=0)), State=0
+                ).order_by('Barcode')
 
             paginator = Paginator(query_results, settings.ITEMS_PER_PAGE)
 

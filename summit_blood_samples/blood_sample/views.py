@@ -43,7 +43,7 @@ class HomeTabView(LoginRequiredMixin, View):
             FROM blood_sample_bloodsample as bs
             left join blood_sample_manifestrecords as mr on \
                 bs."Barcode" = mr."Barcode"
-            WHERE mr."id" is null and bs."State"!='1'
+            WHERE mr."id" is null and bs."State"='0'
             ORDER BY DATE(bs."CreatedAt")
         '''
         with connection.cursor() as cursor:
