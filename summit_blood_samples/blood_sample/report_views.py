@@ -162,7 +162,7 @@ class UnresolvedChartView(LoginRequiredMixin, View):
                 ) AS "UCLH"
             FROM blood_sample_manifestrecords as mr
             LEFT JOIN blood_sample_bloodsample bs on \
-                "bs"."CohortId" = mr."CohortId"
+                "bs"."Barcode" = mr."Barcode"
             WHERE bs.id is null
             GROUP BY DATE(mr."CollectionDateTime") \
                 order by DATE(mr."CollectionDateTime")

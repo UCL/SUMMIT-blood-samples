@@ -42,7 +42,7 @@ class HomeTabView(LoginRequiredMixin, View):
                 to_char(bs."CreatedAt",'Month DD, YYYY' ) as dates
             FROM blood_sample_bloodsample as bs
             left join blood_sample_manifestrecords as mr on \
-                bs."CohortId" = mr."CohortId"
+                bs."Barcode" = mr."Barcode"
             WHERE mr."id" is null and bs."State"!='1'
             ORDER BY DATE(bs."CreatedAt")
         '''
@@ -59,7 +59,7 @@ class HomeTabView(LoginRequiredMixin, View):
                 to_char(mr."CollectionDateTime",'Month DD, YYYY' ) as dates
             FROM "blood_sample_manifestrecords" as mr
             left join blood_sample_bloodsample as bs on \
-                bs."CohortId" = mr."CohortId"
+                bs."Barcode" = mr."Barcode"
             WHERE bs."id" is null
             ORDER BY Date(mr."CollectionDateTime") ASC
         '''
@@ -115,7 +115,7 @@ class HomeTabView(LoginRequiredMixin, View):
             inner join blood_sample_manifestrecords as mr on \
                 (rr."Barcode" = mr."Barcode")
             inner join blood_sample_bloodsample as bs on \
-                (bs."CohortId" = mr."CohortId")
+                (bs."Barcode" = mr."Barcode")
             WHERE rr."SampleId" not in (
                 SELECT
                     "pr"."ParentId"
@@ -125,7 +125,7 @@ class HomeTabView(LoginRequiredMixin, View):
                 join blood_sample_manifestrecords as mr on \
                     rr."Barcode" = mr."Barcode"
                 join blood_sample_bloodsample as bs on \
-                    bs."CohortId" = mr."CohortId"
+                    bs."Barcode" = mr."Barcode"
             );
             '''
 
@@ -146,7 +146,7 @@ class HomeTabView(LoginRequiredMixin, View):
                     inner join blood_sample_manifestrecords as mr on \
                         rr."Barcode" = mr."Barcode"
                     inner join blood_sample_bloodsample as bs on \
-                        bs."CohortId" = mr."CohortId"
+                        bs."Barcode" = mr."Barcode"
                 ) ;
             '''
 

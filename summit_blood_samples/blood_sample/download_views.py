@@ -118,7 +118,7 @@ class DownloadBloodSampleView(LoginRequiredMixin, View):
                     right join blood_sample_manifestrecords as mr on \
                         rr."Barcode" = mr."Barcode"
                     right join blood_sample_bloodsample as bs on \
-                        bs."CohortId" = mr."CohortId"
+                        bs."Barcode" = mr."Barcode"
                 """
         extra = ' WHERE '
         date_start = filter_options['DF'][0]

@@ -159,9 +159,9 @@ class ReviewView(LoginRequiredMixin, View):
                     "mr"."CollectionDateTime"
                 FROM blood_sample_manifestrecords as mr
                 INNER JOIN blood_sample_bloodsample as bs ON \
-                    ( mr."CohortId" = bs."CohortId")
-                WHERE mr."CollectionDateTime" BETWEEN '{}' AND '{}'{}
-                order by bs."CohortId";
+                    ( mr."Barcode" = bs."Barcode")
+                WHERE bs."CreatedAt" BETWEEN '{}' AND '{}'{}
+                order by bs."Barcode";
                 '''.format(day.replace(hour=0, minute=0, second=0,
                                        microsecond=0).strftime("%Y-%m-%d %H:%M:%S"),
                            day.replace(hour=23, minute=59, second=59,
@@ -217,7 +217,7 @@ class ReviewView(LoginRequiredMixin, View):
                 SELECT count(1)
                 FROM blood_sample_bloodsample as bs
                 left join blood_sample_manifestrecords as mr on \
-                    bs."CohortId" = mr."CohortId"
+                    bs."Barcode" = mr."Barcode"
                 WHERE mr."id" is null AND bs."CreatedAt" BETWEEN '{}' AND '{}'
             '''.format(
                 day.replace(hour=0, minute=0, second=0, microsecond=0),
@@ -235,7 +235,7 @@ class ReviewView(LoginRequiredMixin, View):
                 SELECT count(1)
                 FROM blood_sample_manifestrecords as mr
                 left join blood_sample_bloodsample as bs on \
-                    bs."CohortId" = mr."CohortId"
+                    bs."Barcode" = mr."Barcode"
                 WHERE mr."id" is null AND mr."CollectionDateTime" \
                     BETWEEN '{}' AND '{}'
             '''.format(
@@ -314,9 +314,9 @@ class ReviewView(LoginRequiredMixin, View):
                 inner join blood_sample_manifestrecords as mr \
                     on (rr."Barcode"=mr."Barcode")
                 inner join blood_sample_bloodsample as bs \
-                    on (bs."CohortId"=mr."CohortId")
-                WHERE rr."DateTimeTaken" BETWEEN '{}' AND '{}' {}
-                order by bs."CohortId";
+                    on (bs."Barcode"=mr."Barcode")
+                WHERE bs."CreatedAt" BETWEEN '{}' AND '{}' {}
+                order by bs."Barcode";
                 '''.format(day.replace(hour=0, minute=0, second=0,
                                        microsecond=0).strftime("%Y-%m-%d %H:%M:%S"),
                            day.replace(hour=23, minute=59, second=59,
@@ -476,7 +476,7 @@ class ReviewView(LoginRequiredMixin, View):
                         join blood_sample_manifestrecords as mr on \
                             rr."Barcode" = mr."Barcode"
                         join blood_sample_bloodsample as bs on \
-                            bs."CohortId" = mr."CohortId"
+                            bs."Barcode" = mr."Barcode"
                     """
             extra = ' WHERE '
 
@@ -496,7 +496,7 @@ class ReviewView(LoginRequiredMixin, View):
                         list(state_status.values()).index(value[0])]
                     extra += "bs.\"State\"='" + val + "' AND "
 
-            extra += """ pr.\"ProcessedDateTime\" BETWEEN '{}' AND '{}' AND """\
+            extra += """ bs.\"CreatedAt\" BETWEEN '{}' AND '{}' AND """\
                 .format(day.replace(hour=0, minute=0, second=0, microsecond=0),
                         day.replace(hour=23, minute=59, second=59, microsecond=0))
 
@@ -675,25 +675,25 @@ class UnmachedManifestView(LoginRequiredMixin, View):
         if umatched_type == 'umatched_bs':
             # Getting Unmatched records comparing Blood sample with
             # Manifest records
-            mf_cohort_ids = ManifestRecords.objects.filter(
+            mf_barcodes = ManifestRecords.objects.filter(
                 CollectionDateTime__range=(day.replace(hour=0,
                                                        minute=0, second=0, microsecond=0), day.replace(
                     hour=23, minute=59, second=59, microsecond=0))).\
-                values_list('CohortId', flat=True)[::1]
+                values_list('Barcode', flat=True)[::1]
 
-            if mf_cohort_ids:
+            if mf_barcodes:
                 query_results = BloodSample.objects.filter(
                     CreatedAt__range=(day.replace(hour=0, minute=0,
                                                   second=0, microsecond=0), day.replace(
                         hour=23, minute=59, second=59, microsecond=0))
-                ).exclude(CohortId__iregex=r'(' + '|'.join(mf_cohort_ids)
-                          + ')').exclude(State=1).order_by('CohortId')
+                ).exclude(Barcode__iregex=r'(' + '|'.join(mf_barcodes)
+                          + ')').exclude(State=1).order_by('Barcode')
             else:
                 query_results = BloodSample.objects.filter(
                     CreatedAt__range=(day.replace(hour=0, minute=0,
                                                   second=0, microsecond=0), day.replace(
                         hour=23, minute=59, second=59, microsecond=0))
-                ).exclude(State=1).order_by('CohortId')
+                ).exclude(State=1).order_by('Barcode')
 
             paginator = Paginator(query_results, settings.ITEMS_PER_PAGE)
 
@@ -722,25 +722,25 @@ class UnmachedManifestView(LoginRequiredMixin, View):
         if umatched_type == 'umatched_mf':
             # Getting Unmatched records comparing Manifest records
             # with Blood sample
-            bs_cohort_ids = BloodSample.objects.filter(
+            bs_barcodes = BloodSample.objects.filter(
                 CreatedAt__range=(day.replace(hour=0, minute=0, second=0,
                                               microsecond=0), day.replace(
                     hour=23, minute=59, second=59, microsecond=0))).\
-                values_list('CohortId', flat=True)[::1]
+                exclude(State=1).values_list('Barcode', flat=True)[::1]
 
-            if bs_cohort_ids:
+            if bs_barcodes:
                 query_results = ManifestRecords.objects.filter(
                     CollectionDateTime__range=(day.replace(hour=0, minute=0,
                                                            second=0, microsecond=0), day.replace(
                         hour=23, minute=59, second=59, microsecond=0))
-                ).exclude(CohortId__iregex=r'(' + '|'.join(bs_cohort_ids) +
-                          ')').order_by('CohortId')
+                ).exclude(Barcode__iregex=r'(' + '|'.join(bs_barcodes) +
+                          ')').order_by('Barcode')
             else:
                 query_results = ManifestRecords.objects.filter(
                     CollectionDateTime__range=(day.replace(hour=0, minute=0,
                                                            second=0, microsecond=0), day.replace(
                         hour=23, minute=59, second=59, microsecond=0))
-                ).order_by('CohortId')
+                ).order_by('Barcode')
 
             if request.GET.get('Room', ''):
                 query_results = query_results.filter(
@@ -896,11 +896,11 @@ class UnmachedReceiptView(LoginRequiredMixin, View):
                 mr."Comments" as "ManifestComments"
             FROM blood_sample_manifestrecords as mr
             INNER JOIN blood_sample_bloodsample as bs \
-                ON ( mr."CohortId" = bs."CohortId")
+                ON ( mr."Barcode" = bs."Barcode")
             WHERE mr."Barcode" not in \
                 (select "Barcode" from blood_sample_receiptrecords)
                     AND mr."CollectionDateTime" BETWEEN '{}' AND '{}'{}
-            order by bs."CohortId";
+            order by bs."Barcode";
             '''.format(day.replace(hour=0, minute=0, second=0, microsecond=0)
                        .strftime("%Y-%m-%d %H:%M:%S"),
                        day.replace(hour=23, minute=59, second=59,
@@ -937,7 +937,7 @@ class UnmachedReceiptView(LoginRequiredMixin, View):
                         "bs"."Barcode"
                     FROM blood_sample_manifestrecords as mr
                     INNER JOIN blood_sample_bloodsample as bs ON \
-                        ( mr."CohortId" = bs."CohortId" )
+                        ( mr."Barcode" = bs."Barcode" )
                 )
                 AND rr."DateTimeTaken" BETWEEN '{}' AND '{}'{}
             order by rr."Barcode";
@@ -1076,7 +1076,7 @@ class UnmachedProcessedView(LoginRequiredMixin, View):
                     inner join blood_sample_manifestrecords as mr on \
                         rr."Barcode" = mr."Barcode"
                     inner join blood_sample_bloodsample as bs on \
-                        bs."CohortId" = mr."CohortId"
+                        bs."Barcode" = mr."Barcode"
                 ) AND pr."ProcessedDateTime" BETWEEN '{}' AND  '{}'{}
             order by pr."ParentId";
             '''.format(day.replace(hour=0, minute=0, second=0,
@@ -1129,7 +1129,7 @@ class UnmachedProcessedView(LoginRequiredMixin, View):
             inner join blood_sample_manifestrecords as mr on \
                 rr."Barcode"=mr."Barcode"
             inner join blood_sample_bloodsample as bs on \
-                bs."CohortId"=mr."CohortId"
+                bs."Barcode"=mr."Barcode"
             WHERE rr."SampleId" not in (
                 SELECT
                     "pr"."ParentId"
@@ -1139,10 +1139,10 @@ class UnmachedProcessedView(LoginRequiredMixin, View):
                 join blood_sample_manifestrecords as mr on \
                     rr."Barcode"=mr."Barcode"
                 join blood_sample_bloodsample as bs on \
-                    bs."CohortId" = mr."CohortId"
+                    bs."Barcode" = mr."Barcode"
             )
             AND rr."ReceivedDateTime" BETWEEN '{}' AND '{}'{}
-            order by bs."CohortId";
+            order by bs."Barcode";
             '''.format(day.replace(hour=0, minute=0, second=0,
                                    microsecond=0).strftime("%Y-%m-%d %H:%M:%S"),
                        day.replace(hour=23, minute=59, second=59,
