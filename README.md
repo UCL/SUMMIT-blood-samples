@@ -157,7 +157,7 @@ sudo systemctl start summit-blood-samples
 ```
 
 ----
-### Local dev setup
+### Original dev setup
 Use `local.yml` rather than `production.yml` for commands.
 
 `$ docker-compose -f local.yml up --build`
@@ -175,6 +175,33 @@ In fixtures.json change the "domain": "127.0.0.1:8000" to your server IP 127.0.0
 #### Database migrations
 `$ docker-compose -f local.yml run --rm django python manage.py makemigrations`
 
+----
+### UCL developer setup
+
+The newer developer setup is closer to production, and uses nginx but without HTTPS.
+
+Edit settings in `.envs/.ucldev` as required. The defaults should work, but you might want to change the email address in `.pgadmin`!
+
+To build:
+`$ docker-compose -f ucldev.yml up --build`
+
+The first time you run you'll need to load fixtures and configure an initial user account for the site.
+In another shell, run:
+
+```sh
+docker-compose -f ucldev.yml run --rm django python manage.py loaddata fixtures.json
+docker-compose -f ucldev.yml run --rm django python manage.py createsuperuser
+docker-compose -f ucldev.yml run --rm django python manage.py shell
+```
+
+Then in the Python shell that launches:
+
+```python
+from django.contrib.auth.models import User
+from manage_users.models import *
+ur = UserRoles(user_id=User.objects.get(), role_id=ManageRoles.objects.get(pk=1))
+ur.save()
+```
 
 ----
 
