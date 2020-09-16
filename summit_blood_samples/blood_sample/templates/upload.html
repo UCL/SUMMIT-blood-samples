@@ -13,7 +13,7 @@
 
 		<div class="step-content">
 			<button type="button" style="margin: 0px 43px;" class="btn custom-btn" id="bloodSample" >Blood Sample</button>
-			<span>{{ blood_samples_cnt|intcomma  }} number of new blood samples are uploaded</span>
+			<span>{{ blood_samples_imported|intcomma  }} number of new blood samples are uploaded</span>
 			<button type="button" style="margin: 0px 43px;" class="btn custom-btn reviewBtn" data-review="blood_sample" {% if blood_samples_cnt != 0 and active|date:"d b" != todays_date %}enabled{% elif blood_samples_imported == 0 %}disabled{% endif %}>Review</button>
 		</div>
 	</div>
@@ -27,7 +27,7 @@
 
 		<div class="step-content">
 		<button type="button" style="margin: 0px 43px;" class="btn custom-btn" id="manifest" {% if blood_samples_cnt != 0 and active|date:"d b" != todays_date %}enabled{% elif blood_samples_imported != 0 and active|date:"d b" != todays_date %}enabled{% elif blood_samples_imported == 0 or not reviewed %}disabled{% endif %}>Manifest</button>
-		<span>{{no_of_files_uploaded|intcomma}} file(s) are uploaded with {{ manifest_loaded_count|intcomma }} number of new manifest records</span>
+		<span>{{no_of_files_uploaded|intcomma}} file(s) are uploaded with {{ manifest_imported|intcomma }} number of new manifest records</span>
 		<button type="button" style="margin: 0px 43px;" class="btn custom-btn reviewBtn" data-review="manifest" {% if manifest_loaded_count != 0 and active|date:"d b" != todays_date %}enabled{% elif manifest_imported == 0 or not reviewed %}disabled{% endif %}>Review</button>
 		</div>
 	</div>
@@ -41,7 +41,7 @@
 
 		<div class="step-content">
 			<button type="button" id="receipt" style="margin: 0px 43px;" class="btn custom-btn" {% if manifest_loaded_count != 0 and active|date:"d b" != todays_date %}enabled{% elif manifest_imported == 0 or not reviewed %}disabled{% endif %}>Receipt</button>
-			<span>{{ receipt_loaded_cnt|intcomma }} number of blood samples are received</span>
+			<span>{{ receipt_imported|intcomma }} number of blood samples are received</span>
 			<button type="button" style="margin: 0px 43px;" class="btn custom-btn reviewBtn" data-review="receipt" {% if receipt_loaded_cnt != 0 and active|date:"d b" != todays_date %}enabled{% elif receipt_imported == 0 or not reviewed %}disabled{% endif %}>Review</button>
 		</div>
 	</div>
@@ -53,7 +53,7 @@
 
 		<div class="step-content">
 			<button type="button" id="processed" style="margin: 0px 43px;" class="btn custom-btn" {% if receipt_loaded_cnt != 0 and active|date:"d b" != todays_date %}enabled{% elif receipt_imported == 0 or not reviewed %}disabled{% endif %}>Processed</button>
-			<span>{{ processed_loaded|intcomma }} number of blood samples are processed</span>
+			<span>{{ processed_imported|intcomma }} number of blood samples are processed</span>
 			<button type="button" style="margin: 0px 43px;" class="btn custom-btn reviewBtn" data-review="processed" {% if processed_loaded != 0 %}enabled{% elif processed_imported != 0 and active|date:"d b" != todays_date %}enabled{% elif processed_imported == 0 or not reviewed %}disabled{% endif %}>Review</button>
 		</div>
 	</div>
