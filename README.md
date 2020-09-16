@@ -180,13 +180,20 @@ In fixtures.json change the "domain": "127.0.0.1:8000" to your server IP 127.0.0
 
 The newer developer setup is closer to production, and uses nginx but without HTTPS.
 
-Edit settings in `.envs/.ucldev` as required. The defaults should work, but you might want to change the email address in `.pgadmin`!
+Edit settings in `.envs/.ucldev` as required.
+The defaults should work, but you might want to change the email address in `.pgadmin`!
+The pgadmin password is also set there.
 
-To build:
-`$ docker-compose -f ucldev.yml up --build`
+To build, from the `summit_blood_samples` folder in a terminal run:
+
+`docker-compose -f ucldev.yml up --build`
+
+This will bring up all containers and start the app running, showing logs in the terminal window.
+You can kill the process (Ctrl-C) to stop the server, and re-run the above command to restart with new code changes.
+Data will persist across restarts so long as you don't remove the Docker volumes.
 
 The first time you run you'll need to load fixtures and configure an initial user account for the site.
-In another shell, run:
+In another terminal, run:
 
 ```sh
 docker-compose -f ucldev.yml run --rm django python manage.py loaddata fixtures.json
@@ -203,12 +210,20 @@ ur = UserRoles(user_id=User.objects.get(), role_id=ManageRoles.objects.get(pk=1)
 ur.save()
 ```
 
+You should now be able to access the site at http://localhost:8000/ and log in with the superuser credentials you set.
+
+For pgadmin visit http://localhost:8000/pgadmin4/
+
 ----
 
 ### Further docs
 
 [cookiecutter Django on docker](http://cookiecutter-django.readthedocs.io/en/latest/deployment-with-docker.html)
+
 [Postgres on docker](https://docs.docker.com/engine/examples/postgresql_service/)
+
 [pgadmin on docker](https://www.pgadmin.org/docs/pgadmin4/latest/container_deployment.html)
+
 [nginx on docker @ nginx](https://docs.nginx.com/nginx/admin-guide/installing-nginx/installing-nginx-docker/)
+
 [nginx on docker @ docker](https://www.docker.com/blog/how-to-use-the-official-nginx-docker-image/)
