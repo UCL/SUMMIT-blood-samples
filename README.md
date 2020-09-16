@@ -1,22 +1,60 @@
 # SUMMIT-blood-samples
 
-## Deploy
-
-### Requirements
+## Requirements
 * [docker-engine](https://docs.docker.com/engine/install/centos/)
 * [docker-compose](https://docs.docker.com/compose/install/)
 
-### Source
-Deploy from **master** branch
-
-### Stack
+## Stack
 * Django web app
 * PostgreSQL database
 * nginx reverse proxy
 * pgAdmin
 
-### Setup
-#### Config
+## UCL developer setup
+
+The newer developer setup is closer to production, and uses nginx but without HTTPS.
+
+Edit settings in `.envs/.ucldev` as required.
+The defaults should work, but you might want to change the email address in `.pgadmin`!
+The pgadmin password is also set there.
+
+To build, from the `summit_blood_samples` folder in a terminal run:
+
+`docker-compose -f ucldev.yml up --build`
+
+This will bring up all containers and start the app running, showing logs in the terminal window.
+You can kill the process (Ctrl-C) to stop the server, and re-run the above command to restart with new code changes.
+Data will persist across restarts so long as you don't remove the Docker volumes.
+
+The first time you run you'll need to load fixtures and configure an initial user account for the site.
+In another terminal, run:
+
+```sh
+docker-compose -f ucldev.yml run --rm django python manage.py loaddata fixtures.json
+docker-compose -f ucldev.yml run --rm django python manage.py createsuperuser
+docker-compose -f ucldev.yml run --rm django python manage.py shell
+```
+
+Then in the Python shell that launches:
+
+```python
+from django.contrib.auth.models import User
+from manage_users.models import *
+ur = UserRoles(user_id=User.objects.get(), role_id=ManageRoles.objects.get(pk=1))
+ur.save()
+```
+
+You should now be able to access the site at http://localhost:8000/ and log in with the superuser credentials you set.
+
+For pgadmin visit http://localhost:8000/pgadmin4/
+
+----
+## Production setup
+
+### Source
+Deploy from **master** branch
+
+### Config
 
 ***Production* environment**
 `$ mkdir -p summit_blood_samples/.envs/.production`
@@ -90,9 +128,6 @@ Get the full stack up & running from inside the *summit_blood_samples* dir with
 `$ sudo docker-compose -f production.yml up --build`
 Then open a new terminal to initialise the database as follows
 
-##### Run migrations
-
-`$ sudo docker-compose -f production.yml run --rm django python manage.py migrate`
 
 ##### Initial data
 The initial data that needs to be loaded includes the user Roles and the site's FQDN
@@ -117,8 +152,8 @@ $ docker-compose -f production.yml run --rm django python manage.py shell
 > ur.save()
 ```
 
-##### pgAdmin
-The pgAdmin interface is available on port **2345**
+#### pgAdmin
+The pgAdmin interface is available at `/pgadmin4/` on the server.
 
 Login with the *PGADMIN_DEFAULT_EMAIL* & *PGADMIN_DEFAULT_PASSWORD* credentials set above.
 
@@ -139,13 +174,14 @@ from inside the *summit_blood_samples* dir:
 
 ----
 ### Tail logs
-`$ sudo docker-compose -f production.yml logs -f`
+`$ sudo docker-compose -f production.yml logs --tail=20`
 
 ----
 ### Clean up
 `$ sudo docker-compose -f production.yml down --remove-orphans`
 
-Add the *-v* flag at the end of the above statement to remove all volumes as well, USE WITH EXTREME CAUTION!
+Add the *-v* flag at the end of the above statement to remove all Docker volumes as well. USE WITH EXTREME CAUTION!
+This deletes all data.
 
 ----
 ### Automatic running with systemd
@@ -157,7 +193,7 @@ sudo systemctl start summit-blood-samples
 ```
 
 ----
-### Original dev setup
+## Original dev setup
 Use `local.yml` rather than `production.yml` for commands.
 
 `$ docker-compose -f local.yml up --build`
@@ -176,47 +212,8 @@ In fixtures.json change the "domain": "127.0.0.1:8000" to your server IP 127.0.0
 `$ docker-compose -f local.yml run --rm django python manage.py makemigrations`
 
 ----
-### UCL developer setup
 
-The newer developer setup is closer to production, and uses nginx but without HTTPS.
-
-Edit settings in `.envs/.ucldev` as required.
-The defaults should work, but you might want to change the email address in `.pgadmin`!
-The pgadmin password is also set there.
-
-To build, from the `summit_blood_samples` folder in a terminal run:
-
-`docker-compose -f ucldev.yml up --build`
-
-This will bring up all containers and start the app running, showing logs in the terminal window.
-You can kill the process (Ctrl-C) to stop the server, and re-run the above command to restart with new code changes.
-Data will persist across restarts so long as you don't remove the Docker volumes.
-
-The first time you run you'll need to load fixtures and configure an initial user account for the site.
-In another terminal, run:
-
-```sh
-docker-compose -f ucldev.yml run --rm django python manage.py loaddata fixtures.json
-docker-compose -f ucldev.yml run --rm django python manage.py createsuperuser
-docker-compose -f ucldev.yml run --rm django python manage.py shell
-```
-
-Then in the Python shell that launches:
-
-```python
-from django.contrib.auth.models import User
-from manage_users.models import *
-ur = UserRoles(user_id=User.objects.get(), role_id=ManageRoles.objects.get(pk=1))
-ur.save()
-```
-
-You should now be able to access the site at http://localhost:8000/ and log in with the superuser credentials you set.
-
-For pgadmin visit http://localhost:8000/pgadmin4/
-
-----
-
-### Further docs
+## Further docs
 
 [cookiecutter Django on docker](http://cookiecutter-django.readthedocs.io/en/latest/deployment-with-docker.html)
 
