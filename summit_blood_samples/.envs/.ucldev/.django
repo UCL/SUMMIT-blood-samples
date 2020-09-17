@@ -1,0 +1,9 @@
+# General
+# -----------------------------------------------
+USE_DOCKER=yes
+IPYTHONDIR=/app/.ipython
+DJANGO_SETTINGS_MODULE=config.settings.ucldev
+DJANGO_SECRET_KEY='my-django-secret-key'
+DJANGO_ALLOWED_HOSTS="*"
+DJANGO_SECURE_SSL_REDIRECT=false
+DJANGO_DEFAULT_FROM_EMAIL='Summit Blood Samples <rsd-notifications@ucl.ac.uk>'

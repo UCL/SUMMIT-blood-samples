@@ -12,8 +12,8 @@ WorkingDirectory=/home/cceacoo/SUMMIT-blood-samples/summit_blood_samples
 
 ExecStart=/usr/local/bin/docker-compose -f production.yml up -d
 ExecStop=/usr/local/bin/docker-compose -f production.yml down
-ExecReload=/usr/local/bin/docker-compose -f production.yml down
-ExecReload=/usr/local/bin/docker-compose -f production.yml up -d --build
+ExecReload=/usr/local/bin/docker-compose -f production.yml build
+ExecReload=/usr/local/bin/docker-compose -f production.yml up -d
 
 [Install]
 WantedBy=multi-user.target

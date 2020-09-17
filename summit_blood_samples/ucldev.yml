@@ -1,0 +1,79 @@
+version: '3.8'
+
+volumes:
+  production_postgres_data:
+  production_postgres_data_backups:
+  staticfiles:
+  uploads:
+  pgadmin_data:
+
+services:
+  django:
+    build:
+      context: .
+      dockerfile: ./compose/production/django/Dockerfile
+    image: summit_blood_samples_production_django
+    expose:
+      - 5000
+    depends_on:
+      - postgres
+    env_file:
+      - ./.envs/.ucldev/.django
+      - ./.envs/.ucldev/.postgres
+    volumes:
+      - type: volume
+        source: uploads
+        target: /uploads
+      - type: volume
+        source: staticfiles
+        target: /static
+    command: /start
+
+  postgres:
+    build:
+      context: .
+      dockerfile: ./compose/production/postgres/Dockerfile
+    image: summit_blood_samples_production_postgres
+    volumes:
+      - type: volume
+        source: production_postgres_data
+        target: /var/lib/postgresql/data
+      - type: volume
+        source: production_postgres_data_backups
+        target: /backups
+    env_file:
+      - ./.envs/.ucldev/.postgres
+
+  pgadmin:
+    build:
+      context: .
+      dockerfile: ./compose/production/pgadmin/Dockerfile
+    image: summit_blood_samples_production_pgadmin
+    expose:
+      - 80
+    volumes:
+      - type: volume
+        source: pgadmin_data
+        target: /var/lib/pgadmin
+    env_file:
+      - ./.envs/.ucldev/.pgadmin
+    depends_on:
+      - postgres
+
+  nginx:
+    build:
+      context: .
+      dockerfile: ./compose/production/nginx/Dockerfile
+    image: summit_blood_samples_production_nginx
+    ports:
+      - "8000:80"
+    volumes:
+      - type: bind
+        source: ./compose/production/nginx/ucldev.conf.d
+        target: /etc/nginx/conf.d
+      - type: volume
+        source: staticfiles
+        target: /static
+    depends_on:
+      - django
+      - pgadmin
