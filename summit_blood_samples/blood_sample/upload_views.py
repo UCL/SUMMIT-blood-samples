@@ -246,11 +246,16 @@ class UploadBloodSampleView(LoginRequiredMixin, View):
                     number of records compared to database records'
             })
 
+        # Checking no duplicatesId columns
+        if df.duplicated(subset=['Id']).any():
+            return JsonResponse({
+                'status': 412,
+                'message': 'Id column has duplicates'
+            })
+
         # CreatedAt column validation
         try:
-            df['CreatedAt'] = df['CreatedAt'].apply(lambda x:
-                                                    datetime.datetime.strptime(
-                                                        x, "%Y-%m-%dT%H:%M:%SZ"))
+            df['CreatedAt'] =pd.to_datetime(df['CreatedAt'])
         except:
             return JsonResponse({
                 'status': 412,
@@ -312,7 +317,7 @@ class UploadBloodSampleView(LoginRequiredMixin, View):
                         AppointmentId=record['AppointmentId'],
                         SiteNurseEmail=record['User'],
                         ImportId=ImportId,
-                        CreatedAt=make_aware(record['CreatedAt']),
+                        CreatedAt=record['CreatedAt'],
                         State=0 if re.match(
                             r"^(E[0-9]{6})+$", record['Barcode']) else 1,
                     ) for index, record in df.iterrows()
