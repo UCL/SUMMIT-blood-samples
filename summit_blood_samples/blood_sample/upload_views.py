@@ -436,10 +436,10 @@ class UploadManifestView(LoginRequiredMixin, View):
         if not manifest_db_df.shape == (0, 0):
             # Dropping duplicates in the file comparing with the
             # manifest table records
-            unique_df = df[~df.Barcode.isin(manifest_db_df.Barcode.values) &
-                           ~df.CohortId.isin(
-                manifest_db_df.CohortId.values) & ~df.CollectionDateTime.
-                isin(manifest_db_df.CollectionDateTime.values)]
+            manifest_db_df['key'] = manifest_db_df.Barcode.str.cat(manifest_db_df.CohortId,sep='_')
+            df['key'] = df.Barcode.str.cat(df.CohortId,sep='_')
+            unique_df = df[~df.key.isin(manifest_db_df.key)]
+
             # Getting duplicated count comparing with the database
             duplicates_cnt = df.shape[0] - unique_df.shape[0]
 
