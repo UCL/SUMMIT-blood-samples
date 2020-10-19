@@ -407,3 +407,21 @@ class GetManifestFiltersView(LoginRequiredMixin, View):
             'site_choices': site_choices,
             'state_status': state_status,
         })
+
+
+class GetBloodSampleFiltersView(LoginRequiredMixin, View):
+    """
+    Class for getting BloodSampled filters in Review
+    """
+
+    def get(self, request, *args, **kwargs):
+        """
+        Method to get BloodSample filters in review
+        parms: request object
+        returns: HttpResponse object
+        """
+
+        return JsonResponse({
+            'status' : 200,
+            'state_status' : state_status
+        })

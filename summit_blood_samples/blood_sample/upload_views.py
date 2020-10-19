@@ -222,7 +222,7 @@ class UploadBloodSampleView(LoginRequiredMixin, View):
         blood_sample_file = request.FILES.get(u'file')
 
         # Converting input csv file to data frame
-        df = pd.read_csv(blood_sample_file)
+        df = pd.read_csv(blood_sample_file, na_filter=False)
 
         # Dropping duplicates in the file
         df = df.drop_duplicates()
@@ -268,6 +268,9 @@ class UploadBloodSampleView(LoginRequiredMixin, View):
         excel_ids = df.Id.values.tolist()
         new_records = list(set(excel_ids).difference(report_ids))
 
+        # get how many records for this day
+
+
         if request.GET.get('confirm', '') == 'True':
             # Dropping duplicates when compared to database
             df = df[df['Id'].isin(new_records)]
@@ -305,6 +308,8 @@ class UploadBloodSampleView(LoginRequiredMixin, View):
 
             # Bulk uploading to BloodSample table
             try:
+
+ 
                 model_instances = [
                     BloodSample(
                         id=record['Id'],
@@ -318,12 +323,14 @@ class UploadBloodSampleView(LoginRequiredMixin, View):
                         SiteNurseEmail=record['User'],
                         ImportId=ImportId,
                         CreatedAt=record['CreatedAt'],
-                        State=0 if re.match(
-                            r"^(E[0-9]{6})+$", record['Barcode']) else 1,
+                        State=0 if (re.match(r"^(E[0-9]{6})", record['Barcode']) is not None) |
+                                   (re.match(r"^(K[0-9]{6})", record['Barcode']) is not None)
+                                else 1,
                     ) for index, record in df.iterrows()
                 ]
+
                 BloodSample.objects.bulk_create(model_instances)
-            except:
+            except Exception as e:
                 logger.error(f'Something went wrong in uploading \
                     Blood Sample file data - {e}')
                 return None
@@ -367,16 +374,16 @@ class UploadManifestView(LoginRequiredMixin, View):
         # Validations
 
         # File validation
-        if not 'Room' in df.iloc[2, 3] and df.iloc[2, 1] != 'Site' and \
-            df.iloc[4, 1] != 'Barcode ID' and \
-                df.iloc[4, 2] != 'Collection Date & Time' and \
-            df.iloc[4, 3] != 'Cohort ID':
+        if (df.iloc[2, 3] != 'Room No.') | \
+            (df.iloc[2, 1] != 'Site') | \
+            (df.iloc[4, 1] != 'Barcode ID') | \
+            (df.iloc[4, 2] != 'Collection Date & Time') | \
+            (df.iloc[4, 3] != 'Cohort ID') | \
+            (df.iloc[4, 4] != 'Visit'):
             return JsonResponse({
                 'status': 412,
                 'message': 'Column names not matching'
             })
-
-        visit = request.POST.get('visit', '')
 
         # Getting room value from file
         room = int(df.iloc[2, 4]) if isinstance(
@@ -384,16 +391,23 @@ class UploadManifestView(LoginRequiredMixin, View):
 
         # Getting site value from file and validating it
         site = df.iloc[2, 2]
-        if site not in ['FMH', 'KGH', 'Mile End Hospital', 'MEH', 'UCLH']:
+        if site not in ['FMH', 'KGH', 'MEH', 'UCLH']:
             return JsonResponse({'status': 412, 'message': 'Invalid Site'})
 
         # Dropping rows where all the columns are empty if any exists
-        df = df.iloc[5:-1, 1:-1].dropna()
+        df = df.iloc[5:-1, 1:].dropna()
+
+        # Check for empty Manifest file
+        if df.shape[0] == 0:
+            return JsonResponse({
+                'status' : 412,
+                'message' : 'Unable to load, empty file'
+            })
 
         # Dropping duplicates in the file
         df = df.drop_duplicates()
 
-        df.columns = ['Barcode', 'CollectionDateTime', 'CohortId']
+        df.columns = ['Barcode', 'CollectionDateTime', 'CohortId', 'Visit']
 
         # Validating CollectionDateTime column
         if True in (df['CollectionDateTime'].map(type) !=
@@ -404,24 +418,55 @@ class UploadManifestView(LoginRequiredMixin, View):
                     in expected format'
             })
 
+
+        # move day and days up so have reference
+        day, days = UploadView.get_dayformated_and_days(self, request)
+
+        # which is needed to valid that the dates in the manifest
+        # correspond to the date being uploaded to
+        if False in (df['CollectionDateTime'].apply(
+            lambda d: True if d.date() == day.date() else False
+            ).tolist()):
+
+            return JsonResponse({
+                'status' : 412,
+                'message' : f'Error: All collection dates must refer to the upload date, {day.date()}'
+            })
+
         # Validating removing extra space if any in CohortId column
         df['CohortId'] = df['CohortId'].apply(lambda x: x.strip())
 
         # Validating CohortId value length
-        if True in (df['CohortId'].map(len) != 7).tolist():
+        if False in (df['CohortId'].str.match(r'^([0-9]{3})-([A-Z]{3})$').tolist()):
             return JsonResponse({
                 'status': 412,
-                'message': 'CohortId column values length are \
-                    not in expected format'})
+                'message': 'CohortId column values are \
+                    not in expected format ###-AAA'})
+
+        # Validating Barcode format
+        if False in (df['Barcode'].str.match(r'^E([0-9]{6})$').tolist()):
+            return JsonResponse({
+                'status': 412,
+                'message': 'Error: Barcode column values are \
+                    not in expected format E######'})             
+
+        # Validating Visit 
+        if False in df['Visit'].isin([v for (k,v) in visit_choices.items()]).tolist():
+
+            return JsonResponse({
+                'status' : 412,
+                'message' : 'Error: Visit has invalid value.'
+            })
+
 
         # Getting stats of uploaded file
         manifest_db_df = pd.DataFrame(
             list(ManifestRecords.objects.
-                 values('Barcode', 'CollectionDateTime', 'CohortId')))
+                 values('Barcode', 'CollectionDateTime', 'CohortId', 'Visit')))
 
         blood_sample_cohort = BloodSample.objects.\
-            values_list('CohortId', flat=True)[::1]
-        df_cohort = df['CohortId'].tolist()
+            values_list('Barcode', flat=True)[::1]
+        df_cohort = df['Barcode'].tolist()
 
         # Records count that are not found in blood samples table
         record_not_found_cnt = len(
@@ -436,8 +481,8 @@ class UploadManifestView(LoginRequiredMixin, View):
         if not manifest_db_df.shape == (0, 0):
             # Dropping duplicates in the file comparing with the
             # manifest table records
-            manifest_db_df['key'] = manifest_db_df.Barcode.str.cat(manifest_db_df.CohortId,sep='_')
-            df['key'] = df.Barcode.str.cat(df.CohortId,sep='_')
+            manifest_db_df['key'] = manifest_db_df.Barcode.str.cat(manifest_db_df.Barcode,sep='_')
+            df['key'] = df.Barcode.str.cat(df.Barcode,sep='_')
             unique_df = df[~df.key.isin(manifest_db_df.key)]
 
             # Getting duplicated count comparing with the database
@@ -457,8 +502,6 @@ class UploadManifestView(LoginRequiredMixin, View):
                     file in Uploads folder - {e}')
             # End of storing file
 
-            day, days = UploadView.get_dayformated_and_days(self, request)
-
             # Uploading file details to ManifestImports table
             try:
                 ImportId = ManifestImports.objects.create(
@@ -477,7 +520,8 @@ class UploadManifestView(LoginRequiredMixin, View):
             try:
                 model_instances = [
                     ManifestRecords(
-                        Visit=visit,
+                        Visit=dict((v, k)
+                                  for k, v in visit_choices.items()).get(record[3]),
                         ImportId=ImportId,
                         Site=dict((v, k)
                                   for k, v in site_choices.items()).get(site),
@@ -539,10 +583,10 @@ class UploadReceiptView(LoginRequiredMixin, View):
         # Validations
 
         # File validation
-        if not set(['Participant ID', 'Clinic', 'DateTime Taken',
-                    'Sample ID',
-                    'Tissue sub-type', 'Received DateTime', 'Volume',
-                    'Volume Unit',
+        if not set(['ParticipantID', 'Clinic', 'Date Time Taken',
+                    'TubeBarcode',
+                    'TubeType', 'LoggedInTime', 'Volume',
+                    'VolUnit',
                     'Condition']).issubset(df.columns):
             return JsonResponse({
                 'status': 412,
@@ -551,7 +595,7 @@ class UploadReceiptView(LoginRequiredMixin, View):
 
         # Validating DateTime Taken column
         try:
-            df['DateTime Taken'] = df['DateTime Taken'].\
+            df['Date Time Taken'] = df['Date Time Taken'].\
                 apply(lambda x: datetime.datetime.strptime(
                     x, "%d/%m/%Y %H:%M"))
         except:
@@ -562,7 +606,7 @@ class UploadReceiptView(LoginRequiredMixin, View):
 
         # Validating Received DateTime column
         try:
-            df['Received DateTime'] = df['Received DateTime'].\
+            df['LoggedInTime'] = df['LoggedInTime'].\
                 apply(lambda x: datetime.datetime.strptime(
                     x, "%d/%m/%Y %H:%M"))
         except:
@@ -572,14 +616,14 @@ class UploadReceiptView(LoginRequiredMixin, View):
                     expected format'})
 
         # Validating Volume Unit column
-        if True in (df['Volume Unit'] != 'uL').tolist():
+        if True in (df['VolUnit'].str.lower() != 'ul').tolist():
             return JsonResponse({
                 'status': 412,
                 'message': 'Volume Unit column values are not an uL'
             })
 
         # Validating Tissue sub-type column
-        if True in (df['Tissue sub-type'] != 'EDTA').tolist():
+        if True in (df['TubeType'] != 'EDTA').tolist():
             return JsonResponse({
                 'status': 412,
                 'message': 'Tissue sub-type column values are not an EDTA'
@@ -587,10 +631,10 @@ class UploadReceiptView(LoginRequiredMixin, View):
 
         # Validating and converting Clinic column
         clinic_mapping = {
-            'finchley memorial': 0,
-            'king george hospital ilford': 1,
+            'finchley memorial hospital': 0,
+            'king george hospital': 1,
             'mile end hospital': 2,
-            'uch - university college london hospital': 3,
+            'university college london hospital': 3,
             'uk biocentre signature': 4
         }
         try:
@@ -604,7 +648,7 @@ class UploadReceiptView(LoginRequiredMixin, View):
             })
 
         # Getting stats of the uploaded file
-        df['DateTime Taken compare'] = df['DateTime Taken'].apply(
+        df['DateTime Taken compare'] = df['Date Time Taken'].apply(
             lambda x: x.strftime('%d/%m/%Y %H:%M'))
         manifest_db_df = pd.DataFrame(ManifestRecords.objects.all().values())
         manifest_db_df['CollectionDateTime'] = \
@@ -615,7 +659,7 @@ class UploadReceiptView(LoginRequiredMixin, View):
                                                   'CohortId', flat=True)[::1])]
 
         # Getting records already present in the database
-        manifest_match = df[df['Participant ID'].isin(
+        manifest_match = df[df['ParticipantID'].isin(
             manifest_db_filtered.Barcode.values) & df['Clinic'].isin(
             manifest_db_filtered.Site.values) &
             df['DateTime Taken compare'].isin(
@@ -624,14 +668,14 @@ class UploadReceiptView(LoginRequiredMixin, View):
 
         # Getting records where there is mismatch on manifest site
         # with uploaded receipt Clinic
-        mismatch_site = df[df['Participant ID'].isin(
+        mismatch_site = df[df['ParticipantID'].isin(
             manifest_db_df.Barcode.values) & ~df['Clinic'].isin(
             manifest_db_df.Site.values)]
         mismatch_site_found_cnt = mismatch_site.shape[0]
 
         # Getting records where there is mismatch on Receipt
         # DateTime Taken with Manifest CollectionDateTime
-        mismatch_blood_draw = df[df['Participant ID'].isin(
+        mismatch_blood_draw = df[df['ParticipantID'].isin(
             manifest_db_df.Barcode.values) &
             ~df['DateTime Taken compare'].isin(
             manifest_db_df.CollectionDateTime.values)]
@@ -639,7 +683,7 @@ class UploadReceiptView(LoginRequiredMixin, View):
 
         # Checking number of Receipt records barcodes not existing in
         # Manifest table
-        receipt_barcode_existance = df[~df['Participant ID'].isin(
+        receipt_barcode_existance = df[~df['ParticipantID'].isin(
             manifest_db_df.Barcode.values)].shape[0]
 
         # Getting total records
@@ -682,21 +726,21 @@ class UploadReceiptView(LoginRequiredMixin, View):
             receipt_barcode = ReceiptRecords.objects.\
                 values_list('Barcode', flat=True)[
                     ::1]
-            df = df[~df['Participant ID'].isin(receipt_barcode)]
+            df = df[~df['ParticipantID'].isin(receipt_barcode)]
 
             # Bulk uploading to ReceiptRecords table
             try:
                 model_instances = [
                     ReceiptRecords(
-                        Barcode=record['Participant ID'],
+                        Barcode=record['ParticipantID'],
                         Clinic=record['Clinic'],
-                        DateTimeTaken=make_aware(record['DateTime Taken']),
-                        SampleId=record['Sample ID'],
-                        TissueSubType=record['Tissue sub-type'],
+                        DateTimeTaken=make_aware(record['Date Time Taken']),
+                        SampleId=record['TubeBarcode'],
+                        TissueSubType=record['TubeType'],
                         ReceivedDateTime=make_aware(
-                            record['Received DateTime']),
+                            record['LoggedInTime']),
                         Volume=record['Volume'],
-                        VolumeUnit=record['Volume Unit'],
+                        VolumeUnit=record['VolUnit'],
                         Condition=record['Condition'],
                         ImportId=ImportId,
                     ) for index, record in df.iterrows()
@@ -759,9 +803,9 @@ class UploadProcessedView(LoginRequiredMixin, View):
         # File validation
         if not set(['Participant ID', 'Parent ID', 'Sample ID',
                     'Tissue Sub-Type',
-                    'Sample Type', 'Received DateTime',
+                    'Sample Type', 'Received Date Time',
                     'Processed Date Time', 'Volume',
-                    'Volume Unit', 'No. of Children']).issubset(df.columns):
+                    'Volume Unit']).issubset(df.columns):
             return JsonResponse({
                 'status': 412,
                 'message': 'Column names not matching'
@@ -769,15 +813,34 @@ class UploadProcessedView(LoginRequiredMixin, View):
 
         # Validating Sample Type column
         if set(df['Sample Type'].unique().tolist()) != \
-                set(['RBC', 'Plasma', 'BuffyCoat', 'Whole Blood']):
+                set(['RBC', 'Plasma', 'BuffyCoat']):
             return JsonResponse({
                 'status': 412,
                 'message': 'Sample Type column values are not having \
                     expected values'})
 
         # splitting processed and aliquots from the file
-        parent_df = df[df['Parent ID'] == 'No Parent']
-        child_df = df[df['Parent ID'] != 'No Parent']
+        #parent_df = df[df['Parent ID'] == 'No Parent']
+        parent_df = df.groupby(['Participant ID']).agg({'Parent ID': 'first', 
+                                                        'Received Date Time' : 'first', 
+                                                        'Processed Date Time' : 'first',
+                                                        'Volume' : 'sum',
+                                                        'Tissue Sub-Type' : 'count'})
+
+        # reset index pushing 'Participant ID as a column name
+        parent_df.reset_index(inplace=True)
+
+        # add missing columns
+        parent_df['Sample ID'] = parent_df['Parent ID']
+        parent_df['Parent ID'] = 'No Parent'
+        parent_df['No. of Children'] = parent_df['Tissue Sub-Type']
+        parent_df['Tissue Sub-Type'] = 'EDTA'
+        parent_df['Sample Type'] = 'Whole Blood'
+        parent_df['Volume Unit'] = 'ul'
+        
+
+        # change in format need to create the parent by aggregating the chld
+        child_df = df
 
         # Validating Processed Date Time column
         try:
@@ -792,7 +855,7 @@ class UploadProcessedView(LoginRequiredMixin, View):
 
         # Validating Received Date Time column
         try:
-            parent_df['Received DateTime'].apply(
+            parent_df['Received Date Time'].apply(
                 lambda x: datetime.datetime.strptime(
                     x, "%d/%m/%Y %H:%M"))
         except:
@@ -802,14 +865,14 @@ class UploadProcessedView(LoginRequiredMixin, View):
                     expected format'})
 
         # Validating Volume Unit column
-        if True in (parent_df['Volume Unit'] != 'uL').tolist():
+        if True in (parent_df['Volume Unit'].str.lower() != 'ul').tolist():
             return JsonResponse({
                 'status': 412,
                 'message': 'Volume Unit column with Parent ID, \
                     values are not an uL'})
 
         if True in (df[df['Parent ID'] !=
-                       'No Parent']['Volume Unit'] != 'ul').tolist():
+                       'No Parent']['Volume Unit'].str.lower() != 'ul').tolist():
             return JsonResponse({
                 'status': 412,
                 'message': 'Volume Unit column with no Parent ID, \
@@ -836,15 +899,15 @@ class UploadProcessedView(LoginRequiredMixin, View):
                 'status': 412,
                 'message': 'Tissue sub-type column values are not an EDTA'})
 
-        # Validating No. of Children column
-        if True in (df['No. of Children'].map(type) != int).tolist():
-            return JsonResponse({
-                'status': 412,
-                'message': 'No. of Children column values are not \
-                    having expected values'})
+        # # Validating No. of Children column
+        # if True in (df['No. of Children'].map(type) != int).tolist():
+        #     return JsonResponse({
+        #         'status': 412,
+        #         'message': 'No. of Children column values are not \
+        #             having expected values'})
 
-        # Validating No. of Children column
-        if True in (df['Volume'].map(type) != float).tolist():
+        # Validating Volume column
+        if True in (df['Volume'].map(type) != int).tolist():
             return JsonResponse({
                 'status': 412, 'message': 'Volume column values are not \
                     having expected values'})
@@ -928,8 +991,8 @@ class UploadProcessedView(LoginRequiredMixin, View):
             parent_df['Processed Date Time'] = \
                 parent_df['Processed Date Time'].apply(
                 lambda x: datetime.datetime.strptime(x, "%d/%m/%Y %H:%M"))
-            parent_df['Received DateTime'] = \
-                parent_df['Received DateTime'].apply(
+            parent_df['Received Date Time'] = \
+                parent_df['Received Date Time'].apply(
                 lambda x: datetime.datetime.strptime(x, "%d/%m/%Y %H:%M"))
 
             # Bulk uploading to ProcessedReport table
@@ -941,7 +1004,7 @@ class UploadProcessedView(LoginRequiredMixin, View):
                             Barcode=record['Participant ID']).first().SampleId,
                         TissueSubType=record['Tissue Sub-Type'],
                         ReceivedDateTime=make_aware(
-                            record['Received DateTime']),
+                            record['Received Date Time']),
                         ProcessedDateTime=make_aware(
                             record['Processed Date Time']),
                         Volume=record['Volume'],
@@ -993,8 +1056,9 @@ class UploadProcessedView(LoginRequiredMixin, View):
             # PROCESSED_ON_TIME or PROCESSED_NOT_ON_TIME
             processed_not_on_time = 0
             for index, row in manifest_db_df.iterrows():
+
                 blood_samples = BloodSample.objects.filter(
-                    CohortId=row['CohortId'])
+                    Barcode=row['Participant ID'])
                 for sample in blood_samples:
                     if row['greaterthan_36hrs'] == True:
                         sample.State = 4
@@ -1006,19 +1070,19 @@ class UploadProcessedView(LoginRequiredMixin, View):
 
             # Updating the Bloodsamples State if Aliquots are less than 6 to
             # UNABLE_TO_PROCESS
-            try:
-                for index, row in parent_df[parent_df['No. of Children'] < 6].\
-                        iterrows():
-                    blood_samples = BloodSample.objects.filter(
-                        Barcode=row['Participant ID'])
-                    for sample in blood_samples:
-                        sample.State = 2
-                        sample.save()
-            except Exception as e:
-                logger.error(f'Something went wrong in updating \
-                    Blood Sample records to unable to process due to \
-                        less aliquots - {e}')
-                return None
+            # try:
+            #     for index, row in parent_df[parent_df['No. of Children'] < 6].\
+            #             iterrows():
+            #         blood_samples = BloodSample.objects.filter(
+            #             Barcode=row['Participant ID'])
+            #         for sample in blood_samples:
+            #             sample.State = 2
+            #             sample.save()
+            # except Exception as e:
+            #     logger.error(f'Something went wrong in updating \
+            #         Blood Sample records to unable to process due to \
+            #             less aliquots - {e}')
+            #     return None
 
             # Mailing all blood sample Data Manager if any
             # PROCESSED_NOT_ON_TIME records are uploaded

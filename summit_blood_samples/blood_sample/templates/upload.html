@@ -13,7 +13,7 @@
 
 		<div class="step-content">
 			<button type="button" style="margin: 0px 43px;" class="btn custom-btn" id="bloodSample" >Blood Sample</button>
-			<span>{{ blood_samples_imported|intcomma  }} number of new blood samples are uploaded</span>
+			<span>{{ blood_samples_imported|intcomma  }} imported / {{ blood_samples_cnt }} blood samples</span>
 			<button type="button" style="margin: 0px 43px;" class="btn custom-btn reviewBtn" data-review="blood_sample" {% if blood_samples_cnt != 0 and active|date:"d b" != todays_date %}enabled{% elif blood_samples_imported == 0 %}disabled{% endif %}>Review</button>
 		</div>
 	</div>
@@ -26,7 +26,7 @@
 		</div>
 
 		<div class="step-content">
-		<button type="button" style="margin: 0px 43px;" class="btn custom-btn" id="manifest" {% if blood_samples_cnt != 0 and active|date:"d b" != todays_date %}enabled{% elif blood_samples_imported != 0 and active|date:"d b" != todays_date %}enabled{% elif blood_samples_imported == 0 or not reviewed %}disabled{% endif %}>Manifest</button>
+		<button type="button" style="margin: 0px 43px;" class="btn custom-btn" id="manifest" enabled >Manifest</button>
 		<span>{{no_of_files_uploaded|intcomma}} file(s) are uploaded with {{ manifest_imported|intcomma }} number of new manifest records</span>
 		<button type="button" style="margin: 0px 43px;" class="btn custom-btn reviewBtn" data-review="manifest" {% if manifest_loaded_count != 0 and active|date:"d b" != todays_date %}enabled{% elif manifest_imported == 0 or not reviewed %}disabled{% endif %}>Review</button>
 		</div>

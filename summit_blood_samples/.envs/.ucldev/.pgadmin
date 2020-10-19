@@ -1,5 +1,5 @@
 # pgAdmin
 # ------------------------------------------------
 PGADMIN_LISTEN_ADDRESS=0.0.0.0
-PGADMIN_DEFAULT_EMAIL=first.last@ucl.ac.uk
+PGADMIN_DEFAULT_EMAIL=j.mccabe@ucl.ac.uk
 PGADMIN_DEFAULT_PASSWORD='pgadmin-password'
