@@ -309,7 +309,7 @@ class UploadBloodSampleView(LoginRequiredMixin, View):
             # Bulk uploading to BloodSample table
             try:
 
- 
+
                 model_instances = [
                     BloodSample(
                         id=record['Id'],
@@ -448,9 +448,9 @@ class UploadManifestView(LoginRequiredMixin, View):
             return JsonResponse({
                 'status': 412,
                 'message': 'Error: Barcode column values are \
-                    not in expected format E######'})             
+                    not in expected format E######'})
 
-        # Validating Visit 
+        # Validating Visit
         if False in df['Visit'].isin([v for (k,v) in visit_choices.items()]).tolist():
 
             return JsonResponse({
@@ -500,6 +500,10 @@ class UploadManifestView(LoginRequiredMixin, View):
             except Exception as e:
                 logger.error(f'Something went wrong in storing Manifest \
                     file in Uploads folder - {e}')
+                return JsonResponse({
+                    'status': 500,
+                    'message': f'Failed to store Manifest file in uploads folder: {e}'
+                })
             # End of storing file
 
             # Uploading file details to ManifestImports table
@@ -514,7 +518,10 @@ class UploadManifestView(LoginRequiredMixin, View):
             except Exception as e:
                 logger.error(f'Something went wrong in uploading \
                     Manifest file details in imports table - {e}')
-                return None
+                return JsonResponse({
+                    'status': 500,
+                    'message': f'Failed to create manifest record in DB: {e}'
+                })
 
             # Bulk uploading to ManifestRecords table
             try:
@@ -533,9 +540,12 @@ class UploadManifestView(LoginRequiredMixin, View):
                 ]
                 ManifestRecords.objects.bulk_create(model_instances)
             except Exception as e:
-                logger.error('Something went wrong in uploading \
+                logger.error(f'Something went wrong in uploading \
                     Manifest file data - {e}')
-                return None
+                return JsonResponse({
+                    'status': 500,
+                    'message': f'Failed to create manifest records in DB: {e}'
+                })
 
             return render(request, self.blood_sample_success_template, {
                 "duplicates_cnt": duplicates_cnt,
@@ -821,8 +831,8 @@ class UploadProcessedView(LoginRequiredMixin, View):
 
         # splitting processed and aliquots from the file
         #parent_df = df[df['Parent ID'] == 'No Parent']
-        parent_df = df.groupby(['Participant ID']).agg({'Parent ID': 'first', 
-                                                        'Received Date Time' : 'first', 
+        parent_df = df.groupby(['Participant ID']).agg({'Parent ID': 'first',
+                                                        'Received Date Time' : 'first',
                                                         'Processed Date Time' : 'first',
                                                         'Volume' : 'sum',
                                                         'Tissue Sub-Type' : 'count'})
@@ -837,7 +847,7 @@ class UploadProcessedView(LoginRequiredMixin, View):
         parent_df['Tissue Sub-Type'] = 'EDTA'
         parent_df['Sample Type'] = 'Whole Blood'
         parent_df['Volume Unit'] = 'ul'
-        
+
 
         # change in format need to create the parent by aggregating the chld
         child_df = df
