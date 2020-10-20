@@ -5,12 +5,6 @@
             <div class="form-group">
                 <label for="manifestfile">Please select xls (or) xlsx file: <abbr title="Required" style="color:#c71d1d">*</abbr></label>
                 <input type="file" class="form__control form-control-file" id="manifestfile" accept=".xlsx, .xls">
-                <label for="visit">Visit:</label>
-                <select name="visit" id="visit" class="form__control ">
-                    {% for key, values in visit_choices.items %}
-                        <option value={{key}}>{{values}}</option>
-                    {% endfor  %}
-                </select>
             </div>
     </form>
     <em class="error" id="error"></em>
@@ -39,9 +33,8 @@ $('#manifestupload').click(function() {
     $('.modal-loader').show();
     var form_data = new FormData();
     form_data.append('file', file_data);
-    form_data.append('visit', $('#visit').val());
     $.ajax({
-        url: 'upload_manifest',
+        url: 'upload_manifest?day='+$('.activeDay').data('currentday'),
         data: form_data,
         type: 'POST',
         processData: false,

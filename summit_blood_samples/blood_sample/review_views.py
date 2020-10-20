@@ -53,6 +53,7 @@ class ReviewView(LoginRequiredMixin, View):
         day, days = UploadView.get_dayformated_and_days(self, request)
 
         if review_type == "blood_sample":
+
             # Getting imported sample files in given day
             blood_samples_imported = BloodSampleImport.objects.filter(
                 CreatedAt__range=(day.replace(hour=0, minute=0, second=0, microsecond=0),
@@ -86,8 +87,17 @@ class ReviewView(LoginRequiredMixin, View):
                     hour=23, minute=59, second=59, microsecond=0)))\
                 .order_by('CreatedAt', 'CohortId', 'Barcode')
 
+
+            # if Status is passed as filter then reduce list to the
+            # Status type
+            if request.GET.get('State',''):
+                query_results = query_results.filter(
+                    State=request.GET.get('State','')
+                )
+
             # Getting results based on pagination
             paginator = Paginator(query_results, settings.ITEMS_PER_PAGE)
+
 
             if table == "True":
                 try:
@@ -309,6 +319,7 @@ class ReviewView(LoginRequiredMixin, View):
                     rr."ReceivedDateTime",
                     rr."Volume",
                     rr."VolumeUnit",
+                    rr."Condition",
                     rr."Comments" as "ReceiptComments"
                 from blood_sample_receiptrecords as rr
                 inner join blood_sample_manifestrecords as mr \
@@ -930,6 +941,7 @@ class UnmachedReceiptView(LoginRequiredMixin, View):
                 rr."ReceivedDateTime",
                 rr."Volume",
                 rr."VolumeUnit",
+                rr."Condition",
                 rr."Comments" as "ReceiptComments"
             FROM blood_sample_receiptrecords as rr
             WHERE rr."Barcode" not in (\
@@ -1069,7 +1081,7 @@ class UnmachedProcessedView(LoginRequiredMixin, View):
                 pr."Comments",
                 pr."SiteHeld"
             FROM blood_sample_processedreport as pr
-            WHERE pr."ParentId" not in (
+            WHERE pr."ParentId" NOT IN (
                     SELECT
                         rr."SampleId"
                     FROM blood_sample_receiptrecords as rr
@@ -1077,8 +1089,12 @@ class UnmachedProcessedView(LoginRequiredMixin, View):
                         rr."Barcode" = mr."Barcode"
                     inner join blood_sample_bloodsample as bs on \
                         bs."Barcode" = mr."Barcode"
-                ) AND pr."ProcessedDateTime" BETWEEN '{}' AND  '{}'{}
-            order by pr."ParentId";
+                ) AND pr."ImportId_id" IN (
+                    SELECT pi."id"
+                    FROM blood_sample_processedimports as pi
+                    WHERE pi."CreatedAt" BETWEEN '{}' AND  '{}'{}
+                )
+            ORDER BY pr."ParentId";
             '''.format(day.replace(hour=0, minute=0, second=0,
                                    microsecond=0).strftime("%Y-%m-%d %H:%M:%S"),
                        day.replace(hour=23, minute=59, second=59,
@@ -1141,7 +1157,8 @@ class UnmachedProcessedView(LoginRequiredMixin, View):
                 join blood_sample_bloodsample as bs on \
                     bs."Barcode" = mr."Barcode"
             )
-            AND rr."ReceivedDateTime" BETWEEN '{}' AND '{}'{}
+            AND bs."State" = '0'
+            AND mr."CollectionDateTime" BETWEEN '{}' AND '{}'{}
             order by bs."Barcode";
             '''.format(day.replace(hour=0, minute=0, second=0,
                                    microsecond=0).strftime("%Y-%m-%d %H:%M:%S"),

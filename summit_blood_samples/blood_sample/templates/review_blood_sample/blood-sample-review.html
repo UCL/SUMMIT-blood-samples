@@ -1,3 +1,4 @@
+{% load static %}
 {% now "d b" as todays_date %}
 
 <div class="site-content__main custom-modal-content review-sample">
@@ -15,6 +16,29 @@
 
         </style>
     <div class="custom-form" style="min-height: 470px;">
+
+        <span class="float-right">
+            <!-- Example single danger button -->
+            <div>
+                <img data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" class="btn-svg bloodsample-filters" src="{% static 'indigo/images/filter.svg' %}" />
+                <div class="dropdown-menu dropdown-menu-left dropdown-menu-lg-left" style="    font-size: 13px;width: 300px;left: -30px !important;">
+                    <form method="GET" class="form-group post-form px-4 py-3 bloodsample-filter-form">
+                            {% csrf_token %}
+                            <div class="form-group">
+                                <label for="FilterState">State:</label>
+                                <select name="State" id="FilterState" class="form__control ">
+                                    <option value="">Please select</option>
+                                </select>
+                            </div>
+                    </form>
+                    <em class="error"></em>
+                    <div class="text-center px-4 py-3">
+                        <button type="button" class="btn btn-submit" data-dismiss="modal" id="filter-bloodsample-submit">Submit</button>
+                    </div>
+                </div>
+            </div>
+        </span>
+
         <div id="sample_table"></div>
         <div id="pagination_blood_sample" class="pagination-md pull-right"></div></br>
     </div>
@@ -41,6 +65,18 @@
             }
             $('#blood-sample-modal').off('hide.bs.modal');
         });
+        $.ajax({
+            url: '/get_bloodsample_filters',//?day='+$('.reviewBloodDay.activeDay').data('activeday'),
+            type: 'get',
+            success: function(data){
+                $.each(data.state_status, function(key, value) {
+                    $('#FilterState')
+                        .append($("<option></option>")
+                                    .attr("value", key)
+                                    .text(value));
+                });
+            }
+        });        
         twbsPaginator("#pagination_blood_sample", "#sample_table", "{{current_page}}", "{{total_pages}}",
         '/review?table=True&type=blood_sample&day='+$('.reviewBloodDay.activeDay').data('activeday')+'&page=');
         function getNav(day){
@@ -59,5 +95,20 @@
             $(this).removeClass("active");
             getNav($(this).data('currentday'));
         });
+
+        $('.dropdown-menu').on('click', function(event) {
+            event.stopPropagation();
+        });
+        $('#filter-bloodsample-submit').click(function() {
+            $.ajax({
+                url: '/review?get_pages=True&type=blood_sample&day='+$('.reviewBloodDay.activeDay').data('activeday')+'&'+$('.bloodsample-filter-form').serialize(),
+                type: 'get',
+                success: function(data){
+                    twbsPaginator("#pagination_blood_sample", "#sample_table", "{{current_page}}", "{{total_pages}}",
+                    '/review?table=True&type=blood_sample&day='+$('.reviewBloodDay.activeDay').data('activeday')+'&'+$('.bloodsample-filter-form').serialize()+'&page=');
+                }
+            });      
+            $('.bloodsample-filters').dropdown('hide');
+        });            
     });
 </script>
