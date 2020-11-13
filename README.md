@@ -76,6 +76,17 @@ docker-compose -f ucldev.yml -f uat.yml run --rm django_uat python manage.py she
 
 Once everything is up, you should be able to access the UAT site at http://localhost:8000/uat/
 
+You can copy database contents from production to UAT using the postgres container's backup functionality,
+since production and UAT store backups in the same volume:
+
+```sh
+docker-compose -f ucldev.yml -f uat.yml run --rm postgres backup
+docker-compose -f ucldev.yml -f uat.yml run --rm postgres_uat backups
+docker-compose -f ucldev.yml -f uat.yml run --rm postgres_uat restore <file>
+```
+
+Note that this will only work if both are running the same schema, so copy the database *before* you make schema changes and run migrations!
+
 ----
 ## Production setup
 
