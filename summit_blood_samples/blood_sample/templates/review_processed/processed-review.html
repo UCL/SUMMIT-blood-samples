@@ -109,7 +109,7 @@
             event.stopPropagation();
         });
         $.ajax({
-            url: '/get_manifest_filters',//?day='+$('.reviewManifestDay.activeDay').data('activeday'),
+            url: '{% url "Blood Sample:GetManifestFilters" %}',//?day='+$('.reviewManifestDay.activeDay').data('activeday'),
             type: 'get',
             success: function(data){
                 $.each(data.rooms, function(key, value) {
@@ -139,15 +139,15 @@
             }
         });
         twbsPaginator("#pagination_processed", "#processed_table", "{{current_page}}", "{{total_pages}}",
-        '/review?table=True&type=processed&day='+$('.reviewProcessedDay.activeDay').data('activeday')+'&page=');
+        '{% url "Blood Sample:Review" %}?table=True&type=processed&day='+$('.reviewProcessedDay.activeDay').data('activeday')+'&page=');
         twbsPaginator("#pagination_umatched_rr_pr", "#umatched_rr_pr_table", "{{current_page}}", "{{rr_total_pages}}",
-        '/unmatched_processed?&type=umatched_rr&day='+$('.reviewProcessedDay.activeDay').data('activeday')+'&page=');
+        '{% url "Blood Sample:UnmachedProcessed" %}?&type=umatched_rr&day='+$('.reviewProcessedDay.activeDay').data('activeday')+'&page=');
         twbsPaginator("#pagination_umatched_pr", "#umatched_pr_table", "{{current_page}}", "{{pr_total_pages}}",
-        '/unmatched_processed?&type=umatched_pr&day='+$('.reviewProcessedDay.activeDay').data('activeday')+'&page=');
+        '{% url "Blood Sample:UnmachedProcessed" %}?&type=umatched_pr&day='+$('.reviewProcessedDay.activeDay').data('activeday')+'&page=');
         function getNav(day){
             $('.modal-loader').show();
             $.ajax({
-                url: '/review?type=processed&day='+day,
+                url: '{% url "Blood Sample:Review" %}?type=processed&day='+day,
                 type: 'get',
                 success: function(data){
                     $('.modal-body').html(data);
@@ -180,19 +180,19 @@
                 processed.push($(this).val());
             });
             $.ajax({
-                url: '/review?get_pages=True&type=processed&day='+$('.reviewProcessedDay.activeDay').data('activeday')+'&'+$('.processed-filter-form').serialize()+'&BloodSample=' + bloodSamples+'&Manifest=' + manifest+'&Receipt=' + receipt+'&Processed=' + processed,
+                url: '{% url "Blood Sample:Review" %}?get_pages=True&type=processed&day='+$('.reviewProcessedDay.activeDay').data('activeday')+'&'+$('.processed-filter-form').serialize()+'&BloodSample=' + bloodSamples+'&Manifest=' + manifest+'&Receipt=' + receipt+'&Processed=' + processed,
                 type: 'get',
                 success: function(data){
                     twbsPaginator("#pagination_processed", "#processed_table", data.current_page, data.total_pages,
-                    '/review?table=True&type=processed&day='+$('.reviewProcessedDay.activeDay').data('activeday')+'&'+$('.processed-filter-form').serialize()+'&BloodSample=' + bloodSamples+'&Manifest=' + manifest+'&Receipt=' + receipt+'&Processed=' + processed+'&page=');
+                    '{% url "Blood Sample:Review" %}?table=True&type=processed&day='+$('.reviewProcessedDay.activeDay').data('activeday')+'&'+$('.processed-filter-form').serialize()+'&BloodSample=' + bloodSamples+'&Manifest=' + manifest+'&Receipt=' + receipt+'&Processed=' + processed+'&page=');
                 }
             });
             $.ajax({
-                url: '/unmatched_processed?get_pages=True&type=umatched_rr&day='+$('.reviewProcessedDay.activeDay').data('activeday')+'&'+$('.processed-filter-form').serialize(),
+                url: '{% url "Blood Sample:UnmachedProcessed" %}?get_pages=True&type=umatched_rr&day='+$('.reviewProcessedDay.activeDay').data('activeday')+'&'+$('.processed-filter-form').serialize(),
                 type: 'get',
                 success: function(data){
                     twbsPaginator("#pagination_umatched_rr_pr", "#umatched_rr_pr_table", data.current_page, data.total_pages,
-                    '/unmatched_processed?&type=umatched_rr&day='+$('.reviewProcessedDay.activeDay').data('activeday')+'&'+$('.processed-filter-form').serialize()+'&page=');
+                    '{% url "Blood Sample:UnmachedProcessed" %}?&type=umatched_rr&day='+$('.reviewProcessedDay.activeDay').data('activeday')+'&'+$('.processed-filter-form').serialize()+'&page=');
                 }
             });
             $('.processed-filters').dropdown('hide');

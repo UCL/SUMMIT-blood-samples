@@ -51,7 +51,7 @@ $(document).ready(function(){
 		$('#blood-sample-modal .close').attr('id', 'close-'+$(this).data('review'));
 		$(".customModal").addClass("modal-xl");
 		$.ajax({
-            url: '/review?firstOpen=True&type='+$(this).data('review'),
+            url: '{% url "Blood Sample:Review" %}?firstOpen=True&type='+$(this).data('review'),
             type: 'get',
             success: function(data){
                 $('.modal-body').html(data);

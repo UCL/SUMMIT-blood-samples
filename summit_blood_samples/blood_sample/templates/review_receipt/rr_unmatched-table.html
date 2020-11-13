@@ -52,7 +52,7 @@ $(document).ready(function(){
         })
         $('.modal-loader').show();
         $.ajax({
-            url: 'edit_receipt?id='+$(this).data('editreceipt'),
+            url: '{% url "Blood Sample:EditReceipt" %}?id='+$(this).data('editreceipt'),
             type: 'GET',
             success: function(data){
                 $('.modal-loader').hide();

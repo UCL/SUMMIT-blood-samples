@@ -39,7 +39,7 @@ $(document).ready(function(){
         })
         $('.modal-loader').show();
         $.ajax({
-            url: 'edit_processed?id='+$(this).data('editprocessed'),
+            url: '{% url "Blood Sample:EditProcessed" %}?id='+$(this).data('editprocessed'),
             type: 'GET',
             success: function(data){
                 $('.modal-loader').hide();

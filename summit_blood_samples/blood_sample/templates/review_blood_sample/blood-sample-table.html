@@ -47,7 +47,7 @@ $(document).ready(function(){
         });
         $('.modal-loader').show();
         $.ajax({
-            url: 'edit_blood_sample?id='+$(this).data('editsample'),
+            url: '{% url "Blood Sample:EditBloodSample" %}?id='+$(this).data('editsample'),
             type: 'GET',
             success: function(data){
                 $('.modal-loader').hide();

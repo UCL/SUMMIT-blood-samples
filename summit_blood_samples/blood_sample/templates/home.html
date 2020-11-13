@@ -45,7 +45,7 @@ $(document).ready(function(){
   $('.modal-loader').show();
   function getHome(){
       $.ajax({
-          url: '/home_tab',
+          url: '{% url "Blood Sample:HomeTab" %}',
           type: 'GET',
           success: function(data){
                   $('#home-container').html(data);
@@ -55,7 +55,7 @@ $(document).ready(function(){
   }
   function getUpload(day){
       $.ajax({
-          url: '/upload?day='+day,
+          url: '{% url "Blood Sample:Upload" %}?day='+day,
           type: 'get',
           success: function(data){
               $('#upload-container').html(data);
@@ -95,7 +95,7 @@ $(document).ready(function(){
           }
       });
       $.ajax({
-          url: '/final_state_chart',
+          url: '{% url "Blood Sample:FinalStateChart" %}',
           type: 'get',
           success: function(data){
               $('.loader-final-state').hide();
@@ -249,7 +249,7 @@ $(document).ready(function(){
           }
       });
       $.ajax({
-          url: '/nurse_stats_chart',
+          url: '{% url "Blood Sample:NurseStatsChart" %}',
           type: 'get',
           success: function(data){
               $('.loader-nurse-stats').hide();
@@ -374,7 +374,7 @@ $(document).ready(function(){
           }
       });
       $.ajax({
-          url: '/unresolved_chart',
+          url: '{% url "Blood Sample:UnresolvedChart" %}',
           type: 'get',
           success: function(data){
               $('.loader-unresolved').hide();
@@ -523,7 +523,7 @@ $(document).ready(function(){
       });
 
       $.ajax({
-          url: '/processed_not_on_time_chart',
+          url: '{% url "Blood Sample:ProcessedNotOnTime" %}',
           type: 'get',
           success: function(data){
               $('.loader-processed-not-on-time').hide();

@@ -34,7 +34,7 @@ $('#manifestupload').click(function() {
     var form_data = new FormData();
     form_data.append('file', file_data);
     $.ajax({
-        url: 'upload_manifest?day='+$('.activeDay').data('currentday'),
+        url: '{% url "Blood Sample:UploadManifest" %}?day='+$('.activeDay').data('currentday'),
         data: form_data,
         type: 'POST',
         processData: false,

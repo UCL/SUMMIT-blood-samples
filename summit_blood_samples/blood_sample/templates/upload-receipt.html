@@ -37,7 +37,7 @@ $('#uploadReceipt').click(function() {
     var form_data = new FormData();
     form_data.append('file', file_data);
     $.ajax({
-        url: 'upload_receipt',
+        url: '{% url "Blood Sample:UploadReceipt" %}',
         data: form_data,
         type: 'POST',
         processData: false,

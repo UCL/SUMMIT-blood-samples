@@ -95,7 +95,7 @@
             return
         }
         $.ajax({
-            url: '/download_blood_sample?DateFrom='+$('#DateFrom').val()+'&DateTo='+$('#DateTo').val()+'&Site='+$('#Sites').val()+'&Room='+$('#Rooms').val()+'&Visit='+$('#Visits').val()+'&State='+$('#State').val()+'&settings='+settings,
+            url: '{% url "Blood Sample:DownloadBloodSample" %}?DateFrom='+$('#DateFrom').val()+'&DateTo='+$('#DateTo').val()+'&Site='+$('#Sites').val()+'&Room='+$('#Rooms').val()+'&Visit='+$('#Visits').val()+'&State='+$('#State').val()+'&settings='+settings,
             type: 'GET',
             success: function(data){
                 $('.modal-loader').hide();
