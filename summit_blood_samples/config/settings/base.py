@@ -15,6 +15,13 @@ if READ_DOT_ENV_FILE:
     # OS environment variables take precedence over variables from .env
     env.read_env(str(ROOT_DIR / ".env"))
 
+URL_PREFIX = env.str("DJANGO_URL_PREFIX", default="")
+if URL_PREFIX:
+    # This is a UAT version of the site served from a sub-URL
+    USE_X_FORWARDED_HOST = True
+    FORCE_SCRIPT_NAME = URL_PREFIX
+
+
 # GENERAL
 # ------------------------------------------------------------------------------
 # https://docs.djangoproject.com/en/dev/ref/settings/#debug
@@ -77,7 +84,7 @@ THIRD_PARTY_APPS = [
 
 LOCAL_APPS = [
     # "summit_blood_samples.users.apps.UsersConfig",
-    
+
     "manage_users",
     "blood_sample",
     "indigo",
@@ -149,7 +156,7 @@ MIDDLEWARE = [
 # https://docs.djangoproject.com/en/dev/ref/settings/#static-root
 STATIC_ROOT = str(ROOT_DIR / "staticfiles")
 # https://docs.djangoproject.com/en/dev/ref/settings/#static-url
-STATIC_URL = "/static/"
+STATIC_URL = URL_PREFIX + "/static/"
 # https://docs.djangoproject.com/en/dev/ref/contrib/staticfiles/#std:setting-STATICFILES_DIRS
 STATICFILES_DIRS = [str(APPS_DIR / "static")]
 # https://docs.djangoproject.com/en/dev/ref/contrib/staticfiles/#staticfiles-finders
@@ -164,7 +171,7 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 # https://docs.djangoproject.com/en/dev/ref/settings/#media-root
 MEDIA_ROOT = str(APPS_DIR / "media")
 # https://docs.djangoproject.com/en/dev/ref/settings/#media-url
-MEDIA_URL = "/media/"
+MEDIA_URL = URL_PREFIX + "/media/"
 
 UPLOAD_ROOT = str(ROOT_DIR / "uploads")
 

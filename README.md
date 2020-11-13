@@ -48,6 +48,34 @@ You should now be able to access the site at http://localhost:8000/ and log in w
 
 For pgadmin visit http://localhost:8000/pgadmin4/
 
+### User acceptance testing
+
+It is possible to run 2 versions of the site simultaneously.
+You need to clone a second copy of the repository (presumably a different branch!) as a `uat` folder alongside the `summit_blood_samples` folder, e.g. by running:
+
+```sh
+cd ..
+git clone -b develop git@github.com:UCL/SUMMIT-blood-samples.git uat
+cd summit_blood_samples
+```
+
+A second docker compose configuration file, `uat.yml`, is available that adds the extra containers.
+For instance, to bring up both sites use:
+
+```sh
+docker-compose -f ucldev.yml -f uat.yml up --build
+```
+
+You will need to configure the UAT site on first run:
+
+```sh
+docker-compose -f ucldev.yml -f uat.yml run --rm django_uat python manage.py loaddata fixtures.json
+docker-compose -f ucldev.yml -f uat.yml run --rm django_uat python manage.py createsuperuser
+docker-compose -f ucldev.yml -f uat.yml run --rm django_uat python manage.py shell
+```
+
+Once everything is up, you should be able to access the UAT site at http://localhost:8000/uat/
+
 ----
 ## Production setup
 

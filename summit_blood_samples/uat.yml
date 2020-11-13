@@ -1,0 +1,64 @@
+# Additional user acceptance testing docker-compose config
+
+version: '3.8'
+
+volumes:
+  # Extra volumes needed for UAT
+  uat_postgres_data:
+  uat_staticfiles:
+  uat_uploads:
+
+services:
+  django_uat:
+    build:
+      context: ../uat/summit_blood_samples
+      dockerfile: ./compose/production/django/Dockerfile
+    image: summit_blood_samples_uat_django
+    expose:
+      - 5000
+    depends_on:
+      - postgres_uat
+    env_file:
+      - ./.envs/.ucldev/.django
+      - ./.envs/.ucldev/.postgres
+    environment:
+      - DJANGO_URL_PREFIX=/uat
+      - POSTGRES_HOST=postgres_uat
+    volumes:
+      - type: volume
+        source: uat_uploads
+        target: /uploads
+      - type: volume
+        source: uat_staticfiles
+        target: /static
+    command: /start
+
+  postgres_uat:
+    build:
+      context: ../uat/summit_blood_samples
+      dockerfile: ./compose/production/postgres/Dockerfile
+    image: summit_blood_samples_uat_postgres
+    volumes:
+      - type: volume
+        source: uat_postgres_data
+        target: /var/lib/postgresql/data
+      - type: volume
+        source: production_postgres_data_backups
+        target: /backups
+    env_file:
+      - ./.envs/.ucldev/.postgres
+
+  pgadmin:
+    depends_on:
+      # - postgres
+      - postgres_uat
+
+  nginx:
+    volumes:
+      - type: volume
+        source: uat_staticfiles
+        target: /uat/static
+    depends_on:
+      # - django
+      - django_uat
+      # - pgadmin
