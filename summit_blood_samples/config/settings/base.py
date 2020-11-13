@@ -18,8 +18,9 @@ if READ_DOT_ENV_FILE:
 URL_PREFIX = env.str("DJANGO_URL_PREFIX", default="")
 if URL_PREFIX:
     # This is a UAT version of the site served from a sub-URL
-    USE_X_FORWARDED_HOST = True
-    FORCE_SCRIPT_NAME = URL_PREFIX
+    URL_PATTERN_PREFIX = '{}/'.format(URL_PREFIX[1:])
+else:
+    URL_PATTERN_PREFIX = ''
 
 
 # GENERAL
@@ -111,9 +112,9 @@ MIGRATION_MODULES = {"sites": "summit_blood_samples.contrib.sites.migrations"}
 # LOGIN_REDIRECT_URL = "users:redirect"
 # https://docs.djangoproject.com/en/dev/ref/settings/#login-url
 # LOGIN_URL = "account_login"
-LOGIN_REDIRECT_URL = '/'
-LOGOUT_REDIRECT_URL = '/accounts/login/'
-LOGIN_URL = '/accounts/login/'
+LOGIN_REDIRECT_URL = URL_PREFIX + '/'
+LOGOUT_REDIRECT_URL = URL_PREFIX + '/accounts/login/'
+LOGIN_URL = URL_PREFIX + '/accounts/login/'
 
 # PASSWORDS
 # ------------------------------------------------------------------------------
@@ -260,7 +261,7 @@ DEFAULT_FROM_EMAIL = 'Summit Blood Samples <krishna.n@valuelabs.com>'
 # ADMIN
 # ------------------------------------------------------------------------------
 # # Django Admin URL.
-# ADMIN_URL = "admin/"
+ADMIN_URL = URL_PREFIX + "admin/"
 # # https://docs.djangoproject.com/en/dev/ref/settings/#admins
 # ADMINS = [("""Daniel Roy Greenfeld""", "daniel-roy-greenfeld@example.com")]
 # # https://docs.djangoproject.com/en/dev/ref/settings/#managers
