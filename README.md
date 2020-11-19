@@ -263,9 +263,9 @@ You can copy database contents from production to UAT using the postgres contain
 since production and UAT store backups in the same volume:
 
 ```sh
-ENVDIR=ucldev docker-compose -f production.yml -f uat.yml run --rm postgres backup
-ENVDIR=ucldev docker-compose -f production.yml -f uat.yml run --rm postgres_uat backups
-ENVDIR=ucldev docker-compose -f production.yml -f uat.yml run --rm postgres_uat restore <file>
+ENVDIR=production docker-compose -f production.yml -f uat.yml run --rm postgres backup
+ENVDIR=production docker-compose -f production.yml -f uat.yml run --rm postgres_uat backups
+ENVDIR=production docker-compose -f production.yml -f uat.yml run --rm postgres_uat restore <file>
 ```
 
 Note that this will only work if both are running the same schema, so copy the database *before* you make schema changes and run migrations!
