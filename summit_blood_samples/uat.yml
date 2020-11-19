@@ -19,8 +19,8 @@ services:
     depends_on:
       - postgres_uat
     env_file:
-      - ./.envs/.ucldev/.django
-      - ./.envs/.ucldev/.postgres
+      - ./.envs/.${ENVDIR}/.django
+      - ./.envs/.${ENVDIR}/.postgres
     environment:
       - DJANGO_URL_PREFIX=/uat
       - POSTGRES_HOST=postgres_uat
@@ -46,7 +46,7 @@ services:
         source: production_postgres_data_backups
         target: /backups
     env_file:
-      - ./.envs/.ucldev/.postgres
+      - ./.envs/.${ENVDIR}/.postgres
 
   pgadmin:
     depends_on:

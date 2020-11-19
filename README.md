@@ -63,15 +63,15 @@ A second docker compose configuration file, `uat.yml`, is available that adds th
 For instance, to bring up both sites use:
 
 ```sh
-docker-compose -f ucldev.yml -f uat.yml up --build
+ENVDIR=ucldev docker-compose -f ucldev.yml -f uat.yml up --build
 ```
 
 You will need to configure the UAT site on first run:
 
 ```sh
-docker-compose -f ucldev.yml -f uat.yml run --rm django_uat python manage.py loaddata fixtures.json
-docker-compose -f ucldev.yml -f uat.yml run --rm django_uat python manage.py createsuperuser
-docker-compose -f ucldev.yml -f uat.yml run --rm django_uat python manage.py shell
+ENVDIR=ucldev docker-compose -f ucldev.yml -f uat.yml run --rm django_uat python manage.py loaddata fixtures.json
+ENVDIR=ucldev docker-compose -f ucldev.yml -f uat.yml run --rm django_uat python manage.py createsuperuser
+ENVDIR=ucldev docker-compose -f ucldev.yml -f uat.yml run --rm django_uat python manage.py shell
 ```
 
 Once everything is up, you should be able to access the UAT site at http://localhost:8000/uat/
@@ -80,9 +80,9 @@ You can copy database contents from production to UAT using the postgres contain
 since production and UAT store backups in the same volume:
 
 ```sh
-docker-compose -f ucldev.yml -f uat.yml run --rm postgres backup
-docker-compose -f ucldev.yml -f uat.yml run --rm postgres_uat backups
-docker-compose -f ucldev.yml -f uat.yml run --rm postgres_uat restore <file>
+ENVDIR=ucldev docker-compose -f ucldev.yml -f uat.yml run --rm postgres backup
+ENVDIR=ucldev docker-compose -f ucldev.yml -f uat.yml run --rm postgres_uat backups
+ENVDIR=ucldev docker-compose -f ucldev.yml -f uat.yml run --rm postgres_uat restore <file>
 ```
 
 Note that this will only work if both are running the same schema, so copy the database *before* you make schema changes and run migrations!
