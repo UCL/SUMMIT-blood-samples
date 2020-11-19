@@ -231,6 +231,46 @@ sudo systemctl enable summit-blood-samples
 sudo systemctl start summit-blood-samples
 ```
 
+### User acceptance testing on production
+
+It is possible to run 2 versions of the site simultaneously.
+You need to clone a second copy of the repository (presumably a different branch!) as a `uat` folder alongside the `summit_blood_samples` folder, e.g. by running:
+
+```sh
+cd ..
+git clone -b develop git@github.com:UCL/SUMMIT-blood-samples.git uat
+cd summit_blood_samples
+```
+
+A second docker compose configuration file, `uat.yml`, is available that adds the extra containers.
+For instance, to bring up both sites use:
+
+```sh
+ENVDIR=production docker-compose -f production.yml -f uat.yml up --build
+```
+
+You will need to configure the UAT site on first run, as for the live site:
+
+```sh
+ENVDIR=production docker-compose -f production.yml -f uat.yml run --rm django_uat python manage.py loaddata fixtures.json
+ENVDIR=production docker-compose -f production.yml -f uat.yml run --rm django_uat python manage.py createsuperuser
+ENVDIR=production docker-compose -f production.yml -f uat.yml run --rm django_uat python manage.py shell
+```
+
+Once everything is up, you should be able to access the UAT site at /uat/
+
+You can copy database contents from production to UAT using the postgres container's backup functionality,
+since production and UAT store backups in the same volume:
+
+```sh
+ENVDIR=ucldev docker-compose -f production.yml -f uat.yml run --rm postgres backup
+ENVDIR=ucldev docker-compose -f production.yml -f uat.yml run --rm postgres_uat backups
+ENVDIR=ucldev docker-compose -f production.yml -f uat.yml run --rm postgres_uat restore <file>
+```
+
+Note that this will only work if both are running the same schema, so copy the database *before* you make schema changes and run migrations!
+
+
 ----
 ## Original dev setup
 Use `local.yml` rather than `production.yml` for commands.
