@@ -73,6 +73,7 @@ ENVDIR=ucldev docker-compose -f ucldev.yml -f uat.yml run --rm django_uat python
 ENVDIR=ucldev docker-compose -f ucldev.yml -f uat.yml run --rm django_uat python manage.py createsuperuser
 ENVDIR=ucldev docker-compose -f ucldev.yml -f uat.yml run --rm django_uat python manage.py shell
 ```
+and run the same commands as above in the Python shell.
 
 Once everything is up, you should be able to access the UAT site at http://localhost:8000/uat/
 
