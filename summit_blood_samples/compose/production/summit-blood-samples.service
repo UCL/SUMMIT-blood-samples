@@ -9,7 +9,7 @@ RemainAfterExit=true
 
 User=root
 WorkingDirectory=/home/cceacoo/SUMMIT-blood-samples/summit_blood_samples
-Environment=ENVDIR=production
+Environment=ENVDIR=uat
 
 ExecStart=/usr/local/bin/docker-compose -f production.yml -f uat.yml up -d
 # We allow a greater timeout to ensure postgres can shutdown cleanly without data loss

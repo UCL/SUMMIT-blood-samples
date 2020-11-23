@@ -247,29 +247,24 @@ A second docker compose configuration file, `uat.yml`, is available that adds th
 For instance, to bring up both sites use:
 
 ```sh
-ENVDIR=production docker-compose -f production.yml -f uat.yml up --build
+sudo ENVDIR=uat docker-compose -f production.yml -f uat.yml up --build
 ```
 
-You will need to configure the UAT site on first run, as for the live site:
-
-```sh
-ENVDIR=production docker-compose -f production.yml -f uat.yml run --rm django_uat python manage.py loaddata fixtures.json
-ENVDIR=production docker-compose -f production.yml -f uat.yml run --rm django_uat python manage.py createsuperuser
-ENVDIR=production docker-compose -f production.yml -f uat.yml run --rm django_uat python manage.py shell
-```
-
-Once everything is up, you should be able to access the UAT site at /uat/
+It is configured by default in the systemd setup.
 
 You can copy database contents from production to UAT using the postgres container's backup functionality,
-since production and UAT store backups in the same volume:
+since production and UAT store backups in the same volume.
+This will also copy the user details over, so restoring a backup can substitute for the first-run setup.
 
 ```sh
-ENVDIR=production docker-compose -f production.yml -f uat.yml run --rm postgres backup
-ENVDIR=production docker-compose -f production.yml -f uat.yml run --rm postgres_uat backups
-ENVDIR=production docker-compose -f production.yml -f uat.yml run --rm postgres_uat restore <file>
+sudo ENVDIR=uat docker-compose -f production.yml -f uat.yml run --rm postgres backup
+sudo ENVDIR=uat docker-compose -f production.yml -f uat.yml run --rm postgres_uat backups
+sudo ENVDIR=uat docker-compose -f production.yml -f uat.yml run --rm postgres_uat restore <file>
 ```
 
 Note that this will only work if both are running the same schema, so copy the database *before* you make schema changes and run migrations!
+
+Once everything is up, you should be able to access the UAT site at /uat/
 
 
 ----
