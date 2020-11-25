@@ -24,7 +24,7 @@ $(document).ready(function(){
         form_data.append('file', file_data);
         form_data.append('visit', $('#visit').val());
         $.ajax({
-            url: '{% url "Blood Sample:UploadRecipt" %}?confirm=True&day='+$('.activeDay').data('currentday'),
+            url: '{% url "Blood Sample:UploadReceipt" %}?confirm=True&day='+$('.activeDay').data('currentday'),
             data: form_data,
             type: 'POST',
             processData: false,
