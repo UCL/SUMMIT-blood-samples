@@ -109,6 +109,7 @@ Create `summit_blood_samples/.envs/.production/.django`  with
       DJANGO_SECRET_KEY=<super-secret-key>
       DJANGO_ALLOWED_HOSTS=<FQDN>
       DJANGO_SECURE_SSL_REDIRECT=<true|false>
+      DJANGO_ADMINS=Name1:email1,Name2:email2
 
 
 Create `summit_blood_samples/.envs/.production/.postgres`  with

@@ -263,7 +263,8 @@ DEFAULT_FROM_EMAIL = 'Summit Blood Samples <krishna.n@valuelabs.com>'
 # # Django Admin URL.
 ADMIN_URL = URL_PREFIX + "admin/"
 # # https://docs.djangoproject.com/en/dev/ref/settings/#admins
-# ADMINS = [("""Daniel Roy Greenfeld""", "daniel-roy-greenfeld@example.com")]
+# # https://django-environ.readthedocs.io/en/latest/#nested-lists
+ADMINS = [name_email.split(':') for name_email in env.list('DJANGO_ADMINS')]
 # # https://docs.djangoproject.com/en/dev/ref/settings/#managers
 # MANAGERS = ADMINS
 
