@@ -87,7 +87,7 @@ td, th {
 {% endblock %}
 {% block userlinks %}
     {% if site_url %}
-        <a href="{{ site_url }}" id="home-page">View site</a> /
+        <a href="{% url 'Blood Sample:Home' %}" id="home-page">View site</a> /
     {% endif %}
     {% if user.is_active and user.is_staff %}
         {% url 'django-admindocs-docroot' as docsroot %}

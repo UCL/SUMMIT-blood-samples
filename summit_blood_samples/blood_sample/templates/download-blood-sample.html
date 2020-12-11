@@ -8,12 +8,12 @@
       text-decoration: none;
       transition: background-color .3s;
     }
-    
+
     .pagination a.active {
       background-color: dodgerblue;
       color: white;
     }
-    
+
     .pagination a:hover:not(.active) {background-color: #ddd;}
     </style>
     </head>
@@ -41,7 +41,7 @@
     var total_records_cnt = "{{total_records_cnt|safe}}"
     $(document).ready(function(){
       twbsPaginator("#pagination_blood_sample_download", "#sample_table_download", "{{current_page}}", "{{total_pages}}",
-            '/download_blood_sample?filters='+filters+'&settings='+settings+'&table=True&page=');
+            '{% url "Blood Sample:DownloadBloodSample" %}?filters='+filters+'&settings='+settings+'&table=True&page=');
     $('.dwncsvblood').click(function() {
       if (total_records_cnt>50000){
         $("#blood-sample-modal").modal();
@@ -51,14 +51,14 @@
         $('.modal-body').html(htmlData);
         return
       }
-      this.setAttribute("href", '/download_blood_sample?csv=true&filters='+filters+'&settings='+settings);
+      this.setAttribute("href", '{% url "Blood Sample:DownloadBloodSample" %}?csv=true&filters='+filters+'&settings='+settings);
       $("#download-msg").addClass("show").delay(3000).queue(function(next){
         $(this).removeClass("show");
         next();
       });
     });
     $(document).on('click','#download-continue',function(e){
-      this.setAttribute("href", '/download_blood_sample?csv=true&filters='+filters+'&settings='+settings);
+      this.setAttribute("href", '{% url "Blood Sample:DownloadBloodSample" %}?csv=true&filters='+filters+'&settings='+settings);
       $("#blood-sample-modal").modal('toggle');
       $("#download-msg").addClass("show").delay(3000).queue(function(next){
         $(this).removeClass("show");
@@ -70,7 +70,7 @@
     $('.modal-loader').show();
     $("#blood-sample-modal").modal();
     $.ajax({
-    url: '/filter_options?filters='+filters+'&settings='+settings,
+    url: '{% url "Blood Sample:filterOptions" %}?filters='+filters+'&settings='+settings,
     type: 'GET',
     success: function(data){
             $('.modal-body').html(data);
@@ -82,7 +82,7 @@ $('.SettingsOptions').click(function() {
     $('.modal-loader').show();
     $("#blood-sample-modal").modal();
     $.ajax({
-    url: '/settings_options?settings='+settings+'&filters='+filters,
+    url: '{% url "Blood Sample:SettingsOptions" %}?settings='+settings+'&filters='+filters,
     type: 'GET',
     success: function(data){
             $('.modal-body').html(data);

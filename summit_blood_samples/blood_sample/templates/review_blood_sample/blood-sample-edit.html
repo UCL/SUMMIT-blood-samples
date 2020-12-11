@@ -52,7 +52,7 @@ $(document).ready(function(){
     $('#submit_edit_sample').click(function() {
         $('.modal-loader').show();
         $.ajax({
-            url: 'edit_blood_sample?'+$('#edit-sample-form').serialize(),
+            url: '{% url "Blood Sample:EditBloodSample" %}?'+$('#edit-sample-form').serialize(),
             type: 'POST',
             processData: false,
             contentType: false,
@@ -65,7 +65,7 @@ $(document).ready(function(){
                     $('.review-sample').show();
                     $(".customModal").addClass("modal-xl");
                     twbsPaginator("#pagination_blood_sample", "#sample_table", window['page#pagination_blood_sample'], window['total_pages#pagination_blood_sample'],
-                    '/review?table=True&type=blood_sample&day='+$('.reviewBloodDay.activeDay').data('activeday')+'&page=');
+                    '{% url "Blood Sample:Review" %}?table=True&type=blood_sample&day='+$('.reviewBloodDay.activeDay').data('activeday')+'&page=');
                 }else{
                     $('.error').html('Internal server error occured');
                 }

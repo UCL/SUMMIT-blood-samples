@@ -53,7 +53,7 @@ $(document).ready(function(){
     $('#submit_edit_processed_sample').click(function() {
         $('.modal-loader').show();
         $.ajax({
-            url: 'edit_processed_bs?'+$('#edit-processed-bs-form').serialize(),
+            url: '{% url "Blood Sample:EditProcessedBs" %}?'+$('#edit-processed-bs-form').serialize(),
             type: 'POST',
             processData: false,
             contentType: false,
@@ -85,7 +85,7 @@ $(document).ready(function(){
                     });
                     
                     twbsPaginator("#pagination_processed", "#processed_table", window['page#pagination_processed'], window['total_pages#pagination_processed'],
-                    '/review?table=True&type=processed&day='+$('.reviewProcessedDay.activeDay').data('activeday')+'&'+$('.processed-filter-form').serialize()+'&BloodSample=' + bloodSamples+'&Manifest=' + manifest+'&Receipt=' + receipt+'&Processed=' + processed+'&page=');
+                    '{% url "Blood Sample:Review" %}?table=True&type=processed&day='+$('.reviewProcessedDay.activeDay').data('activeday')+'&'+$('.processed-filter-form').serialize()+'&BloodSample=' + bloodSamples+'&Manifest=' + manifest+'&Receipt=' + receipt+'&Processed=' + processed+'&page=');
                 }else{
                     $('.error').html('Internal server error occured');
                 }

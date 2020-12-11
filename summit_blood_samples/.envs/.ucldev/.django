@@ -7,3 +7,4 @@ DJANGO_SECRET_KEY='my-django-secret-key'
 DJANGO_ALLOWED_HOSTS="*"
 DJANGO_SECURE_SSL_REDIRECT=false
 DJANGO_DEFAULT_FROM_EMAIL='Summit Blood Samples <rsd-notifications@ucl.ac.uk>'
+DJANGO_ADMINS=Name1:email1@ucl.ac.uk,Name2:email2@ucl.ac.uk

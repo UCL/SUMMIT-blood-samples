@@ -64,7 +64,7 @@ $(document).ready(function(){
     $('#submit_edit_Manifest').click(function() {
         $('.modal-loader').show();
         $.ajax({
-            url: 'edit_manifest?'+$('#edit-manifest-form').serialize(),
+            url: '{% url "Blood Sample:EditManifest" %}?'+$('#edit-manifest-form').serialize(),
             type: 'POST',
             processData: false,
             contentType: false,
@@ -78,31 +78,31 @@ $(document).ready(function(){
                     $(".customModal").addClass("modal-xl");
                     $('.modal-loader').hide();
                     $.ajax({
-                        url: '/review?get_pages=True&type=manifest&day='+$('.reviewManifestDay.activeDay').data('activeday')+'&'+$('.manifest-filter-form').serialize()+'&page='+window['page#pagination_manifest'],
+                        url: '{% url "Blood Sample:Review" %}?get_pages=True&type=manifest&day='+$('.reviewManifestDay.activeDay').data('activeday')+'&'+$('.manifest-filter-form').serialize()+'&page='+window['page#pagination_manifest'],
                         type: 'get',
                         success: function(data){
                             twbsPaginator("#pagination_manifest", "#manifest_table", data.current_page, data.total_pages,
-                            '/review?table=True&type=manifest&day='+$('.reviewManifestDay.activeDay').data('activeday')+'&'+$('.manifest-filter-form').serialize()+'&page=');
+                            '{% url "Blood Sample:Review" %}?table=True&type=manifest&day='+$('.reviewManifestDay.activeDay').data('activeday')+'&'+$('.manifest-filter-form').serialize()+'&page=');
                         }
                     });
                     $.ajax({
-                        url: '/unmatched_manifest?get_pages=True&type=umatched_mf&day='+$('.reviewManifestDay.activeDay').data('activeday')+'&'+$('.manifest-filter-form').serialize()+'&page='+window['page#pagination_umatched_mf'],
+                        url: '{% url "Blood Sample:UnmachedManifest" %}?get_pages=True&type=umatched_mf&day='+$('.reviewManifestDay.activeDay').data('activeday')+'&'+$('.manifest-filter-form').serialize()+'&page='+window['page#pagination_umatched_mf'],
                         type: 'get',
                         success: function(data){
                             twbsPaginator("#pagination_umatched_mf", "#umatched_mf_table", data.current_page, data.total_pages,
-                            '/unmatched_manifest?&type=umatched_mf&day='+$('.reviewManifestDay.activeDay').data('activeday')+'&'+$('.manifest-filter-form').serialize()+'&page=');
+                            '{% url "Blood Sample:UnmachedManifest" %}?&type=umatched_mf&day='+$('.reviewManifestDay.activeDay').data('activeday')+'&'+$('.manifest-filter-form').serialize()+'&page=');
                         }
                     });
                     $.ajax({
-                        url: '/unmatched_manifest?get_pages=True&type=umatched_bs&day='+$('.reviewManifestDay.activeDay').data('activeday')+'&'+$('.manifest-filter-form').serialize()+'&page='+window['page#pagination_umatched_bs'],
+                        url: '{% url "Blood Sample:UnmachedManifest" %}?get_pages=True&type=umatched_bs&day='+$('.reviewManifestDay.activeDay').data('activeday')+'&'+$('.manifest-filter-form').serialize()+'&page='+window['page#pagination_umatched_bs'],
                         type: 'get',
                         success: function(data){
                             twbsPaginator("#pagination_umatched_bs", "#umatched_bs_table", data.current_page, data.total_pages,
-                            '/unmatched_manifest?&type=umatched_bs&day='+$('.reviewManifestDay.activeDay').data('activeday')+'&'+$('.manifest-filter-form').serialize()+'&page=');
+                            '{% url "Blood Sample:UnmachedManifest" %}?&type=umatched_bs&day='+$('.reviewManifestDay.activeDay').data('activeday')+'&'+$('.manifest-filter-form').serialize()+'&page=');
                         }
                     });
                     $.ajax({
-                        url: '/home_tab',
+                        url: '{% url "Blood Sample:HomeTab" %}',
                         type: 'GET',
                         success: function(data){
                                 $('#home-container').html(data);

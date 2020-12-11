@@ -88,7 +88,7 @@
             $('#blood-sample-modal').off('hide.bs.modal');
         });
         $.ajax({
-            url: '/get_manifest_filters',
+            url: '{% url "Blood Sample:GetManifestFilters" %}',
             type: 'get',
             success: function(data){
                 $.each(data.rooms, function(key, value) {
@@ -112,15 +112,15 @@
             }
         });
         twbsPaginator("#pagination_receipt", "#receipt_table", "{{current_page}}", "{{total_pages}}",
-        '/review?table=True&type=receipt&day='+$('.reviewReceiptDay.activeDay').data('activeday')+'&page=');
+        '{% url "Blood Sample:Review" %}?table=True&type=receipt&day='+$('.reviewReceiptDay.activeDay').data('activeday')+'&page=');
         twbsPaginator("#pagination_umatched_bsr", "#umatched_bsr_table", "{{current_page}}", "{{bsr_total_pages}}",
-        '/unmatched_receipt?&type=umatched_bsr&day='+$('.reviewReceiptDay.activeDay').data('activeday')+'&page=');
+        '{% url "Blood Sample:UnmachedReceipt" %}?&type=umatched_bsr&day='+$('.reviewReceiptDay.activeDay').data('activeday')+'&page=');
         twbsPaginator("#pagination_umatched_rr", "#umatched_rr_table", "{{current_page}}", "{{rr_total_pages}}",
-        '/unmatched_receipt?&type=umatched_rr&day='+$('.reviewReceiptDay.activeDay').data('activeday')+'&page=');
+        '{% url "Blood Sample:UnmachedReceipt" %}?&type=umatched_rr&day='+$('.reviewReceiptDay.activeDay').data('activeday')+'&page=');
         function getNav(day){
             $('.modal-loader').show();
             $.ajax({
-                url: '/review?type=receipt&day='+day,
+                url: '{% url "Blood Sample:Review" %}?type=receipt&day='+day,
                 type: 'get',
                 success: function(data){
                     $('.modal-body').html(data);
@@ -138,19 +138,19 @@
         });
         $('#filter-receipt-submit').click(function() {
             $.ajax({
-                url: '/review?get_pages=True&type=receipt&day='+$('.reviewReceiptDay.activeDay').data('activeday')+'&'+$('.receipt-filter-form').serialize(),
+                url: '{% url "Blood Sample:Review" %}?get_pages=True&type=receipt&day='+$('.reviewReceiptDay.activeDay').data('activeday')+'&'+$('.receipt-filter-form').serialize(),
                 type: 'get',
                 success: function(data){
                     twbsPaginator("#pagination_receipt", "#receipt_table", data.current_page, data.total_pages,
-                    '/review?table=True&type=receipt&day='+$('.reviewReceiptDay.activeDay').data('activeday')+'&'+$('.receipt-filter-form').serialize()+'&page=');
+                    '{% url "Blood Sample:Review" %}?table=True&type=receipt&day='+$('.reviewReceiptDay.activeDay').data('activeday')+'&'+$('.receipt-filter-form').serialize()+'&page=');
                 }
             });
             $.ajax({
-                url: '/unmatched_receipt?get_pages=True&type=umatched_bsr&day='+$('.reviewReceiptDay.activeDay').data('activeday')+'&'+$('.receipt-filter-form').serialize(),
+                url: '{% url "Blood Sample:UnmachedReceipt" %}?get_pages=True&type=umatched_bsr&day='+$('.reviewReceiptDay.activeDay').data('activeday')+'&'+$('.receipt-filter-form').serialize(),
                 type: 'get',
                 success: function(data){
                     twbsPaginator("#pagination_umatched_bsr", "#umatched_bsr_table", data.current_page, data.total_pages,
-                    '/unmatched_receipt?&type=umatched_bsr&day='+$('.reviewReceiptDay.activeDay').data('activeday')+'&'+$('.receipt-filter-form').serialize()+'&page=');
+                    '{% url "Blood Sample:UnmachedReceipt" %}?&type=umatched_bsr&day='+$('.reviewReceiptDay.activeDay').data('activeday')+'&'+$('.receipt-filter-form').serialize()+'&page=');
                 }
             });
             $('.receipt-filters').dropdown('hide');

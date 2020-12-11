@@ -15,18 +15,18 @@ admin.autodiscover()
 admin.site.login = login_required(admin.site.login)
 
 urlpatterns = [
-    path('', include('blood_sample.urls')),
-    path('accounts/password_reset/', auth_views.PasswordResetView.as_view(
+    path(settings.URL_PATTERN_PREFIX, include('blood_sample.urls')),
+    path(settings.URL_PATTERN_PREFIX + 'accounts/password_reset/', auth_views.PasswordResetView.as_view(
         html_email_template_name='registration/html_password_reset_email.html',
         subject_template_name='registration/forgot_password_subject.html'
-    )),
-    path('accounts/login/',
+    ), name="reset_password"),
+    path(settings.URL_PATTERN_PREFIX + 'accounts/login/',
          auth_views.LoginView.as_view(redirect_authenticated_user=True), name='login'),
-    url(r'accounts/reset/done/$', reset_password_done, name="reset_password_done"),
-    path('accounts/', include('django.contrib.auth.urls')),
+    url(settings.URL_PATTERN_PREFIX + r'accounts/reset/done/$', reset_password_done, name="reset_password_done"),
+    path(settings.URL_PATTERN_PREFIX + 'accounts/', include('django.contrib.auth.urls')),
     # path('admin/', admin.site.urls),
-    path('admin/', admin.site.urls, name='custom_admin'),
-    url(r'^static/(?P<path>.*)$', django.views.static.serve,
+    path(settings.URL_PATTERN_PREFIX + 'admin/', admin.site.urls, name='custom_admin'),
+    url(settings.URL_PATTERN_PREFIX + r'^static/(?P<path>.*)$', django.views.static.serve,
         {'document_root': settings.STATIC_ROOT, 'show_indexes': settings.DEBUG})
 
 

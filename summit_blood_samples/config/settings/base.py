@@ -15,6 +15,14 @@ if READ_DOT_ENV_FILE:
     # OS environment variables take precedence over variables from .env
     env.read_env(str(ROOT_DIR / ".env"))
 
+URL_PREFIX = env.str("DJANGO_URL_PREFIX", default="")
+if URL_PREFIX:
+    # This is a UAT version of the site served from a sub-URL
+    URL_PATTERN_PREFIX = '{}/'.format(URL_PREFIX[1:])
+else:
+    URL_PATTERN_PREFIX = ''
+
+
 # GENERAL
 # ------------------------------------------------------------------------------
 # https://docs.djangoproject.com/en/dev/ref/settings/#debug
@@ -77,7 +85,7 @@ THIRD_PARTY_APPS = [
 
 LOCAL_APPS = [
     # "summit_blood_samples.users.apps.UsersConfig",
-    
+
     "manage_users",
     "blood_sample",
     "indigo",
@@ -104,9 +112,9 @@ MIGRATION_MODULES = {"sites": "summit_blood_samples.contrib.sites.migrations"}
 # LOGIN_REDIRECT_URL = "users:redirect"
 # https://docs.djangoproject.com/en/dev/ref/settings/#login-url
 # LOGIN_URL = "account_login"
-LOGIN_REDIRECT_URL = '/'
-LOGOUT_REDIRECT_URL = '/accounts/login/'
-LOGIN_URL = '/accounts/login/'
+LOGIN_REDIRECT_URL = URL_PREFIX + '/'
+LOGOUT_REDIRECT_URL = URL_PREFIX + '/accounts/login/'
+LOGIN_URL = URL_PREFIX + '/accounts/login/'
 
 # PASSWORDS
 # ------------------------------------------------------------------------------
@@ -149,7 +157,7 @@ MIDDLEWARE = [
 # https://docs.djangoproject.com/en/dev/ref/settings/#static-root
 STATIC_ROOT = str(ROOT_DIR / "staticfiles")
 # https://docs.djangoproject.com/en/dev/ref/settings/#static-url
-STATIC_URL = "/static/"
+STATIC_URL = URL_PREFIX + "/static/"
 # https://docs.djangoproject.com/en/dev/ref/contrib/staticfiles/#std:setting-STATICFILES_DIRS
 STATICFILES_DIRS = [str(APPS_DIR / "static")]
 # https://docs.djangoproject.com/en/dev/ref/contrib/staticfiles/#staticfiles-finders
@@ -164,7 +172,7 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 # https://docs.djangoproject.com/en/dev/ref/settings/#media-root
 MEDIA_ROOT = str(APPS_DIR / "media")
 # https://docs.djangoproject.com/en/dev/ref/settings/#media-url
-MEDIA_URL = "/media/"
+MEDIA_URL = URL_PREFIX + "/media/"
 
 UPLOAD_ROOT = str(ROOT_DIR / "uploads")
 
@@ -253,9 +261,10 @@ DEFAULT_FROM_EMAIL = 'Summit Blood Samples <krishna.n@valuelabs.com>'
 # ADMIN
 # ------------------------------------------------------------------------------
 # # Django Admin URL.
-# ADMIN_URL = "admin/"
+ADMIN_URL = URL_PREFIX + "admin/"
 # # https://docs.djangoproject.com/en/dev/ref/settings/#admins
-# ADMINS = [("""Daniel Roy Greenfeld""", "daniel-roy-greenfeld@example.com")]
+# # https://django-environ.readthedocs.io/en/latest/#nested-lists
+ADMINS = [name_email.split(':') for name_email in env.list('DJANGO_ADMINS')]
 # # https://docs.djangoproject.com/en/dev/ref/settings/#managers
 # MANAGERS = ADMINS
 

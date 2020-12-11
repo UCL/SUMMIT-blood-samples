@@ -48,6 +48,46 @@ You should now be able to access the site at http://localhost:8000/ and log in w
 
 For pgadmin visit http://localhost:8000/pgadmin4/
 
+### User acceptance testing
+
+It is possible to run 2 versions of the site simultaneously.
+You need to clone a second copy of the repository (presumably a different branch!) as a `uat` folder alongside the `summit_blood_samples` folder, e.g. by running:
+
+```sh
+cd ..
+git clone -b develop git@github.com:UCL/SUMMIT-blood-samples.git uat
+cd summit_blood_samples
+```
+
+A second docker compose configuration file, `uat.yml`, is available that adds the extra containers.
+For instance, to bring up both sites use:
+
+```sh
+ENVDIR=ucldev docker-compose -f ucldev.yml -f uat.yml up --build
+```
+
+You will need to configure the UAT site on first run:
+
+```sh
+ENVDIR=ucldev docker-compose -f ucldev.yml -f uat.yml run --rm django_uat python manage.py loaddata fixtures.json
+ENVDIR=ucldev docker-compose -f ucldev.yml -f uat.yml run --rm django_uat python manage.py createsuperuser
+ENVDIR=ucldev docker-compose -f ucldev.yml -f uat.yml run --rm django_uat python manage.py shell
+```
+and run the same commands as above in the Python shell.
+
+Once everything is up, you should be able to access the UAT site at http://localhost:8000/uat/
+
+You can copy database contents from production to UAT using the postgres container's backup functionality,
+since production and UAT store backups in the same volume:
+
+```sh
+ENVDIR=ucldev docker-compose -f ucldev.yml -f uat.yml run --rm postgres backup
+ENVDIR=ucldev docker-compose -f ucldev.yml -f uat.yml run --rm postgres_uat backups
+ENVDIR=ucldev docker-compose -f ucldev.yml -f uat.yml run --rm postgres_uat restore <file>
+```
+
+Note that this will only work if both are running the same schema, so copy the database *before* you make schema changes and run migrations!
+
 ----
 ## Production setup
 
@@ -69,6 +109,7 @@ Create `summit_blood_samples/.envs/.production/.django`  with
       DJANGO_SECRET_KEY=<super-secret-key>
       DJANGO_ALLOWED_HOSTS=<FQDN>
       DJANGO_SECURE_SSL_REDIRECT=<true|false>
+      DJANGO_ADMINS=Name1:email1,Name2:email2
 
 
 Create `summit_blood_samples/.envs/.production/.postgres`  with
@@ -191,6 +232,41 @@ sudo systemctl daemon-reload
 sudo systemctl enable summit-blood-samples
 sudo systemctl start summit-blood-samples
 ```
+
+### User acceptance testing on production
+
+It is possible to run 2 versions of the site simultaneously.
+You need to clone a second copy of the repository (presumably a different branch!) as a `uat` folder alongside the `summit_blood_samples` folder, e.g. by running:
+
+```sh
+cd ..
+git clone -b develop git@github.com:UCL/SUMMIT-blood-samples.git uat
+cd summit_blood_samples
+```
+
+A second docker compose configuration file, `uat.yml`, is available that adds the extra containers.
+For instance, to bring up both sites use:
+
+```sh
+sudo ENVDIR=uat docker-compose -f production.yml -f uat.yml up --build
+```
+
+It is configured by default in the systemd setup.
+
+You can copy database contents from production to UAT using the postgres container's backup functionality,
+since production and UAT store backups in the same volume.
+This will also copy the user details over, so restoring a backup can substitute for the first-run setup.
+
+```sh
+sudo ENVDIR=uat docker-compose -f production.yml -f uat.yml run --rm postgres backup
+sudo ENVDIR=uat docker-compose -f production.yml -f uat.yml run --rm postgres_uat backups
+sudo ENVDIR=uat docker-compose -f production.yml -f uat.yml run --rm postgres_uat restore <file>
+```
+
+Note that this will only work if both are running the same schema, so copy the database *before* you make schema changes and run migrations!
+
+Once everything is up, you should be able to access the UAT site at /uat/
+
 
 ----
 ## Original dev setup

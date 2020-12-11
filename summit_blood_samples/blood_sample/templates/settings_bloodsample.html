@@ -241,7 +241,7 @@
             processed.push($(this).val());
         });
         $.ajax({
-            url: '/download_blood_sample?filters='+filters+'&BloodSample=' + bloodSamples+'&Manifest=' + manifest+'&Receipt=' + receipt+'&Processed=' + processed,
+            url: '{% url "Blood Sample:DownloadBloodSample" %}?filters='+filters+'&BloodSample=' + bloodSamples+'&Manifest=' + manifest+'&Receipt=' + receipt+'&Processed=' + processed,
             type: 'GET',
             success: function(data){
                 $('.modal-loader').hide();

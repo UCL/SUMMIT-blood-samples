@@ -66,7 +66,7 @@
             $('#blood-sample-modal').off('hide.bs.modal');
         });
         $.ajax({
-            url: '/get_bloodsample_filters',//?day='+$('.reviewBloodDay.activeDay').data('activeday'),
+            url: '{% url "Blood Sample:GetBloodSampleFilters" %}',//?day='+$('.reviewBloodDay.activeDay').data('activeday'),
             type: 'get',
             success: function(data){
                 $.each(data.state_status, function(key, value) {
@@ -76,13 +76,13 @@
                                     .text(value));
                 });
             }
-        });        
+        });
         twbsPaginator("#pagination_blood_sample", "#sample_table", "{{current_page}}", "{{total_pages}}",
-        '/review?table=True&type=blood_sample&day='+$('.reviewBloodDay.activeDay').data('activeday')+'&page=');
+        '{% url "Blood Sample:Review" %}?table=True&type=blood_sample&day='+$('.reviewBloodDay.activeDay').data('activeday')+'&page=');
         function getNav(day){
             $('.modal-loader').show();
             $.ajax({
-                url: '/review?reviewTab=True&type=blood_sample&day='+day,
+                url: '{% url "Blood Sample:Review" %}?reviewTab=True&type=blood_sample&day='+day,
                 type: 'get',
                 success: function(data){
                     $('.modal-body').html(data);
@@ -101,14 +101,14 @@
         });
         $('#filter-bloodsample-submit').click(function() {
             $.ajax({
-                url: '/review?get_pages=True&type=blood_sample&day='+$('.reviewBloodDay.activeDay').data('activeday')+'&'+$('.bloodsample-filter-form').serialize(),
+                url: '{% url "Blood Sample:Review" %}?get_pages=True&type=blood_sample&day='+$('.reviewBloodDay.activeDay').data('activeday')+'&'+$('.bloodsample-filter-form').serialize(),
                 type: 'get',
                 success: function(data){
                     twbsPaginator("#pagination_blood_sample", "#sample_table", "{{current_page}}", "{{total_pages}}",
-                    '/review?table=True&type=blood_sample&day='+$('.reviewBloodDay.activeDay').data('activeday')+'&'+$('.bloodsample-filter-form').serialize()+'&page=');
+                    '{% url "Blood Sample:Review" %}?table=True&type=blood_sample&day='+$('.reviewBloodDay.activeDay').data('activeday')+'&'+$('.bloodsample-filter-form').serialize()+'&page=');
                 }
-            });      
+            });
             $('.bloodsample-filters').dropdown('hide');
-        });            
+        });
     });
 </script>

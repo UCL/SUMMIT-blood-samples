@@ -52,7 +52,7 @@ $(document).ready(function(){
         })
         $('.modal-loader').show();
         $.ajax({
-            url: 'edit_processed_bs?id='+$(this).data('editbs')+'&processed_id='+$(this).data('editprocessed'),
+            url: '{% url "Blood Sample:EditProcessedBs" %}?id='+$(this).data('editbs')+'&processed_id='+$(this).data('editprocessed'),
             type: 'GET',
             success: function(data){
                 $('.modal-loader').hide();

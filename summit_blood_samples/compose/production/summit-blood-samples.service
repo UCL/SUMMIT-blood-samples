@@ -9,11 +9,13 @@ RemainAfterExit=true
 
 User=root
 WorkingDirectory=/home/cceacoo/SUMMIT-blood-samples/summit_blood_samples
+Environment=ENVDIR=uat
 
-ExecStart=/usr/local/bin/docker-compose -f production.yml up -d
-ExecStop=/usr/local/bin/docker-compose -f production.yml down
-ExecReload=/usr/local/bin/docker-compose -f production.yml build
-ExecReload=/usr/local/bin/docker-compose -f production.yml up -d
+ExecStart=/usr/local/bin/docker-compose -f production.yml -f uat.yml up -d
+# We allow a greater timeout to ensure postgres can shutdown cleanly without data loss
+ExecStop=/usr/local/bin/docker-compose -f production.yml -f uat.yml stop --timeout 90
+ExecReload=/usr/local/bin/docker-compose -f production.yml -f uat.yml build
+ExecReload=/usr/local/bin/docker-compose -f production.yml -f uat.yml up -d
 
 [Install]
 WantedBy=multi-user.target

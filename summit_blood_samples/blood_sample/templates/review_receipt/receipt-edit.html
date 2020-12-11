@@ -61,7 +61,7 @@ $(document).ready(function(){
     $('#submit_edit_Receipt').click(function() {
         $('.modal-loader').show();
         $.ajax({
-            url: 'edit_receipt?'+$('#edit-receipt-manifest-form').serialize(),
+            url: '{% url "Blood Sample:EditReceipt" %}?'+$('#edit-receipt-manifest-form').serialize(),
             type: 'POST',
             processData: false,
             contentType: false,
@@ -76,31 +76,31 @@ $(document).ready(function(){
                     $('.modal-loader').hide();
 
                     $.ajax({
-                        url: '/review?get_pages=True&type=receipt&day='+$('.reviewReceiptDay.activeDay').data('activeday')+'&'+$('.receipt-filter-form').serialize()+'&page='+window['page#pagination_receipt'],
+                        url: '{% url "Blood Sample:Review" %}?get_pages=True&type=receipt&day='+$('.reviewReceiptDay.activeDay').data('activeday')+'&'+$('.receipt-filter-form').serialize()+'&page='+window['page#pagination_receipt'],
                         type: 'get',
                         success: function(data){
                             twbsPaginator("#pagination_receipt", "#receipt_table", data.current_page, data.total_pages,
-                            '/review?table=True&type=receipt&day='+$('.reviewReceiptDay.activeDay').data('activeday')+'&'+$('.receipt-filter-form').serialize()+'&page=');
+                            '{% url "Blood Sample:Review" %}?table=True&type=receipt&day='+$('.reviewReceiptDay.activeDay').data('activeday')+'&'+$('.receipt-filter-form').serialize()+'&page=');
                         }
                     });
                     $.ajax({
-                        url: '/unmatched_receipt?get_pages=True&type=umatched_bsr&day='+$('.reviewReceiptDay.activeDay').data('activeday')+'&'+$('.receipt-filter-form').serialize()+'&page='+window['page#pagination_umatched_bsr'],
+                        url: '{% url "Blood Sample:UnmachedReceipt" %}?get_pages=True&type=umatched_bsr&day='+$('.reviewReceiptDay.activeDay').data('activeday')+'&'+$('.receipt-filter-form').serialize()+'&page='+window['page#pagination_umatched_bsr'],
                         type: 'get',
                         success: function(data){
                             twbsPaginator("#pagination_umatched_bsr", "#umatched_bsr_table", data.current_page, data.total_pages,
-                            '/unmatched_receipt?&type=umatched_bsr&day='+$('.reviewReceiptDay.activeDay').data('activeday')+'&'+$('.receipt-filter-form').serialize()+'&page=');
+                            '{% url "Blood Sample:UnmachedReceipt" %}?&type=umatched_bsr&day='+$('.reviewReceiptDay.activeDay').data('activeday')+'&'+$('.receipt-filter-form').serialize()+'&page=');
                         }
                     });
                     $.ajax({
-                        url: '/unmatched_receipt?get_pages=True&type=umatched_rr&day='+$('.reviewReceiptDay.activeDay').data('activeday')+'&'+$('.receipt-filter-form').serialize()+'&page='+window['page#pagination_umatched_rr'],
+                        url: '{% url "Blood Sample:UnmachedReceipt" %}?get_pages=True&type=umatched_rr&day='+$('.reviewReceiptDay.activeDay').data('activeday')+'&'+$('.receipt-filter-form').serialize()+'&page='+window['page#pagination_umatched_rr'],
                         type: 'get',
                         success: function(data){
                             twbsPaginator("#pagination_umatched_rr", "#umatched_rr_table", data.current_page, data.total_pages,
-                            '/unmatched_receipt?&type=umatched_rr&day='+$('.reviewReceiptDay.activeDay').data('activeday')+'&'+$('.receipt-filter-form').serialize()+'&page=');
+                            '{% url "Blood Sample:UnmachedReceipt" %}?&type=umatched_rr&day='+$('.reviewReceiptDay.activeDay').data('activeday')+'&'+$('.receipt-filter-form').serialize()+'&page=');
                         }
                     });
                     $.ajax({
-                        url: '/home_tab',
+                        url: '{% url "Blood Sample:HomeTab" %}',
                         type: 'GET',
                         success: function(data){
                                 $('#home-container').html(data);

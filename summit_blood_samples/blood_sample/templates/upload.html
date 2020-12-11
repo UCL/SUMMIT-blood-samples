@@ -65,7 +65,7 @@
 $(document).ready(function(){
 	function getUpload(day){
 		$.ajax({
-			url: '/upload?day='+day,
+			url: '{% url "Blood Sample:Upload" %}?day='+day,
 			type: 'get',
 			success: function(data){
 				$('#upload-container').html(data);
@@ -83,7 +83,7 @@ $(document).ready(function(){
 		$('.modal-loader').show();
 		$("#blood-sample-modal").modal();
         $.ajax({
-            url: '/upload_blood_sample',
+            url: '{% url "Blood Sample:UploadBloodSample" %}',
             type: 'get',
             success: function(data){
                 $('.modal-body').html(data);
@@ -95,7 +95,7 @@ $(document).ready(function(){
 		$('.modal-loader').show();
 		$("#blood-sample-modal").modal();
         $.ajax({
-            url: '/upload_manifest',
+            url: '{% url "Blood Sample:UploadManifest" %}',
             type: 'get',
             success: function(data){
                 $('.modal-body').html(data);
@@ -107,7 +107,7 @@ $(document).ready(function(){
 		$('.modal-loader').show();
 		$("#blood-sample-modal").modal();
         $.ajax({
-            url: '/upload_receipt',
+            url: '{% url "Blood Sample:UploadReceipt" %}',
             type: 'get',
             success: function(data){
                 $('.modal-body').html(data);
@@ -119,7 +119,7 @@ $(document).ready(function(){
 		$('.modal-loader').show();
 		$("#blood-sample-modal").modal();
         $.ajax({
-            url: '/upload_processed',
+            url: '{% url "Blood Sample:UploadProcessed" %}',
             type: 'get',
             success: function(data){
                 $('.modal-body').html(data);
@@ -135,13 +135,13 @@ $(document).ready(function(){
 
 
 		$.ajax({
-            url: '/review?firstOpen=False&type='+$(this).data('review')+'&day='+$('.activeDay').data('activeday'),
+            url: '{% url "Blood Sample:Review" %}?firstOpen=False&type='+$(this).data('review')+'&day='+$('.activeDay').data('activeday'),
             type: 'get',
             success: function(data){
                 $('.modal-body').html(data);
 				$('.modal-loader').hide();
 				$.ajax({
-					url: '/upload?day='+$('.activeDay').data('currentday'),
+					url: '{% url "Blood Sample:Upload" %}?day='+$('.activeDay').data('currentday'),
 					type: 'get',
 					success: function(data){
 						$('#upload-container').html(data);

@@ -40,7 +40,7 @@ $('#upload').click(function() {
     var form_data = new FormData();
     form_data.append('file', file_data);
     $.ajax({
-        url: 'upload_blood_sample',
+        url: '{% url "Blood Sample:UploadBloodSample" %}',
         data: form_data,
         type: 'POST',
         processData: false,

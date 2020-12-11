@@ -45,7 +45,7 @@ $('#uploadProcessed').click(function() {
     form_data.append('file', file_data);
     form_data.append('siteheld', $('#siteheld').val());
     $.ajax({
-        url: 'upload_processed',
+        url: '{% url "Blood Sample:UploadProcessed" %}',
         data: form_data,
         type: 'POST',
         processData: false,

@@ -22,7 +22,7 @@ $(document).ready(function(){
         form_data.append('file', file_data);
         form_data.append('visit', $('#visit').val());
         $.ajax({
-            url: 'upload_manifest?confirm=True&day='+$('.activeDay').data('currentday'),
+            url: '{% url "Blood Sample:UploadManifest" %}?confirm=True&day='+$('.activeDay').data('currentday'),
             data: form_data,
             type: 'POST',
             processData: false,
@@ -37,7 +37,7 @@ $(document).ready(function(){
                     function getUpload(day){
                         $('.modal-loader').show();
                         $.ajax({
-                            url: '/upload?day='+day,
+                            url: '{% url "Blood Sample:Upload" %}?day='+day,
                             type: 'get',
                             success: function(data){
                                 $('#upload-container').html(data);

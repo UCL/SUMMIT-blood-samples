@@ -27,7 +27,7 @@
     $('.upload-home').click(function() {
         $('#nav-upload-tab').click();
         $.ajax({
-            url: '/upload?day='+$(this).data('activeday'),
+            url: '{% url "Blood Sample:Upload" %}?day='+$(this).data('activeday'),
             type: 'get',
             success: function(data){
                 $('#upload-container').html(data);
@@ -38,7 +38,7 @@
     $('.edit-sample').click(function() {
         $('.modal-loader').show();
         $.ajax({
-            url: 'review?type=manifest&day='+$(this).data('activeday'),
+            url: '{% url "Blood Sample:Review" %}?type=manifest&day='+$(this).data('activeday'),
             type: 'GET',
             success: function(data){
                 $("#blood-sample-modal").modal();
@@ -53,7 +53,7 @@
     $('.edit-manifest').click(function() {
         $('.modal-loader').show();
         $.ajax({
-            url: 'review?type=receipt&day='+$(this).data('activeday'),
+            url: '{% url "Blood Sample:Review" %}?type=receipt&day='+$(this).data('activeday'),
             type: 'GET',
             success: function(data){
                 $("#blood-sample-modal").modal();
@@ -68,7 +68,7 @@
     $('.edit-receipt').click(function() {
         $('.modal-loader').show();
         $.ajax({
-            url: 'review?type=processed&day='+$(this).data('activeday'),
+            url: '{% url "Blood Sample:Review" %}?type=processed&day='+$(this).data('activeday'),
             type: 'GET',
             success: function(data){
                 $("#blood-sample-modal").modal();

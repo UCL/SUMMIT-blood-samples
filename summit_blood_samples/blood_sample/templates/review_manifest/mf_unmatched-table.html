@@ -55,7 +55,7 @@ $(document).ready(function(){
         })
         $('.modal-loader').show();
         $.ajax({
-            url: 'edit_manifest?id='+$(this).data('editmanifest'),
+            url: '{% url "Blood Sample:EditManifest" %}?id='+$(this).data('editmanifest'),
             type: 'GET',
             success: function(data){
                 $('.modal-loader').hide();

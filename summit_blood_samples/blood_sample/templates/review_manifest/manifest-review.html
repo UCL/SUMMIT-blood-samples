@@ -85,7 +85,7 @@
             $('#blood-sample-modal').off('hide.bs.modal');
         });
         $.ajax({
-            url: '/get_manifest_filters',//?day='+$('.reviewManifestDay.activeDay').data('activeday'),
+            url: '{% url "Blood Sample:GetManifestFilters" %}',//?day='+$('.reviewManifestDay.activeDay').data('activeday'),
             type: 'get',
             success: function(data){
                 $.each(data.rooms, function(key, value) {
@@ -109,15 +109,15 @@
             }
         });
         twbsPaginator("#pagination_manifest", "#manifest_table", "{{current_page}}", "{{total_pages}}",
-        '/review?table=True&type=manifest&day='+$('.reviewManifestDay.activeDay').data('activeday')+'&page=');
+        '{% url "Blood Sample:Review" %}?table=True&type=manifest&day='+$('.reviewManifestDay.activeDay').data('activeday')+'&page=');
         twbsPaginator("#pagination_umatched_bs", "#umatched_bs_table", "{{current_page}}", "{{bs_total_pages}}",
-        '/unmatched_manifest?&type=umatched_bs&day='+$('.reviewManifestDay.activeDay').data('activeday')+'&page=');
+        '{% url "Blood Sample:UnmachedManifest" %}?&type=umatched_bs&day='+$('.reviewManifestDay.activeDay').data('activeday')+'&page=');
         twbsPaginator("#pagination_umatched_mf", "#umatched_mf_table", "{{current_page}}", "{{mf_total_pages}}",
-        '/unmatched_manifest?&type=umatched_mf&day='+$('.reviewManifestDay.activeDay').data('activeday')+'&page=');
+        '{% url "Blood Sample:UnmachedManifest" %}?&type=umatched_mf&day='+$('.reviewManifestDay.activeDay').data('activeday')+'&page=');
         function getNav(day){
             $('.modal-loader').show();
             $.ajax({
-                url: '/review?type=manifest&day='+day,
+                url: '{% url "Blood Sample:Review" %}?type=manifest&day='+day,
                 type: 'get',
                 success: function(data){
                     $('.modal-body').html(data);
@@ -135,19 +135,19 @@
         });
         $('#filter-manifest-submit').click(function() {
             $.ajax({
-                url: '/review?get_pages=True&type=manifest&day='+$('.reviewManifestDay.activeDay').data('activeday')+'&'+$('.manifest-filter-form').serialize(),
+                url: '{% url "Blood Sample:Review" %}?get_pages=True&type=manifest&day='+$('.reviewManifestDay.activeDay').data('activeday')+'&'+$('.manifest-filter-form').serialize(),
                 type: 'get',
                 success: function(data){
                     twbsPaginator("#pagination_manifest", "#manifest_table", data.current_page, data.total_pages,
-                    '/review?table=True&type=manifest&day='+$('.reviewManifestDay.activeDay').data('activeday')+'&'+$('.manifest-filter-form').serialize()+'&page=');
+                    '{% url "Blood Sample:Review" %}?table=True&type=manifest&day='+$('.reviewManifestDay.activeDay').data('activeday')+'&'+$('.manifest-filter-form').serialize()+'&page=');
                 }
             });
             $.ajax({
-                url: '/unmatched_manifest?get_pages=True&type=umatched_mf&day='+$('.reviewManifestDay.activeDay').data('activeday')+'&'+$('.manifest-filter-form').serialize(),
+                url: '{% url "Blood Sample:UnmachedManifest" %}?get_pages=True&type=umatched_mf&day='+$('.reviewManifestDay.activeDay').data('activeday')+'&'+$('.manifest-filter-form').serialize(),
                 type: 'get',
                 success: function(data){
                     twbsPaginator("#pagination_umatched_mf", "#umatched_mf_table", data.current_page, data.total_pages,
-                    '/unmatched_manifest?&type=umatched_mf&day='+$('.reviewManifestDay.activeDay').data('activeday')+'&'+$('.manifest-filter-form').serialize()+'&page=');
+                    '{% url "Blood Sample:UnmachedManifest" %}?&type=umatched_mf&day='+$('.reviewManifestDay.activeDay').data('activeday')+'&'+$('.manifest-filter-form').serialize()+'&page=');
                 }
             });
 
