@@ -822,8 +822,7 @@ class UploadProcessedView(LoginRequiredMixin, View):
             })
 
         # Validating Sample Type column
-        if set(df['Sample Type'].unique().tolist()) != \
-                set(['RBC', 'Plasma', 'BuffyCoat']):
+        if not set(df['Sample Type'].unique().tolist()).issubset(set(['RBC', 'Plasma', 'BuffyCoat'])):
             return JsonResponse({
                 'status': 412,
                 'message': 'Sample Type column values are not having \
