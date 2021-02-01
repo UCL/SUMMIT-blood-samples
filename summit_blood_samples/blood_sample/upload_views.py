@@ -822,7 +822,8 @@ class UploadProcessedView(LoginRequiredMixin, View):
             })
 
         # Validating Sample Type column
-        if not set(df['Sample Type'].unique().tolist()).issubset(set(['RBC', 'Plasma', 'BuffyCoat'])):
+        if not set(df['Sample Type'].unique().tolist()).issubset(
+                set(['RBC', 'Plasma', 'BuffyCoat'])):
             return JsonResponse({
                 'status': 412,
                 'message': 'Sample Type column values are not having \
@@ -853,9 +854,7 @@ class UploadProcessedView(LoginRequiredMixin, View):
 
         # Validating Processed Date Time column
         try:
-            parent_df['Processed Date Time'].apply(
-                lambda x: datetime.datetime.strptime(
-                    x, "%d/%m/%Y %H:%M"))
+            parent_df['Processed Date Time'].apply(lambda x: datetime.datetime.strptime(x, "%d/%m/%Y %H:%M"))
         except:
             return JsonResponse({
                 'status': 412,
@@ -894,9 +893,7 @@ class UploadProcessedView(LoginRequiredMixin, View):
                 'message': 'Sample Type column with Parent ID, \
                     values are not an Whole Blood'})
 
-        if set(df[df['Parent ID'] != 'No Parent']
-               ['Sample Type'].unique().tolist()) != \
-                set(['RBC', 'Plasma', 'BuffyCoat']):
+        if not set(df[df['Parent ID'] != 'No Parent']['Sample Type'].unique().tolist()).issubset(set(['RBC', 'Plasma', 'BuffyCoat'])):
             return JsonResponse({
                 'status': 412,
                 'message': 'Sample Type column with no Parent ID, \
