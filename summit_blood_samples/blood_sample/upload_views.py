@@ -286,7 +286,10 @@ class UploadBloodSampleView(LoginRequiredMixin, View):
             except Exception as e:
                 logger.error(f'Something went wrong in storing Blood Sample \
                     file in Uploads folder - {e}')
-                return None
+                return JsonResponse({
+                    'status': 500,
+                    'message': 'Something went wrong in storing Blood Sample '
+                               f'file in Uploads folder: {e}'})
             # End of storing file
 
             day, days = UploadView.get_dayformated_and_days(self, request)
@@ -304,12 +307,13 @@ class UploadBloodSampleView(LoginRequiredMixin, View):
             except Exception as e:
                 logger.error(f'Something went wrong in uploading \
                     Blood Sample file details in imports table - {e}')
-                return None
+                return JsonResponse({
+                    'status': 500,
+                    'message': 'Something went wrong in adding Blood Sample '
+                               f'file details to imports table: {e}'})
 
             # Bulk uploading to BloodSample table
             try:
-
-
                 model_instances = [
                     BloodSample(
                         id=record['Id'],
@@ -317,8 +321,7 @@ class UploadBloodSampleView(LoginRequiredMixin, View):
                         Barcode=record['Barcode'] if re.match(
                             r"^(E[0-9]{6})+$", record['Barcode']) else "",
                         Comments="" if re.match(
-                            r"^(E[0-9]{6})+$", record['Barcode'])
-                        else record['Barcode'],
+                            r"^(E[0-9]{6})+$", record['Barcode']) else record['Barcode'],
                         AppointmentId=record['AppointmentId'],
                         SiteNurseEmail=record['User'],
                         ImportId=ImportId,
@@ -331,9 +334,13 @@ class UploadBloodSampleView(LoginRequiredMixin, View):
 
                 BloodSample.objects.bulk_create(model_instances)
             except Exception as e:
-                logger.error(f'Something went wrong in uploading \
-                    Blood Sample file data - {e}')
-                return None
+                logger.error(
+                    'Something went wrong in adding Blood Sample data to table:'
+                    f'{e}')
+                return JsonResponse({
+                    'status': 500,
+                    'message': 'Something went wrong in adding Blood Sample '
+                               f'file data to database: {e}'})
 
             return render(request, self.blood_sample_success_template, {
                 "new_records": len(new_records)
