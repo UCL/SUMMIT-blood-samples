@@ -286,7 +286,10 @@ class UploadBloodSampleView(LoginRequiredMixin, View):
             except Exception as e:
                 logger.error(f'Something went wrong in storing Blood Sample \
                     file in Uploads folder - {e}')
-                return None
+                return JsonResponse({
+                    'status': 500,
+                    'message': 'Something went wrong in storing Blood Sample '
+                               f'file in Uploads folder: {e}'})
             # End of storing file
 
             day, days = UploadView.get_dayformated_and_days(self, request)
@@ -304,12 +307,13 @@ class UploadBloodSampleView(LoginRequiredMixin, View):
             except Exception as e:
                 logger.error(f'Something went wrong in uploading \
                     Blood Sample file details in imports table - {e}')
-                return None
+                return JsonResponse({
+                    'status': 500,
+                    'message': 'Something went wrong in adding Blood Sample '
+                               f'file details to imports table: {e}'})
 
             # Bulk uploading to BloodSample table
             try:
-
-
                 model_instances = [
                     BloodSample(
                         id=record['Id'],
@@ -317,8 +321,7 @@ class UploadBloodSampleView(LoginRequiredMixin, View):
                         Barcode=record['Barcode'] if re.match(
                             r"^(E[0-9]{6})+$", record['Barcode']) else "",
                         Comments="" if re.match(
-                            r"^(E[0-9]{6})+$", record['Barcode'])
-                        else record['Barcode'],
+                            r"^(E[0-9]{6})+$", record['Barcode']) else record['Barcode'],
                         AppointmentId=record['AppointmentId'],
                         SiteNurseEmail=record['User'],
                         ImportId=ImportId,
@@ -331,9 +334,13 @@ class UploadBloodSampleView(LoginRequiredMixin, View):
 
                 BloodSample.objects.bulk_create(model_instances)
             except Exception as e:
-                logger.error(f'Something went wrong in uploading \
-                    Blood Sample file data - {e}')
-                return None
+                logger.error(
+                    'Something went wrong in adding Blood Sample data to table:'
+                    f'{e}')
+                return JsonResponse({
+                    'status': 500,
+                    'message': 'Something went wrong in adding Blood Sample '
+                               f'file data to database: {e}'})
 
             return render(request, self.blood_sample_success_template, {
                 "new_records": len(new_records)
@@ -713,7 +720,10 @@ class UploadReceiptView(LoginRequiredMixin, View):
             except Exception as e:
                 logger.error(f'Something went wrong in storing Receipt \
                     file in Uploads folder - {e}')
-                return None
+                return JsonResponse({
+                    'status': 500,
+                    'message': f'Error storing Receipt file: {e}'
+                })
             # End of storing file
 
             day, days = UploadView.get_dayformated_and_days(self, request)
@@ -730,7 +740,10 @@ class UploadReceiptView(LoginRequiredMixin, View):
             except Exception as e:
                 logger.error(f'Something went wrong in uploading \
                     Receipt file details in imports table - {e}')
-                return None
+                return JsonResponse({
+                    'status': 500,
+                    'message': f'Error adding Receipt file details: {e}'
+                })
 
             # Dropping duplicates in file comparing with ReceiptRecords table
             receipt_barcode = ReceiptRecords.objects.\
@@ -759,7 +772,10 @@ class UploadReceiptView(LoginRequiredMixin, View):
             except Exception as e:
                 logger.error(f'Something went wrong in uploading \
                     Receipt file data - {e}')
-                return None
+                return JsonResponse({
+                    'status': 500,
+                    'message': f'Error adding Receipt file data: {e}'
+                })
 
             return render(request, self.receipt_success_template, {
                 "record_found_cnt": record_found_cnt,
@@ -968,7 +984,10 @@ class UploadProcessedView(LoginRequiredMixin, View):
             except Exception as e:
                 logger.error(f'Something went wrong in storing Processed \
                     file in Uploads folder - {e}')
-                return None
+                return JsonResponse({
+                    'status': 500,
+                    'message': f'Error storing Processed file: {e}'
+                })
             # End of storing file
 
             day, days = UploadView.get_dayformated_and_days(self, request)
@@ -985,7 +1004,10 @@ class UploadProcessedView(LoginRequiredMixin, View):
             except Exception as e:
                 logger.error(f'Something went wrong in uploading \
                     Processed file details in imports table - {e}')
-                return None
+                return JsonResponse({
+                    'status': 500,
+                    'message': f'Error adding Processing file details: {e}'
+                })
 
             # Dropping duplicates in file comparing with ProcessedReport table
             processed_barcode = ProcessedReport.objects.\
@@ -1024,7 +1046,10 @@ class UploadProcessedView(LoginRequiredMixin, View):
             except Exception as e:
                 logger.error(f'Something went wrong in uploading \
                     Processed file data - {e}')
-                return None
+                return JsonResponse({
+                    'status': 500,
+                    'message': f'Error adding Processed file data: {e}'
+                })
 
             # Dropping duplicates in file comparing with
             # ProcessedAliquots table
@@ -1052,7 +1077,10 @@ class UploadProcessedView(LoginRequiredMixin, View):
             except Exception as e:
                 logger.error(f'Something went wrong in uploading \
                     Processed Aliquots file data - {e}')
-                return None
+                return JsonResponse({
+                    'status': 500,
+                    'message': f'Error adding Aliquots data: {e}'
+                })
 
             manifest_db_df = \
                 manifest_db_df[manifest_db_df['Participant ID'].isin(
@@ -1109,10 +1137,13 @@ class UploadProcessedView(LoginRequiredMixin, View):
                         html_message=msg_html,
                     )
             except Exception as e:
-                logger.error('Something went wrong in sending \
+                logger.error(f'Something went wrong in sending \
                     mail to data managers about uploads of \
                         not processed under 36 hours - {e}')
-                return None
+                return JsonResponse({
+                    'status': 500,
+                    'message': f'Error sending email: {e}'
+                })
 
             return render(request, self.receipt_success_template, {
                 "total_records": total_records,
