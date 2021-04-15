@@ -109,7 +109,7 @@ $(document).ready(function(){
                             }
                     });
                 }else{
-                    $('.error').html('Internal server error occured');
+                    $('.error').html("Internal server error encountered: " + data.message);
                 }
                 $('.modal-loader').hide();
             }

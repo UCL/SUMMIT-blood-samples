@@ -55,7 +55,7 @@ $('#manifestupload').click(function() {
         },
         error: function (error) {
             $('.modal-loader').hide();
-            $('#error').html("Internal server error encountered");
+            $('.error').html("Internal server error encountered: " + error.message);
         }
     });
     $('.btn-cancel').prop("disabled", false);

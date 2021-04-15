@@ -69,7 +69,7 @@ $(document).ready(function(){
                     var bloodSamples = [];
                     $.each($("input[name='BloodSample']:checked"), function () {
                         bloodSamples.push($(this).val());
-                        
+
                     });
                     var manifest = [];
                     $.each($("input[name='Manifest']:checked"), function () {
@@ -83,11 +83,11 @@ $(document).ready(function(){
                     $.each($("input[name='Processed']:checked"), function () {
                         processed.push($(this).val());
                     });
-                    
+
                     twbsPaginator("#pagination_processed", "#processed_table", window['page#pagination_processed'], window['total_pages#pagination_processed'],
                     '{% url "Blood Sample:Review" %}?table=True&type=processed&day='+$('.reviewProcessedDay.activeDay').data('activeday')+'&'+$('.processed-filter-form').serialize()+'&BloodSample=' + bloodSamples+'&Manifest=' + manifest+'&Receipt=' + receipt+'&Processed=' + processed+'&page=');
                 }else{
-                    $('.error').html('Internal server error occured');
+                    $('.error').html('Internal server error occured: ' + data.message);
                 }
                 $('.modal-loader').hide();
             }

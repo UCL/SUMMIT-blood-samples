@@ -45,7 +45,7 @@
             {% if item.CollectionDateTime|date:"Y-m-d" == item.DateTimeTaken|date:"Y-m-d"  %}
                 <td class="receipt-col">{{ item.DateTimeTaken }}</td>
             {% else %}
-                <td style="background:rgb(255 87 34 / 27%);"><a rel="tooltip" data-html="true" title="<h6>Collection Date mismatch</h6>" ><img style="height: 23px;margin-bottom: 0;" src="{% static 'indigo/images/error.svg' %}" />{{ item.DateTimeTaken }}</a></td>            
+                <td style="background:rgb(255 87 34 / 27%);"><a rel="tooltip" data-html="true" title="<h6>Collection Date mismatch</h6>" ><img style="height: 23px;margin-bottom: 0;" src="{% static 'indigo/images/error.svg' %}" />{{ item.DateTimeTaken }}</a></td>
             {% endif %}
             <td class="receipt-col">{{ item.ReceivedDateTime }}</td>
             <td class="receipt-col">{{ item.Volume }}</td>
@@ -77,6 +77,8 @@ $(document).ready(function(){
                 $(".customModal").removeClass("modal-xl");
             },
             error: function (error) {
+                $('.modal-loader').hide();
+                $('.error').html("Internal server error encountered: " + error.message);
             }
         });
     })
