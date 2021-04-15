@@ -1044,8 +1044,7 @@ class UploadProcessedView(LoginRequiredMixin, View):
                 ]
                 ProcessedReport.objects.bulk_create(model_instances)
             except Exception as e:
-                logger.error(f'Something went wrong in uploading \
-                    Processed file data - {e}')
+                logger.error(f'Something went wrong in uploading Processed file data - {e}')
                 return JsonResponse({
                     'status': 500,
                     'message': f'Error adding Processed file data: {e}'
