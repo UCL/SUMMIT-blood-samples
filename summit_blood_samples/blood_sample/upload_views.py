@@ -242,8 +242,7 @@ class UploadBloodSampleView(LoginRequiredMixin, View):
         if BloodSample.objects.count() >= df.shape[0]:
             return JsonResponse({
                 'status': 412,
-                'message': 'The uploaded file has less than or equal \
-                    number of records compared to database records'
+                'message': 'The uploaded file has less than or equal number of records compared to database records'
             })
 
         # Checking no duplicatesId columns
@@ -259,8 +258,7 @@ class UploadBloodSampleView(LoginRequiredMixin, View):
         except:
             return JsonResponse({
                 'status': 412,
-                'message': 'CreatedAt column values are not \
-                    in expected format'})
+                'message': 'CreatedAt column values are not in expected format'})
 
         # Getting stats of newly uploading file
         report_ids = BloodSample.objects.values_list('id', flat=True)[
@@ -421,8 +419,7 @@ class UploadManifestView(LoginRequiredMixin, View):
                     datetime.datetime).tolist():
             return JsonResponse({
                 'status': 412,
-                'message': 'CollectionDateTime column values are not \
-                    in expected format'
+                'message': 'CollectionDateTime column values are not in expected format'
             })
 
 
@@ -447,15 +444,13 @@ class UploadManifestView(LoginRequiredMixin, View):
         if False in (df['CohortId'].str.match(r'^([0-9]{3})-([A-Z]{3})$').tolist()):
             return JsonResponse({
                 'status': 412,
-                'message': 'CohortId column values are \
-                    not in expected format ###-AAA'})
+                'message': 'CohortId column values are not in expected format ###-AAA'})
 
         # Validating Barcode format
         if False in (df['Barcode'].str.match(r'^E([0-9]{6})$').tolist()):
             return JsonResponse({
                 'status': 412,
-                'message': 'Error: Barcode column values are \
-                    not in expected format E######'})
+                'message': 'Error: Barcode column values are not in expected format E######'})
 
         # Validating Visit
         if False in df['Visit'].isin([v for (k,v) in visit_choices.items()]).tolist():
@@ -505,8 +500,7 @@ class UploadManifestView(LoginRequiredMixin, View):
                     '.')[0] + time.strftime("%d%m%Y-%H%M%S") + '.' +
                     manifest_file.name.split('.')[1], manifest_file)
             except Exception as e:
-                logger.error(f'Something went wrong in storing Manifest \
-                    file in Uploads folder - {e}')
+                logger.error(f'Something went wrong in storing Manifest file in Uploads folder - {e}')
                 return JsonResponse({
                     'status': 500,
                     'message': f'Failed to store Manifest file in uploads folder: {e}'
@@ -523,8 +517,7 @@ class UploadManifestView(LoginRequiredMixin, View):
                     Deleted=False
                 )
             except Exception as e:
-                logger.error(f'Something went wrong in uploading \
-                    Manifest file details in imports table - {e}')
+                logger.error(f'Something went wrong in uploading Manifest file details in imports table - {e}')
                 return JsonResponse({
                     'status': 500,
                     'message': f'Failed to create manifest record in DB: {e}'
@@ -547,8 +540,7 @@ class UploadManifestView(LoginRequiredMixin, View):
                 ]
                 ManifestRecords.objects.bulk_create(model_instances)
             except Exception as e:
-                logger.error(f'Something went wrong in uploading \
-                    Manifest file data - {e}')
+                logger.error(f'Something went wrong in uploading Manifest file data - {e}')
                 return JsonResponse({
                     'status': 500,
                     'message': f'Failed to create manifest records in DB: {e}'
@@ -618,8 +610,7 @@ class UploadReceiptView(LoginRequiredMixin, View):
         except:
             return JsonResponse({
                 'status': 412,
-                'message': 'DateTime Taken column values are not in \
-                    expected format'})
+                'message': 'DateTime Taken column values are not in expected format'})
 
         # Validating Received DateTime column
         try:
@@ -629,8 +620,7 @@ class UploadReceiptView(LoginRequiredMixin, View):
         except:
             return JsonResponse({
                 'status': 412,
-                'message': 'Received DateTime column values are not in \
-                    expected format'})
+                'message': 'Received DateTime column values are not in expected format'})
 
         # Validating Volume Unit column
         if True in (df['VolUnit'].str.lower() != 'ul').tolist():
@@ -718,8 +708,7 @@ class UploadReceiptView(LoginRequiredMixin, View):
                     '.')[0] + time.strftime("%d%m%Y-%H%M%S") + '.' +
                     receipt_file.name.split('.')[1], receipt_file)
             except Exception as e:
-                logger.error(f'Something went wrong in storing Receipt \
-                    file in Uploads folder - {e}')
+                logger.error(f'Something went wrong in storing Receipt file in Uploads folder - {e}')
                 return JsonResponse({
                     'status': 500,
                     'message': f'Error storing Receipt file: {e}'
@@ -738,8 +727,7 @@ class UploadReceiptView(LoginRequiredMixin, View):
                     Deleted=False
                 )
             except Exception as e:
-                logger.error(f'Something went wrong in uploading \
-                    Receipt file details in imports table - {e}')
+                logger.error(f'Something went wrong in uploading Receipt file details in imports table - {e}')
                 return JsonResponse({
                     'status': 500,
                     'message': f'Error adding Receipt file details: {e}'
@@ -842,8 +830,7 @@ class UploadProcessedView(LoginRequiredMixin, View):
                 set(['RBC', 'Plasma', 'BuffyCoat'])):
             return JsonResponse({
                 'status': 412,
-                'message': 'Sample Type column values are not having \
-                    expected values'})
+                'message': 'Sample Type column values are not having expected values'})
 
         # splitting processed and aliquots from the file
         #parent_df = df[df['Parent ID'] == 'No Parent']
@@ -874,8 +861,7 @@ class UploadProcessedView(LoginRequiredMixin, View):
         except:
             return JsonResponse({
                 'status': 412,
-                'message': 'Processed Date Time column values are not in \
-                    expected format'})
+                'message': 'Processed Date Time column values are not in expected format'})
 
         # Validating Received Date Time column
         try:
@@ -885,35 +871,30 @@ class UploadProcessedView(LoginRequiredMixin, View):
         except:
             return JsonResponse({
                 'status': 412,
-                'message': 'Received DateTime column values are not in \
-                    expected format'})
+                'message': 'Received DateTime column values are not in expected format'})
 
         # Validating Volume Unit column
         if True in (parent_df['Volume Unit'].str.lower() != 'ul').tolist():
             return JsonResponse({
                 'status': 412,
-                'message': 'Volume Unit column with Parent ID, \
-                    values are not an uL'})
+                'message': 'Volume Unit column with Parent ID, values are not an uL'})
 
         if True in (df[df['Parent ID'] !=
                        'No Parent']['Volume Unit'].str.lower() != 'ul').tolist():
             return JsonResponse({
                 'status': 412,
-                'message': 'Volume Unit column with no Parent ID, \
-                    values are not an ul'})
+                'message': 'Volume Unit column with no Parent ID, values are not an ul'})
 
         # Validating Sample Type column
         if True in (parent_df['Sample Type'] != 'Whole Blood').tolist():
             return JsonResponse({
                 'status': 412,
-                'message': 'Sample Type column with Parent ID, \
-                    values are not an Whole Blood'})
+                'message': 'Sample Type column with Parent ID, values are not an Whole Blood'})
 
         if not set(df[df['Parent ID'] != 'No Parent']['Sample Type'].unique().tolist()).issubset(set(['RBC', 'Plasma', 'BuffyCoat'])):
             return JsonResponse({
                 'status': 412,
-                'message': 'Sample Type column with no Parent ID, \
-                    values are not having expected values'})
+                'message': 'Sample Type column with no Parent ID, values are not having expected values'})
 
         # Validating Tissue Sub-Type column
         if True in (df['Tissue Sub-Type'] != 'EDTA').tolist():
@@ -925,14 +906,12 @@ class UploadProcessedView(LoginRequiredMixin, View):
         # if True in (df['No. of Children'].map(type) != int).tolist():
         #     return JsonResponse({
         #         'status': 412,
-        #         'message': 'No. of Children column values are not \
-        #             having expected values'})
+        #         'message': 'No. of Children column values are not having expected values'})
 
         # Validating Volume column
         if True in (df['Volume'].map(type) != int).tolist():
             return JsonResponse({
-                'status': 412, 'message': 'Volume column values are not \
-                    having expected values'})
+                'status': 412, 'message': 'Volume column values are not having expected values'})
 
         # Getting stats of the uploaded file
         total_records = parent_df.shape[0]
@@ -982,8 +961,7 @@ class UploadProcessedView(LoginRequiredMixin, View):
                     '.')[0] + time.strftime("%d%m%Y-%H%M%S") + '.' +
                     processed_file.name.split('.')[1], processed_file)
             except Exception as e:
-                logger.error(f'Something went wrong in storing Processed \
-                    file in Uploads folder - {e}')
+                logger.error(f'Something went wrong in storing Processed file in Uploads folder - {e}')
                 return JsonResponse({
                     'status': 500,
                     'message': f'Error storing Processed file: {e}'
@@ -1002,8 +980,7 @@ class UploadProcessedView(LoginRequiredMixin, View):
                     Deleted=False
                 )
             except Exception as e:
-                logger.error(f'Something went wrong in uploading \
-                    Processed file details in imports table - {e}')
+                logger.error(f'Something went wrong in uploading Processed file details in imports table - {e}')
                 return JsonResponse({
                     'status': 500,
                     'message': f'Error adding Processing file details: {e}'
@@ -1074,8 +1051,7 @@ class UploadProcessedView(LoginRequiredMixin, View):
                 ]
                 ProcessedAliquots.objects.bulk_create(model_instances)
             except Exception as e:
-                logger.error(f'Something went wrong in uploading \
-                    Processed Aliquots file data - {e}')
+                logger.error(f'Something went wrong in uploading Processed Aliquots file data - {e}')
                 return JsonResponse({
                     'status': 500,
                     'message': f'Error adding Aliquots data: {e}'
@@ -1127,8 +1103,8 @@ class UploadProcessedView(LoginRequiredMixin, View):
                             'referer': request.headers['Referer'][:-1]
                         })
                     send_mail(
-                        'Blood Samples - Uploaded Processed records which are \
-                            not processed under 36 hours',
+                        'Blood Samples - Uploaded Processed records which are '
+                        'not processed under 36 hours',
                         msg_html,
                         settings.DEFAULT_FROM_EMAIL,
                         [i.user_id.email for i in UserRoles.objects.filter(
@@ -1136,9 +1112,9 @@ class UploadProcessedView(LoginRequiredMixin, View):
                         html_message=msg_html,
                     )
             except Exception as e:
-                logger.error(f'Something went wrong in sending \
-                    mail to data managers about uploads of \
-                        not processed under 36 hours - {e}')
+                logger.error(f'Something went wrong in sending '
+                             f'mail to data managers about uploads of '
+                             f'not processed under 36 hours - {e}')
                 return JsonResponse({
                     'status': 500,
                     'message': f'Error sending email: {e}'
