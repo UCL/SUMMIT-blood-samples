@@ -67,7 +67,7 @@ $(document).ready(function(){
                     twbsPaginator("#pagination_blood_sample", "#sample_table", window['page#pagination_blood_sample'], window['total_pages#pagination_blood_sample'],
                     '{% url "Blood Sample:Review" %}?table=True&type=blood_sample&day='+$('.reviewBloodDay.activeDay').data('activeday')+'&page=');
                 }else{
-                    $('.error').html('Internal server error occured');
+                    $('.error').html('Internal server error occured: ' + data.message);
                 }
                 $('.modal-loader').hide();
             }

@@ -55,6 +55,8 @@ $(document).ready(function(){
                 $(".customModal").removeClass("modal-xl");
             },
             error: function (error) {
+                $('.modal-loader').hide();
+                $('.error').html("Internal server error encountered: " + error.message);
             }
         });
     })
