@@ -98,14 +98,14 @@ class ReviewView(LoginRequiredMixin, View):
             # Getting results based on pagination
             paginator = Paginator(query_results, settings.ITEMS_PER_PAGE)
 
+            if request.GET.get('get_pages', 'False') == 'True':
+                return JsonResponse({
+                    'status': 200,
+                    'total_pages': paginator.num_pages,
+                    'current_page': page })
 
             if table == "True":
-                try:
-                    results = paginator.page(page)
-                except PageNotAnInteger:
-                    results = paginator.page(1)
-                except EmptyPage:
-                    results = paginator.page(paginator.num_pages)
+                results = paginator.get_page(page)
                 return render(request,
                               self.blood_sample_review_table_template, {
                                   "objects": results.object_list,
@@ -717,12 +717,7 @@ class UnmachedManifestView(LoginRequiredMixin, View):
                     'total_pages': paginator.num_pages,
                     'current_page': page})
 
-            try:
-                results = paginator.page(page)
-            except PageNotAnInteger:
-                results = paginator.page(1)
-            except EmptyPage:
-                results = paginator.page(paginator.num_pages)
+            results = paginator.get_page(page)
 
             return render(request, self.bs_review_table_template, {
                 "objects": results.object_list,
@@ -777,12 +772,7 @@ class UnmachedManifestView(LoginRequiredMixin, View):
                     'current_page': page
                 })
 
-            try:
-                results = paginator.page(page)
-            except PageNotAnInteger:
-                results = paginator.page(1)
-            except EmptyPage:
-                results = paginator.page(paginator.num_pages)
+            results = paginator.get_page(page)
 
             return render(request, self.mf_review_table_template, {
                 "objects": results.object_list,
