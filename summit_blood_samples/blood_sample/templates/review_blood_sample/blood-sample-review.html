@@ -104,7 +104,7 @@
                 url: '{% url "Blood Sample:Review" %}?get_pages=True&type=blood_sample&day='+$('.reviewBloodDay.activeDay').data('activeday')+'&'+$('.bloodsample-filter-form').serialize(),
                 type: 'get',
                 success: function(data){
-                    twbsPaginator("#pagination_blood_sample", "#sample_table", "{{current_page}}", "{{total_pages}}",
+                    twbsPaginator("#pagination_blood_sample", "#sample_table", data.current_page, data.total_pages,
                     '{% url "Blood Sample:Review" %}?table=True&type=blood_sample&day='+$('.reviewBloodDay.activeDay').data('activeday')+'&'+$('.bloodsample-filter-form').serialize()+'&page=');
                 }
             });
