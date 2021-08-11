@@ -14,6 +14,7 @@ from django.shortcuts import render
 from django.template.loader import render_to_string
 from django.utils.timezone import make_aware
 from django.views import View
+from django.db.models import Max
 
 from manage_users.models import *
 from .models import *
@@ -244,7 +245,9 @@ class UploadBloodSampleView(LoginRequiredMixin, View):
         
         # new records are defined as being records with an id greater than the
         # last id loaded from the CurrentAppointmentBlood report
-        new_records = [idx for idx in excel_ids if idx > max(excel_ids)]
+        max_report_ids = BloodSample.objects.all().aggregate(Max('id'))['id__max']
+
+        new_records = [idx for idx in excel_ids if idx > max_report_ids]
 
         # Input Records Count Validations i.e., Uploaded file should have more
         # number of record compared to database
