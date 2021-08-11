@@ -1,15 +1,15 @@
-import re
-from datetime import datetime
 import datetime
-import time
-import pandas as pd
 import logging
+import re
+import time
 
-from django.db.models import Max
+import pandas as pd
+
 from django.conf import settings
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.files.storage import FileSystemStorage
 from django.core.mail import send_mail
+from django.db.models import Max
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render
 from django.template.loader import render_to_string
