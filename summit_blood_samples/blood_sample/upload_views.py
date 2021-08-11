@@ -5,6 +5,7 @@ import time
 import pandas as pd
 import logging
 
+from django.db.models import Max
 from django.conf import settings
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.files.storage import FileSystemStorage
@@ -14,7 +15,6 @@ from django.shortcuts import render
 from django.template.loader import render_to_string
 from django.utils.timezone import make_aware
 from django.views import View
-from django.db.models import Max
 
 from manage_users.models import *
 from .models import *
