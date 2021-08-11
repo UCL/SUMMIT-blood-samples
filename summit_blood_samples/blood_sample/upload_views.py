@@ -239,8 +239,6 @@ class UploadBloodSampleView(LoginRequiredMixin, View):
             })
 
         # Getting stats of newly uploading file
-        report_ids = BloodSample.objects.values_list('id', flat=True)[
-            ::1]
         excel_ids = df.Id.values.tolist()
         
         # new records are defined as being records with an id greater than the
