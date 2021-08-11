@@ -237,12 +237,21 @@ class UploadBloodSampleView(LoginRequiredMixin, View):
                 'message': 'Column names not matching'
             })
 
+        # Getting stats of newly uploading file
+        report_ids = BloodSample.objects.values_list('id', flat=True)[
+            ::1]
+        excel_ids = df.Id.values.tolist()
+        
+        # new records are defined as being records with an id greater than the
+        # last id loaded from the CurrentAppointmentBlood report
+        new_records = [idx for idx in excel_ids if idx > max(excel_ids)]
+
         # Input Records Count Validations i.e., Uploaded file should have more
         # number of record compared to database
-        if BloodSample.objects.count() >= df.shape[0]:
+        if len(new_records) == 0:
             return JsonResponse({
                 'status': 412,
-                'message': 'The uploaded file has less than or equal number of records compared to database records'
+                'message': 'There are no new records to be uploaded'
             })
 
         # Checking no duplicatesId columns
@@ -260,11 +269,6 @@ class UploadBloodSampleView(LoginRequiredMixin, View):
                 'status': 412,
                 'message': 'CreatedAt column values are not in expected format'})
 
-        # Getting stats of newly uploading file
-        report_ids = BloodSample.objects.values_list('id', flat=True)[
-            ::1]
-        excel_ids = df.Id.values.tolist()
-        new_records = list(set(excel_ids).difference(report_ids))
 
         # get how many records for this day
 
