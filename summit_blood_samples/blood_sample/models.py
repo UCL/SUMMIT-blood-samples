@@ -318,7 +318,30 @@ SAMPLE_TYPE = [
 ]
 
 
-class ProcessedAliquots(models.Model):
+class DuplicatesManager(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset().filter(is_duplicate=False)
+
+
+class DuplicatesModel(models.Model):
+    is_duplicate = models.BooleanField(default=False)
+
+    objects = DuplicatesManager()
+    all_objects = models.Manager()
+
+    class Meta:
+        abstract = True
+    
+    def mark_duplicate(self):
+        self.is_duplicate = True
+        self.save()
+
+    def not_duplicate(self):
+        self.not_duplicate = False
+        self.save()
+
+
+class ProcessedAliquots(DuplicatesModel):
     SampleType = models.CharField(
         max_length=1,
         choices=SAMPLE_TYPE,
